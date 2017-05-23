@@ -1,9 +1,8 @@
 function exinfo = addSortingValue( exinfo )
-% loads the spike sorting files and extracts the sorting category and
-% assigns it to the corresponding data in the exinfo struct.
+% loads the spike sorting files, retracts the sorting quality and
+% assigns it to the corresponding data in the exinfo structure.
 %
-% Note that concatenated files are traeted individually and are assigned with the mean 
-% sorting quality. 
+% Note that for concatenated files the average sorting quality is assigned.
 % If there is no sorting quality entry, it is set to 6.
 %
 % @CL December 07, 2016
@@ -25,7 +24,7 @@ sorting.matfilename = sorting.matfilename(idx);
 sorting.isoQc2 = sorting.isoQc2(idx);
 sorting.isoQc1 = sorting.isoQc1(idx);
 
-% loop through exinfo and assign the spike isolation quality
+% loop through exinfo and assign the spike cluster isolation quality
 for i = 1:length(exinfo)
     exinfo(i).spkqual_base = getSpkQ(exinfo(i), exinfo(i).fname, sorting);
     exinfo(i).spkqual_drug = getSpkQ(exinfo(i), exinfo(i).fname_drug, sorting);
@@ -38,15 +37,17 @@ function spkQ = getSpkQ(exinfo, fname, sorting)
 % for each filename fname look for the according entry in the sorting file
 % if it is a concatenated file, take the average sorting quality
 
-    if isempty(strfind(fname, 'all.grating'))
-        spkQ = getSpkQHelper(fname, exinfo.monkey, sorting);
-    else
+    if contains(fname, 'all.grating') % concatenated ex files
+        
         load(fname);
-        fname_list = getFnames(ex);
+        fname_list = getFnames(ex); % original file names
+        
         for kk = 1:length(fname_list)
             spkQ_list(kk) = getSpkQHelper(fname_list{kk}, exinfo.monkey, sorting);
         end
-        spkQ = mean(spkQ_list);
+        spkQ = mean(spkQ_list); 
+    else
+        spkQ = getSpkQHelper(fname, exinfo.monkey, sorting);
     end 
     
 end
@@ -58,13 +59,13 @@ function spkQual = getSpkQHelper(fname, monkey, sorting)
 idx = findIdxMatchingFname(sorting.matfilename, fname, monkey);
 
 if ~isempty(idx)
-    if isempty(strfind(fname, 'c1'))
-        spkQual = sorting.isoQc2(idx);
-    else
+    if contains(fname, 'c1')
         spkQual = sorting.isoQc1(idx);
+    else
+        spkQual = sorting.isoQc2(idx);
     end
 else
-    spkQual = 6;  % when there is no entry, assign 6
+    spkQual = 6;  % when there is no entry assign 6
 end
     
 end
