@@ -1,10 +1,21 @@
 function exinfo = getDominantEyeField( exinfo )
+% exinfo = getDominantEyeField( exinfo )
+% 
+% 
+% determine the dominant eye by comparing the elicited spike across
+% conditions where the stimulus was presented to only one eye (excluding
+% binocular trials).
+% 
+% 
+% 
 
-%--------------- select dominant eye
-isdominant = zeros(1, length(exinfo));
 
-% select the dominant eye, ie the trials that are not binocularly
-% stimulated
+% initialize the variable that contains the boolean value identifying the
+% dominant eye experiment
+isdominant = false(1, length(exinfo));
+
+% select the dominant eye from trials where the stimulus was
+% presented to only one eye (excluding binocular conditions).
 for neuron = unique([exinfo.idi])
     
     neuron_idx = [exinfo.idi] == neuron & ~[exinfo.isadapt]; %& [exinfo.rsqr4drug] >= expVarThres & ~[exinfo.isRC];
