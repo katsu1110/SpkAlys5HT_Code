@@ -2,12 +2,12 @@ function exinfo = getDominantEyeField( exinfo )
 % exinfo = getDominantEyeField( exinfo )
 % 
 % 
-% determine the dominant eye by comparing the elicited spike across
-% conditions where the stimulus was presented to only one eye (excluding
-% binocular trials).
+% determine the dominant eye by comparing the elicited spiking response
+% across conditions where the stimulus was presented to only one eye
+% (excluding binocular trials).
 % 
 % 
-% 
+% @CL
 
 
 % initialize the variable that contains the boolean value identifying the
@@ -87,7 +87,7 @@ isdominant  = num2cell(isdominant==1);
 cmpExp = num2cell(zeros(length(exinfo), 1));
 [exinfo.cmpExp] = deal(cmpExp{:});
 
-for uid = unique([exinfo.idi]);
+for uid = unique([exinfo.idi])
     idx = find([exinfo.idi] == uid);
     [~, maxi] =  max( cellfun(@max, {exinfo(idx).ratemn} ) );
     
