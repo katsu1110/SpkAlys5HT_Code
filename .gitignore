@@ -1,4 +1,4 @@
 *.asv
 *.csv
-*fig
+*.fig
 *.mat
