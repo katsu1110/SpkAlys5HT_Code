@@ -1,6 +1,6 @@
 function rasterPlot( exinfo, ex, ex_drug )
 % classical raster plot for both conditions with stimulus indicating color 
-% and lines indicating trial that were first in the fixation period
+% and lines indicating trials that were first in the fixation period
 % 
 % saves the figure in exinfo.fig_raster
 % 
@@ -23,14 +23,17 @@ end
 
 %%
 function rasterPlotHelper(exinfo, ex, ex_drug)
-% this is the meta function for the true plotting
-% it calls to plot the raster for each condition with plotCondition(..) 
-% and the stimulus annotation in the lower part of the figure
+% this is the meta function for the true plotting 
+% it calls to plot the raster for each condition with plotCondition(), the
+% development of spiking activity with plotRateHelper(), and the stimulus
+% annotation in the lower part of the figure
 
+
+% time stamp vector, 1000Hz sampling frequency
 if exinfo.isadapt
-    time = 0:0.001:5;
+    t = 0:0.001:5;
 else
-    time = -0.05:0.001:0.45;
+    t = -0.05:0.001:0.45;
 end
 
 % 1. plot baseline condition
@@ -38,7 +41,7 @@ ntrials = length([ex.Trials])+1;
 
 % baseline raster
 ax_rast = subplot(9,7,[(8:7:63), (9:7:63)]);
-plotCondition(addWindow(exinfo, ex.Trials), time, exinfo.param1, exinfo.ratepar)
+plotCondition(ex.Trials, t, exinfo.param1, exinfo.ratepar)
 title('baseline'); ylim([1 ntrials]); ax_rast.View =[0 -90];
 
 % baseline rate development
@@ -52,7 +55,7 @@ box off
 ntrials = length([ex_drug.Trials])+1;
 % drug raster
 ax_rast = subplot(9,7,[(12:7:63), (13:7:63)]);
-plotCondition(addWindow(exinfo, ex_drug.Trials), time, exinfo.param1, exinfo.ratepar)
+plotCondition(ex_drug.Trials, t, exinfo.param1, exinfo.ratepar)
 title(exinfo.drugname); ylim([1 ntrials]);ax_rast.View =[0 -90];
 
 % drug  rate development
@@ -79,19 +82,25 @@ end
 
 
 
-function plotCondition(Trials, time, param, parvls)
+function plotCondition(Trials, t, param, parvls)
 %%% plot the raster matrix according to different stimuli
 % also indicate phase and window 
+%
+% input arguments:
+% Trials        -  from ex.Trials. must be loaded with loadCluster to contain .FixWindow
+% t             - stimulus time
+% param         - string, stimulus parameter ('or', 'co', ...)
+% parvls        - values of the stimulus parameter (e.g. for or 22.5, 45,
+%                   ...)
 
-row_i = 1;
-col = lines(length(parvls));
+row_i = 1; %starting row
+col = lines(length(parvls)); % stimulus color
 
-% all the trials 
+
 for par_i = 1:length(parvls)
-    trials = Trials( [Trials.(param)] == parvls(par_i));
-    
-    row_i = getRasterPlotMatrix(trials, time, row_i, col(par_i, :));
-    plot(time([1, end]), [row_i, row_i], 'Color', [.5 .5 .5]);
+    trials_par_i = Trials( [Trials.(param)] == parvls(par_i));
+    row_i = getRasterPlotMatrix(trials_par_i, t, row_i, col(par_i, :));
+    plot(t([1, end]), [row_i, row_i], 'Color', [.5 .5 .5]);
     
 end
 
@@ -118,7 +127,7 @@ for t = 1:length(Trials)
         t_strt = t_strt(t_strt<=5);
     end
     
-    % spikes in the time range
+    % spikes in the stimulus presentation time 
     spk =  Trials(t).Spikes(...
         Trials(t).Spikes>=t_strt(1)+min(time) &  Trials(t).Spikes<=t_strt(end));
     spk = spk-t_strt(1); % align spikes to stimulus onset
@@ -129,7 +138,7 @@ for t = 1:length(Trials)
     raster(idx, t) = 1;
     
     % plotting
-    if Trials(t).window == 1
+    if Trials(t).FixCounter == 1
         fill([time(1), time(end), time(end), time(1)],...
             [y_idx, y_idx, y_idx+0.95, y_idx+0.95], ...
             [0.5 0.5 0.5], 'FaceAlpha', 0.2, 'EdgeAlpha', 0); hold on;

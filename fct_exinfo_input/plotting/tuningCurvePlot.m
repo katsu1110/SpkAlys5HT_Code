@@ -1,6 +1,15 @@
 function h = tuningCurvePlot(exinfo)
-% plots tuning curve for both conditions +/- sme
-% if fit_flag is true, the gauss fitted tuning curve is shown 
+% h = tuningCurvePlot(exinfo)
+% 
+% h is the figure handle of the figure containing the superimposed raw and
+% fitted tuning curves for both experiments +/- sme using the information
+% from exinfo.fitparam and exinfo.fitparam_drug. the data is provided by
+% evalSingleDG where, depending on the stimulus feature, descriptive
+% functions were fitted to the raw tuning curves.
+% 
+% the figure is saved as exinfo.fig_tc
+% 
+% @CL
 
 h = figure('Name', exinfo.figname);
 
@@ -30,9 +39,10 @@ end
 
 %% size data
 function fittedTC_sz(exinfo)
+% size tuning curve --> see fitSZ()
+
 
 c = getCol(exinfo);
-
 val = exinfo.fitparam.val;
 errorbar( val.sz,val.mn, val.sem, 'o', 'Color', c, 'MarkerFaceColor', c); ho
 text( val.sz,val.mn, num2str(exinfo.nrep(exinfo.ratepar<1000)));
@@ -60,8 +70,8 @@ end
 
 
 %% orientation contrast RC
-
 function fittedTC_orco(exinfo)
+% 2D tuning of contrast and orientation 
 
 n = ceil(length(exinfo.fitparam.others.OR)/2)+1;
 for i = 1:length(exinfo.fitparam.others.OR)
@@ -120,11 +130,11 @@ end
 
 %% orientation data
 function fittedTC_or(exinfo)
-% plots fitted tuning curve for both conditions +/- sme
+% orientation tuning curve  --> see fitOR()
 
-c = getCol(exinfo);
-ft = exinfo.fitparam;
-ft_drug = exinfo.fitparam_drug;
+c = getCol(exinfo); % experiment color
+ft = exinfo.fitparam; % fit parameters for the baseline experiment
+ft_drug = exinfo.fitparam_drug;% fit parameters for the drug experiment
 
 args_base = {'o', 'Color', c, 'MarkerSize', 5, 'MarkerFaceColor', c};
 args_drug = args_base; args_drug{end} = 'w';
@@ -162,7 +172,7 @@ end
 
 %% spatial frequency data
 function fittedTC_sf(exinfo, ft, ft_drug)
-% plots fitted tuning curve for both conditions +/- sme
+% spatial frequency tuning curve --> see fitSF()
 
 
 c = getCol(exinfo);
@@ -203,7 +213,7 @@ end
 
 %% contrast data
 function fittedTC_co(exinfo)
-% plots tuning curve for both conditions +/- sme
+% contrast tuning curve --> see fitCO()
 
 c = getCol(exinfo);
 
@@ -263,18 +273,21 @@ plot(ft.x .*100, ft.y, lineArgs{:}); ho
 end
 
 
+%% helper
 
 function plotSpontResp(exinfo, c)
+% plot the response to blanks as horizontal line
+
 idx0 = exinfo.ratepar>1000;
 idx2 = exinfo.ratepar_drug>1000;
 
-if any(idx0); 
+if any(idx0)
     plot( get(gca, 'XLim'), [exinfo.ratemn(idx0) exinfo.ratemn(idx0)], ...
-    'Color', c);
+        'Color', c);
 end
 
-if any(idx2); 
+if any(idx2)
     plot( get(gca, 'XLim'), [exinfo.ratemn_drug(idx2) exinfo.ratemn_drug(idx2)], ...
-    'Color', c, 'LineStyle', '--');
+        'Color', c, 'LineStyle', '--');
 end
 end

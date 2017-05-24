@@ -1,6 +1,10 @@
 function exinfo = phasePlot( exinfo, ex0, ex2 )
-% stimulus phase as time vs psth
-% this plot reflects evidence for simple or complex behavior
+% exinfo = phasePlot( exinfo, ex0, ex2 )
+% 
+% plots the PSTH and stimulus temporal freqency for each stimulus, and the
+% results of the phase selectivity (f1/f0).
+% 
+%@CL
 
 
 hnew = figure('Name', exinfo.figname, 'UserData', exinfo, ...
@@ -71,7 +75,6 @@ xlabel stim;
 
 %%
 savefig(hnew, exinfo.fig_phase);
-
 close(hnew); close(h0); close(h2);
 
 end

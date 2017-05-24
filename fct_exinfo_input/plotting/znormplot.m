@@ -1,7 +1,10 @@
 function h = znormplot( ex_base, ex_drug, exinfo )
 % znormplot
+% 
 % plots the z-scored data in the drug and baseline condition 
-
+% 
+% 
+% @CL
 
 h = figure('Name', exinfo.figname);
 drugcolor = getCol(exinfo);
@@ -51,8 +54,6 @@ for pos = 1:l
 end
 text(0.5, 0.5, [exinfo.param1 ', grey=1st trial'], 'FontSize', 9);
 axis off;
-
-
 
 
 % 5. save figure
