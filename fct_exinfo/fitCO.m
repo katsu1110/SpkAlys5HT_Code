@@ -10,7 +10,7 @@ function tcfit = fitCO(mn, co_all, bootstrp)
 % - co_all:     stimulus contrast samples
 % 
 % 
-% The fit is restricted 
+% The fit is restricted in the subfunciton cf().
 % If you add a fourth argument, the tuning fit is bootstrapped and another
 % field with these results is added to the output structure.
 %
@@ -120,6 +120,8 @@ ss = sum((y_pred-y).^2); %summed squared error, i.e. the general cost function
 
 
 % restrictions / boundaries
+% the fit is restricted to positive paramaters and a saturation that has to
+% be smaller than the maximal response
 if c50 < 0 || n < 0 || m<0 || rmax <0 || rmax+m > max(y) 
     ss = Inf;
 end

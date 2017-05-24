@@ -1,23 +1,42 @@
 function fitparam = fitSZ( mn, sem, sz, bootstrp )
-% assigns the critical parameters and estimates to the fitparam structure
-%
-%
+%fitparam = fitSZ( mn, sem, sz ) 
+% of
+%fitparam = fitSZ( mn, sem, sz ) 
+% 
+% fit ratio of gaussians to size tuned spike rates
+% 
+% The input arguments are vectors:
+% - mn:         the spike count or spike rate 
+% - sem:        the standard errors of mn
+% - sz:         stimulus size samples
+% 
+% 
+% If you add a fourth argument, the tuning fit is bootstrapped and another
+% field with these results is added to the output structure.
+% 
+% The output argument is a struct with the 
+% - the fitting parameters 
+% - the raw tuning curve (responses and size samples), excluding the blank:
+% - well-sampled, fitted size response function 
+% - the bootstrapped fitting parameters
+% 
+% @CL
 
 
-idx = sz<1000;
-sz2=sz(idx); 
-mn2 = mn(idx); offset = min(mn2); mn2 = mn2-offset;
-sem2 = sem(idx);
+%% parse input
 
-sz_4fit = sz2;
-
-
-% CL fit
-[ks, kc, ws, wc, fvalcl, r2] = fitGaussRatio(sz_4fit, mn2);
+noblankidx = sz<1000; % ignore blanks
+sz2=sz(noblankidx); 
+mn2 = mn(noblankidx); offset = min(mn2); mn2 = mn2-offset; % remove spontaneous response activity
+sem2 = sem(noblankidx);
 
 
-%  assign results
-fitparam.val.mn = mn(idx);
+%% CL fit
+[ks, kc, ws, wc, fvalcl, r2] = fitGaussRatio(sz2, mn2);
+
+
+%%  assign results
+fitparam.val.mn = mn(noblankidx);
 fitparam.val.sem = sem2;
 fitparam.val.sz = sz2;
 
@@ -28,23 +47,29 @@ fitparam.ws = ws;
 fitparam.ks = ks; 
 fitparam.kc = kc; 
 
-mn4si = mn(idx)-mn(~idx);
+
+% the fitting quality, i.e. the explained variance
+fitparam.r2 = r2;
+
+%% compute the suppression index
+% it is the response amplitude divided by the maximal response
+mn4si = mn(noblankidx)-mn(~noblankidx); % remove spontaneous activity
 fitparam.SI = (max(mn4si)-mn4si(end)) /  max(mn4si);
 
     
+%% compute the preferred stimulus size
+fitparam.mu = getPSZ(fitparam.val.y , fitparam.val.x, mn(noblankidx), sz2);
 
-fitparam.mu = getPSZ(fitparam.val.y , fitparam.val.x, mn(idx), sz2);
-fitparam.r2 = r2;
-
+%% bootstrap the fitting parameters
 if nargin == 4
-    mn2 = mn(idx);
-    sem2 = sem(idx);
-    sz2 = sz(idx);
+    mn2 = mn(noblankidx);
+    sem2 = sem(noblankidx);
+    sz2 = sz(noblankidx);
     
     parfor i = 1:1000
         bootidx = randi(length(mn2), length(mn2), 1);
-        boot(i) = fitSZ( [mn2(bootidx) mn(~idx)], ...
-            [sem2(bootidx) sem(~idx)], ...
+        boot(i) = fitSZ( [mn2(bootidx) mn(~noblankidx)], ...
+            [sem2(bootidx) sem(~noblankidx)], ...
             [sz2(bootidx) 10001] ) ;
     end
     fitparam.boot = boot;
@@ -76,19 +101,3 @@ end
 
 fprintf('pref sz %1.2f \n', prefsz)
 end
-
-
-% 
-%  
-% function Q = MyRatioOfGaussians(X0,x)
-% 
-% f1 = @(t1) exp(-(t1/X0(1)).^2);
-% f2 = @(t2) exp(-(t2/X0(2)).^2);
-% for n=1:length(x)
-% Q(n) = X0(3)*(2/sqrt(pi)*integral(f1,0,x(n)))^2/...
-%     (1+(2/sqrt(pi)*X0(4)*integral(f2,0,x(n)))^2);
-% end
-% 
-% end
-%  
- 
