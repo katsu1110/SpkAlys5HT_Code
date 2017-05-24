@@ -1,8 +1,15 @@
 function [ex, spkrate, spkcount] = znormex(ex, exinfo)
 %[ex, spkrate, spkcount] = znormex(ex, exinfo)
-% converts spike rates to z-normed data for each condition pair
-% norm_flag determines if to use spike rate (norm_falg = 1) or spike count
-% (norm_flag = 0)
+% 
+% computes the stimulus elicited spike count and resulting spike rate and
+% saves the z-normed activity in ex.Trials  for each stimulus.
+% 
+% additionally, cell arrays with information for the raster plot are saved
+% in ex (ex.raster, ex.rastercum, ex.raster, ex.trials_n). The cells are
+% sorted corresponding to spkrate.x with x being the stimulus feature (or,
+% co, sz, sf,...)
+% 
+% @CL
 
 
 param1 = exinfo.param1;
