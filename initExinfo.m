@@ -7,15 +7,15 @@ function exinfo = initExinfo(varargin)
 % individual experiment (i.e. spike rate, varaibility, tuning, etc.) and
 % their comparison (i.e. regression fit, relative activity change, etc.).  
 % 
-% % This function also add...
+% % This function also adds...
 % - all the generic background information (mostly from the filename or ex file), 
-%     e.g. dose, drug, spike cluster, etc.
+%     e.g. dose, drug, spike waveform cluster, etc.
 % - information about the electrode (hardcoded within the code),
 %     e.g. was it broken, is it still considere for analysis
 % - and specifies the folder and names of figures (also hardcoded)  
 %     e.g. the figure name of the tuning curve, regression fit, etc.
 % 
-% The output (exinfo) is stored in a folder called Data as
+% The output (exinfo) is stored in a superordinate folder called Data as
 % 'empty_exinfo.mat'. If the file already exists, it is overwritten.
 %
 %
@@ -38,7 +38,7 @@ function exinfo = initExinfo(varargin)
 %% initiate variables
 kk = 0;
 idi = 1;
-fname = 'Z:\Corinna\filenames\SU110716_CL_all.txt'; % txt file containing the ex filenames. 
+fname = 'Z:\Corinna\filenames\SU110716_CL_all.txt'; % txt file containing the experiment filenames
 
 cfolder = cd('..');
 figdir.pre = fullfile(cd, 'Figures\'); %folder destination for all figures
@@ -143,7 +143,7 @@ exinfo = struct(...
     'fig_recovery', [], ...%<- figure filename that shows the average activity of a unit for each experimetn within the session
     'stimdur', [], ... %<- the stimulus presentation duration of the RC flashed grating (10 or 30ms)
     'tf', [], ... %<- the temporal frequency of the stimulus
-    'valid', [], ... %<- ???
+    'valid', [], ... %<- experiments with the best type-II regression fit within a stimulus dimension of a unit
     'isdominant', [], ... %<- is the experiment with stimuli shown to the dominant eye
     'cmpExp', [], ... %<- ???
     'RFwx', [], ... %<- estimated receptive field width in x dimension
@@ -152,16 +152,16 @@ exinfo = struct(...
     'RFw_corr', [], ... %<- eccentricity corrected receptive field width
     'spkqual_base', [], 'spkqual_drug', [], ... %<- spike sorting quality, derived from the google spreadsheet
     'gaussr2', [], 'gaussr2_drug', [], ... %<- tuning fit quality as measured by the explained variance
-    'dn', [], ... %<- number of experiment within a recording session of one unit
+    'dn', [], ... %<- preceeding number of drug experiment within the unit recording
     'dt_cum', [], ... %<- cummulated time of 5HT application before this experiment for one unit
     'dn_id', [], ... 
-    'dn_session', [],...
+    'dn_session', [],... %<- preceeding number of drug experiment in a recording session
     'dt_id', [],...
     'dt_cum_id', [],...
     'dt_cum_session', [],...
     'gridX', [], 'gridY', [], ... %<- grid position - note that the information in the ex file are not always correct. look uo the google spreadsheet for the correct position.
     'expstrt', [], ... %<- time stamp of the first trial start
-    'ret2base', [], ... %<- boolean value, true if the baseline experiment recovered
+    'ret2base', [], ... %<- boolean value, true if this baseline experiment recovered from the effect of preceeding drug application 
     'iscmp2base', [], ... %<- ???
     'reg_slope', [], ... %<- result of the latency control analysis using subsampling. Slope of the regression fit Latency ~ Noise (Baseline SD in SDFs)
     'reg_off', [], ... %<- corresponding offset of the regression
@@ -331,7 +331,7 @@ for i = 1:length(F_drug)
     [gridX, gridY, ] = getGridPosition( ex0 ); 
     
     % beginning of the experiment
-    expStrt = ex0.Trials(1).TrialStart; 
+    expStrt = min( [ex0.Trials(1).TrialStart, ex2.Trials(1).TrialStart] ); 
 
     
     % generic figure name
@@ -379,6 +379,8 @@ for i = 1:length(F_drug)
         exinfo(kk).gridX = gridX;
         exinfo(kk).gridY = gridY;
         exinfo(kk).expstrt = expStrt;
+        exinfo(kk).expduration = ex0.Trials(end).TrialEnd - ex0.Trials(1).TrialStart;
+        exinfo(kk).expduration_drug = ex2.Trials(end).TrialEnd - ex2.Trials(1).TrialStart;
         
         exinfo(kk).fname = fname;             exinfo(kk).fname_drug = fname_drug;
         exinfo(kk).date = getExDate(ex0);     exinfo(kk).date_drug = getExDate(ex2);
@@ -395,7 +397,12 @@ for i = 1:length(F_drug)
         exinfo(kk).cluster    = spkcluster;
         
         exinfo(kk).wdt = -1;
+        exinfo(kk).lat = -10;
+        exinfo(kk).lat_drug = -10;
+        exinfo(kk).gaussr2 = -10;
+        exinfo(kk).gaussr2_drug = -10;
         
+
         
         if exinfo(kk).isRC
             if isfield(ex0.stim.vals,'RCperiod')
@@ -462,7 +469,7 @@ for i = 1:length(F_drug)
     
 end
 
-% exinfo = setPhaseSelTFexp( exinfo );
+exinfo = setPhaseSelTFexp( exinfo );
 
 save(fullfile(figdir.Data, 'empty_exinfo.mat'), 'exinfo')
 end
@@ -471,6 +478,8 @@ end
 
 
 function checkdir(fdir)
+% create the file directory, if it does not exist yet
+
 fnames = fieldnames(fdir);
 for i = 1:length(fnames)
     if ~exist(fdir.(fnames{i}), 'dir')
