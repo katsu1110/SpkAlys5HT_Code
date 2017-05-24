@@ -1,12 +1,14 @@
 function [latmx, psth] = getLatencyPerWindow(exinfo, ex)
-% takes the ex info and fname and returns a matrix with latency for each
-% stimuli condition and window of trial sequence (2sec trials with 4
-% stimuli). nmx is the additional matrix containin the number of trials in
-% the entry.
+% returns a matrix with response latencies for each stimulus condition
+% divided for trial that came first in the fixation period and trials that
+% came later (2sec trials with 4 stimuli). psth is an additional cell
+% containing the PSTHs the corresponding number of trials.
+% 
+% @CL
 
-
-oTrials = addWindow(exinfo, ex.Trials); % add window number
-oTrials = oTrials([oTrials.Reward]==1); % only valid trials
+% extent the Trial structure
+oTrials = ex.Trials([ex.Trials.Reward]==1); % only valid trials
+oTrials = addWindow(exinfo, oTrials); % add window number
 
 % if it is OR, collapse stimuli orientation
 if strcmp(exinfo.param1, 'or')
@@ -15,35 +17,34 @@ if strcmp(exinfo.param1, 'or')
     [oTrials(ind).or] = deal(stimor{:});
 end
 
-
-% stimuli parameters without blank
-parvls = unique( [ oTrials.(exinfo.param1) ] );
-parvls = parvls( parvls < 1000 );
-
-
-% preset output variables
-latmx = nan(length(parvls), 4);
-psth = cell(length(parvls), 4);
+% stimuli without blank
+stimvls = unique( [ oTrials.(exinfo.param1) ] );
+stimvls = stimvls( stimvls < 1000 );
 
 
-% first window
-for par_i = 1:length(parvls)
+% define the output variables
+latmx = nan(length(stimvls), 4);
+psth = cell(length(stimvls), 4);
+
+
+% all trials that are the first within the fixation period
+for stim_i = 1:length(stimvls)
     
-    ind = [oTrials.(exinfo.param1)]==parvls(par_i) & [oTrials.window]==1;
+    ind = [oTrials.(exinfo.param1)]==stimvls(stim_i) & [oTrials.window]==1;
     
-    [latmx(par_i, 1), psth{par_i, 1, 1}] = getLatencyDG( exinfo, oTrials(ind));
-    psth{par_i, 1, 2} = sum(ind);
+    [latmx(stim_i, 1), psth{stim_i, 1, 1}] = getLatencyDG( exinfo, oTrials(ind));
+    psth{stim_i, 1, 2} = sum(ind);
     
 end
 
 
-% others
-for par_i = 1:length(parvls)
+% others - all following trials can be grouped
+for stim_i = 1:length(stimvls)
     
-    ind = [oTrials.(exinfo.param1)]==parvls(par_i) & [oTrials.window]>1;
+    ind = [oTrials.(exinfo.param1)]==stimvls(stim_i) & [oTrials.window]>1;
     
-    [latmx(par_i, 2), psth{par_i, 2, 1}] = getLatencyDG( exinfo, oTrials(ind));
-    psth{par_i, 2, 2} = sum(ind);
+    [latmx(stim_i, 2), psth{stim_i, 2, 1}] = getLatencyDG( exinfo, oTrials(ind));
+    psth{stim_i, 2, 2} = sum(ind);
     
 end
 
