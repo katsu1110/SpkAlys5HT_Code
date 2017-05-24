@@ -2,8 +2,8 @@ function [ ff, ff_fit, mitchel, church ] = FanoFactors( ex, Mn, Vars, nrep, para
 % all kind of fano factor calculations are performed
 % - casual mn/vars
 % - power law fit
-% - mitchel way
-% - churchland way
+% - mitchell et al 
+% - churchland et al 
 
 
 %------------------------------------------------------ Fano Factor
@@ -12,11 +12,11 @@ ff.spkcnt_mn = Mn;
 ff.spkcnt_var  = Vars;
 ff.stimrep = nrep;
 
-[FitPa, ~,~,~,~] = FitPower( Mn , Vars); %HN function
+[FitPa, ~,~,~,~] = FitPower( Mn , Vars); %HNs function
 ff_fit = FitPa.exponent;
 
 %------------------------------------------------------- Mitchel FF
-[mitchel.mn, mitchel.var] = Mitcheletal(ex.Trials, param1);
+[mitchel.mn, mitchel.var] = Mitcheletal(ex.Trials, param1); 
 
 %------------------------------------------------------- Churchl FF
 church = Churchlandetal( ex.Trials );

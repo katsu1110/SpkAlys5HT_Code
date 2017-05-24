@@ -1,11 +1,14 @@
 function [ mitchel_mn, mitchel_var] = Mitcheletal( Trials, param1 )
 %Mitchelletal
-% Trials without reward are excluded. Each neuron in each condition is one
-% date point.
+% 
+% according to Mitchell et al. (2011) the stimulus presentation is
+% subdivided and therein elicited spike counts are binned for each stimulus
+% and the variance is computed for each bin.
 %
+% @CL
 
 
-nbin = 4;
+nbin = 4; % number of bins
 
 Trials  = getSpkPerBin(Trials, nbin);
 mSpk    = getMeanSpkPerCond(Trials, param1);
@@ -19,6 +22,7 @@ end
 
 function Trials = getSpkPerBin(Trials, nbin)
 % returns spikes binned for every 100ms for each trial
+% the first 50 ms are ignored
 
 for n = 1:length(Trials)
     

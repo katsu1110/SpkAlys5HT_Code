@@ -1,7 +1,7 @@
 function [gridX, gridY] = getGridPosition( ex )
 % [gridX, gridY] = getGridPosition( ex )
 % 
-% returns the electrode position on the surface of the scalp in x and y. 
+% retrieves the electrode position on the surface of the scalp in x and y
 % 
 % 
 % @CL 
