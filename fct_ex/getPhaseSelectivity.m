@@ -6,7 +6,10 @@ function f1f0 = getPhaseSelectivity( ex, varargin )
 % @Corinna Lorenz, 22.08.2016
 
 
-p_flag = false;     stim = 'tf';
+%% define variables and parse input
+
+p_flag = false;     
+stim = 'tf';
 k=1;
 while k<=length(varargin)
     switch varargin{k}
@@ -14,7 +17,6 @@ while k<=length(varargin)
             p_flag = varargin{k+1};
         case 'stim'
             stim = varargin{k+1};
-            
     end
     k=k+1;
 end
@@ -22,8 +24,8 @@ end
 
 
 %%
-% sdfs kernel
-kern = ones(40,1)/40;
+% sdfs filter kernel
+kern = ones(40,1)/40; 
 
 % spontaneoue activtiy from blank trials
 blanktrials = ex.Trials([ex.Trials.Reward]==1 & [ex.Trials.(stim)]>1000);
@@ -33,7 +35,7 @@ else
     spontresp = 0;
 end
 
-% correct trials only
+% correct trials with stimulus only
 ex.Trials = ex.Trials([ex.Trials.Reward]==1 & [ex.Trials.(stim)]<1000);
 
 allstim = unique([ex.Trials([ex.Trials.(stim)]<1000).(stim)]);
@@ -43,7 +45,7 @@ else
     tf = repmat(ex.stim.vals.tf, size(allstim));
 end
 
-% f1 from fourier transformation and f0 as mean - spont response
+% f1 from fourier transformation and f0 as mean spont response
 for k = 1:length(allstim)
     
     %1.first derive the psth for all trials with particular stimuli
@@ -69,9 +71,9 @@ for k = 1:length(allstim)
         f1_(k) = pow_new( find(freq_new >= tf(k), 1, 'first'));
         
     catch
-        disp('')
+        error('could not compute f0 or f1')
     end
-    
+     
 end
 
 t = 0.001:0.001:length(sdfs)/1000;
@@ -96,8 +98,6 @@ if p_flag
         xlim([t(1) t(end)])
     end
     
-    
-   
     subplot(2, 2, 2);
     plot(allstim, f1./f0, 'x-');
     xlabel tf; ylabel f1/f0; xlim([allstim(1) allstim(end)]);
