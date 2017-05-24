@@ -1,10 +1,19 @@
-function wdt = waveWidth( exinfo, w0, w1, p_flag )
+function wdt = waveWidth( exinfo, wave0, wave1, p_flag )
+% wdt = waveWidth( exinfo, wave0, wave1, p_flag )
+% 
+% returns a vector containing the spike waveform width (time between peak and
+% trough) for the spike waves in wave0 and wave1.
+% if p_flag is true, the result is plotted and the figure is saved in
+% exinfo.fig_waveform
+% 
+% 
+% @CL
 
 
+[ wdt(1), mnw0, sdw0, tstrt0] = waveWidth_helper( wave0 );
+[ wdt(2), mnw1, sdw1, tstrt1 ] = waveWidth_helper( wave1 );
 
-[ wdt(1), mnw0, sdw0, tstrt0] = waveWidth_helper( w0 );
-[ wdt(2), mnw1, sdw1, tstrt1 ] = waveWidth_helper( w1 );
-
+% plot the results
 exinfo.wdt = wdt;
 if p_flag
     wavePlot(mnw0, mnw1, sdw0, sdw1, tstrt0, tstrt1, exinfo);
