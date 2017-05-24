@@ -1,21 +1,38 @@
 function exinfo = runExinfoAnalysis( varargin )
 %exinfo = runExinfoAnalysis()
 %
+% Batch file calls all functions that perform the analytical computation on
+% exinfo. exinfo is the result structure created by initExinfo(). If is is
+% not given as input, initExinfo() is called. 
 % 
-%
-%
 %
 % Optional arguments are:
 % 'plot'            -  plots results and saves figures according to the
 %                        destination in exinfo (specified in initExinfo)
-% 'row_i_strt', XX  - start the for loop at the row XX, helpful for
+% 'row_i_strt', XX  - start the for-loop at the row XX, helpful for
 %                       debugging
 % 'exinfo', XX      - where exinfo is the result structure. This avoids
 %                       running initExinfo. 
 % 'save'            - this input causes the output to be saved as
 %                       exinfo.mat
 % 
+% This function calls the following functions forwarding any input argument
+% given to runExinfoAnalysis
+%   evalSingleEx    - returns single unit analysis results
+%   evalBothEx      - returns the comparative analysis results
 % 
+% It further calls these functions  
+%   getValidField           - ???
+%   getDominantEyeField     - determines the eye preference, important for
+%                               experiments with varying ocularity
+% - setReceptiveFieldSize   - determines the RF width by finding and
+%                               analyzing the YPos.mat and XPos.mat files
+% - addSortingValue         - retrieves the spike sorting quality
+% - addNumInExp             - retrieves information about the preceeding
+%                               drug experiments
+% - addStruct               - obsolete but important for the gui. adds the
+%                               fields gaussr2(_drug) and sets the latency
+%                               field to -10 if it is empty.
 % 
 % 
 % @CL 
@@ -25,10 +42,10 @@ function exinfo = runExinfoAnalysis( varargin )
 %% define default variables and parse input
 
 exinfo = [];
-rng(2384569);       % set seed for the random number generator. changing this number can cause deviating results of fitting algorithms. 
-p_flag = false;     % no plotting is the default setting
-i_strt = 1;         % row to start the loop through exinfo
-save_flag = false;   % not saving the result is default
+rng(2384569);       % set seed for the random number generator. do not change this number. 
+p_flag = false;     % not plotting the results is the default setting
+i_strt = 1;         % starting index for the loop through exinfo
+save_flag = false;   % not saving the result structure is default
 
 j = 1;              
 while  j<= length(varargin)
@@ -52,7 +69,7 @@ while  j<= length(varargin)
 end
 
 
-% in case there is no exinfo structure, initialize it 
+% initialize the no exinfo structure in case there is none given as input
 if isempty(exinfo)
     exinfo = initExinfo(varargin{:});
 end
@@ -67,7 +84,7 @@ for kk = i_strt:length(exinfo)
     fprintf('WORKING ON ROW %1i, file %1.1f \n', kk, exinfo(kk).id);
 
     %--------------------------------------- operations on single ex files
-    %base
+    %baseline
     [ex0, args0] = evalSingleEx(exinfo(kk), exinfo(kk).fname, varargin{:});
     exinfo(kk) = assignInfo(exinfo(kk), '', args0{:});
     
@@ -75,16 +92,16 @@ for kk = i_strt:length(exinfo)
     [ex2, args2] = evalSingleEx(exinfo(kk), exinfo(kk).fname_drug, varargin{:});
     exinfo(kk) = assignInfo(exinfo(kk), '_drug', args2{:});
 
-    %-------------------------------------- operations on both ex files
+    %------------------------------------------ operations on both ex files
     exinfo(kk).tf = ex0.stim.vals.tf;
     exinfo(kk) = evalBothEx(ex0, ex2,  exinfo(kk), p_flag, varargin{:});
   
        
-    %-------------------------------------- plot results
+    %--------------------------------------------------------- plot results
 
-    if ~exinfo(kk).isRC
+    if ~exinfo(kk).isRC && p_flag
 
-        if p_flag && ~exinfo(kk).isadapt
+        if ~exinfo(kk).isadapt
 
            exinfo(kk) = new_psthPlot_red(exinfo(kk), ex0, ex2);
            rasterPlot( exinfo(kk), ex0, ex2);
@@ -102,13 +119,13 @@ for kk = i_strt:length(exinfo)
         tuningCurvePlot(exinfo(kk));  
     end
     
-    %-------------------------------------- temp save
-    if save_flag && mod(kk, 30)==0 
+    %-------------------------------------- temp save, useful for debugging
+%     if save_flag && mod(kk, 30)==0 
 %         save(['exinfo' fig_suffix '.mat'], 'exinfo', '-v7.3'); 
-    end
+%     end
 end
 
-%------------------------------------------------------------- add fields
+%--------------------------------------------------------------- add fields
 exinfo = getValidField(exinfo);
 exinfo = getDominantEyeField(exinfo);
 exinfo = setReceptiveFieldSize( exinfo );
@@ -117,20 +134,18 @@ exinfo = addNumInExp(exinfo);
 exinfo = addStruct(exinfo);
 
 
-
+% save the result structure in a superordinate folder named Data
 if save_flag
-
     cfolder = cd('..');
-    Datadir = fullfile(cd, 'Data\');%folder destination for data
+    datadir = fullfile(cd, 'Data\');%folder destination 
     cd(cfolder);
-    save(fillfile(Datadir, ['exinfo' fig_suffix '.mat']), 'exinfo', '-v7.3'); 
-
+    save(fillfile(datadir, ['exinfo' fig_suffix '.mat']), 'exinfo', '-v7.3'); 
 end
 
 end
 
-function info = assignInfo(info, apx, varargin)
-% arguments assigned to in evalSingleEx
+function exinfo = assignInfo(exinfo, apx, varargin)
+% arguments from evalSingleEx assigned to exinfo
 j = 1;
 
 while j<length(varargin)
@@ -138,79 +153,79 @@ while j<length(varargin)
     switch varargin{j}
         
         case 'lat'
-            eval([ 'info.lat' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.lat' apx ' = varargin{j+1};']);
         case 'lat2Hmax'
-            eval([ 'info.lat2Hmax' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.lat2Hmax' apx ' = varargin{j+1};']);
         case 'fitparam'
-            eval([ 'info.fitparam' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.fitparam' apx ' = varargin{j+1};']);
         case 'rateMN'
-            eval([ 'info.ratemn' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.ratemn' apx ' = varargin{j+1};']);
         case 'rateVARS'
-            eval([ 'info.ratevars' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.ratevars' apx ' = varargin{j+1};']);
         case 'ratePAR'
-            eval([ 'info.ratepar' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.ratepar' apx ' = varargin{j+1};']);
         case 'rateSME'
-            eval([ 'info.ratesme' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.ratesme' apx ' = varargin{j+1};']);
         case 'rateSD'
-            eval([ 'info.ratesd' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.ratesd' apx ' = varargin{j+1};']);
         case 'rawspkrates'
-            eval([ 'info.rawspkrates' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.rawspkrates' apx ' = varargin{j+1};']);
         case 'rate_resmpl'
-            eval([ 'info.rate_resmpl' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.rate_resmpl' apx ' = varargin{j+1};']);
         case 'ff'
-            eval([ 'info.ff' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.ff' apx ' = varargin{j+1};']);
         case 'tcdiff'
-            eval([ 'info.tcdiff' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.tcdiff' apx ' = varargin{j+1};']);
         case 'rsc'
-            eval([ 'info.rsc' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.rsc' apx ' = varargin{j+1};']);
         case 'prsc'
-            eval([ 'info.prsc' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.prsc' apx ' = varargin{j+1};']);
         case 'rsig'
-            eval([ 'info.rsig' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.rsig' apx ' = varargin{j+1};']);
         case 'prsig'
-            eval([ 'info.prsig' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.prsig' apx ' = varargin{j+1};']);
         case 'rsc_2nd'
-            eval([ 'info.rsc_2nd' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.rsc_2nd' apx ' = varargin{j+1};']);
         case 'prsc_2nd'
-            eval([ 'info.prsc_2nd' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.prsc_2nd' apx ' = varargin{j+1};']);
         case 'rsig_2nd'
-            eval([ 'info.rsig_2nd' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.rsig_2nd' apx ' = varargin{j+1};']);
         case 'prsig_2nd'
-            eval([ 'info.prsig_2nd' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.prsig_2nd' apx ' = varargin{j+1};']);
         case 'resvars'
-            eval([ 'info.resvars' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.resvars' apx ' = varargin{j+1};']);
         case 'expduration'
-            eval([ 'info.expduration' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.expduration' apx ' = varargin{j+1};']);
         case 'sdfs'
-            eval([ 'info.sdfs' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.sdfs' apx ' = varargin{j+1};']);
         case 'times'
-            eval([ 'info.times' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.times' apx ' = varargin{j+1};']);
         case 'resdur'
-            eval([ 'info.dur' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.dur' apx ' = varargin{j+1};']);
         case 'ed'
-            info.ed = varargin{j+1};
+            exinfo.ed = varargin{j+1};
         case 'eX'
-            info.eX = varargin{j+1};
+            exinfo.eX = varargin{j+1};
         case 'eY'
-            info.eY = varargin{j+1};
+            exinfo.eY = varargin{j+1};
         case  'phasesel'
-            eval([ 'info.phasesel' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.phasesel' apx ' = varargin{j+1};']);
         case  'psth'
-            eval([ 'info.psth' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.psth' apx ' = varargin{j+1};']);
         case 'p_anova'
-             eval([ 'info.p_anova' apx ' = varargin{j+1};']);
+             eval([ 'exinfo.p_anova' apx ' = varargin{j+1};']);
         case 'nrep'
-            eval([ 'info.nrep' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.nrep' apx ' = varargin{j+1};']);
         case 'c0rate'
-            eval([ 'info.c0rate' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.c0rate' apx ' = varargin{j+1};']);
         case 'c0geomn'
-            eval([ 'info.c0geomn' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.c0geomn' apx ' = varargin{j+1};']);
         case 'c0geomn_2nd'
-            eval([ 'info.c0geomn_2nd' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.c0geomn_2nd' apx ' = varargin{j+1};']);
         case 'trials_c0'
-            eval([ 'info.trials_c0' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.trials_c0' apx ' = varargin{j+1};']);
         case 'trials_c1'
-            eval([ 'info.trials_c1' apx ' = varargin{j+1};']);
+            eval([ 'exinfo.trials_c1' apx ' = varargin{j+1};']);
     end
     j = j+2;
 end
