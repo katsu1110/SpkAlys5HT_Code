@@ -1,7 +1,7 @@
 function [BRI, ISI_frct] = getBRI_prefStim(exinfo, ex0, ex2)
 % computes the burst index as in Anderson et al. 2013
 % I only look for the stimuli response that also elicited the highest
-% response, i.e. that is closest to the preferred orientation
+% response, i.e. that is closest to the preferred stimulus
 
 
 % declare number of lags (in ms)

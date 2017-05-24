@@ -1,6 +1,8 @@
 function date = getExDate( ex )
 % extracts the date stamp from the header
- 
+% 
+% 
+% @CL 
 
 if isfield(ex.Header, 'fileID')
     date = datenum([ex.Header.fileID]);

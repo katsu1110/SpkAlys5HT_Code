@@ -1,6 +1,6 @@
 function fitparam = fitSZ( mn, sem, sz, bootstrp )
 %fitparam = fitSZ( mn, sem, sz ) 
-% of
+% or
 %fitparam = fitSZ( mn, sem, sz ) 
 % 
 % fit ratio of gaussians to size tuned spike rates

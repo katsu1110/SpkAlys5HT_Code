@@ -1,6 +1,8 @@
 function stats = getFixWindStats( exinfo )
-% get min max and median size of the fixation window
-%
+%  stats = getFixWindStats( exinfo )
+% 
+% get min max and median size of the fixation window used for units in
+% exinfo.
 %
 % @CL 
 

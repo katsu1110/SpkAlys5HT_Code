@@ -1,9 +1,13 @@
 function exinfo = setReceptiveFieldSize( exinfo )
+% exinfo = setReceptiveFieldSize( exinfo )
+% 
 % searches the XPos and YPos files for each session and assigns the width
 % of the receptive field in the x and y dimension to all corresponding
 % entries
+% 
+% @CL
 
-session = unique([exinfo.id]);
+unit_id = unique([exinfo.id]);
 
 for i =1:length(exinfo)
     exinfo(i).RFwx = nan;
@@ -11,52 +15,52 @@ for i =1:length(exinfo)
     exinfo(i).RFw = nan;
 end
 
-% loop through all sessions
-for i = 1:length(session)
+% loop through all unit recordings
+for i = 1:length(unit_id)
 
     wY = nan; wX = nan;
 %     fprintf('working on sessison : %1.1f \n', session(i));
     
     %find all entries belonging to this session
-    idx = find([exinfo.id]==session(i));
+    idx = find([exinfo.id]==unit_id(i));
     
            
     % XPos
-    [fnames, fdir] = getExFileNames(session(i));
-    fnamesX = fnames( cellfun(@(x) ~isempty(strfind(x, 'XPos')), fnames) );
-    fnamesX = fnamesX( cellfun(@(x) ~isempty(strfind(x, 'c1') & strfind(x, 'sortLH')), fnamesX) );
+    [fnames, fdir] = getExFileNames(unit_id(i));
+    fnamesX = fnames( contains(fnames, 'XPos') );
+    fnamesX = fnamesX( contains(fnamesX, 'c1') & contains(x, 'sortLH') );
     
     k = 1;
     while isempty(fnamesX) 
-        [fnames, fdir] = getExFileNames(session(i)-k);
-        fnamesX = fnames( cellfun(@(x) ~isempty(strfind(x, 'XPos')), fnames) );
-        fnamesX = fnamesX( cellfun(@(x) ~isempty(strfind(x, 'c1') & strfind(x, 'sortLH')), fnamesX) );
+        [fnames, fdir] = getExFileNames(unit_id(i)-k);
+        fnamesX = fnames( contains(fnames, 'YPos') );
+        fnamesX = fnamesX( contains(fnamesX, 'c1') & strfind(fnamesX, 'sortLH') );
         k = k+1;        
     end
     
     if ~isempty(fnamesX)
         for j =1:length(fnamesX)
-            ex = loadCluster(fullfile(fdir, fnamesX{j}));
+            ex = loadCluster(fullfile(fdir, fnamesX{j}), 'loadlfp', false);
             wX(j) = getMarginalDist(ex.Trials, 'x0');
         end
     end
  
     % YPos
-    [fnames, fdir] = getExFileNames(session(i));
-    fnamesY = fnames( cellfun(@(x) ~isempty(strfind(x, 'YPos')), fnames) );
-    fnamesY = fnamesY( cellfun(@(x) ~isempty(strfind(x, 'c1') & strfind(x, 'sortLH')), fnamesY) );
+    [fnames, fdir] = getExFileNames(unit_id(i));
+    fnamesY = fnames( contains(fnames, 'YPos') );
+    fnamesY = fnamesY( contains(fnamesY, 'c1') & strfind(fnames, 'sortLH') );
 
     k = 1;
     while isempty(fnamesX) 
-        [fnames, fdir] = getExFileNames(session(i)-k);
-        fnamesY = fnames( cellfun(@(x) ~isempty(strfind(x, 'YPos')), fnames) );
-        fnamesY = fnamesY( cellfun(@(x) ~isempty(strfind(x, 'c1') & strfind(x, 'sortLH')), fnamesY) );
+        [fnames, fdir] = getExFileNames(unit_id(i)-k);
+        fnamesY = fnames( contains(fnames, 'YPos') );
+        fnamesY = fnamesY( contains(fnamesY, 'c1') & strfind(fnames, 'sortLH'));
         k = k+1;        
     end
         
     if ~isempty(fnamesY)
         for j =1:length(fnamesY)
-            ex = loadCluster(fullfile(fdir, fnamesY{j}));
+            ex = loadCluster(fullfile(fdir, fnamesY{j}), 'loadlfp', false);
             wY(j) = getMarginalDist(ex.Trials, 'y0');
         end
     end
