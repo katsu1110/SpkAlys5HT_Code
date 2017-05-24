@@ -1,4 +1,4 @@
-function [ fwh, fww ] = getFixWind( ex )
+function [ fwh, fww ] = getFixWindSz( ex )
 %width and height of the fixation window in degrees of visual angle
 
 

@@ -12,7 +12,7 @@ for kk = 1:length(ID)
     
     temp = exinfo(find([exinfo.id]==ID(kk), 1, 'first'));
     load(temp.fname);
-   [ fwh(kk), fww(kk) ] = getFixWind( ex );
+   [ fwh(kk), fww(kk) ] = getFixWindSz( ex );
 
 end
 
