@@ -8,6 +8,8 @@
 % @author Corinna Lorenz
 % created 22.09.2015
 % changed 22.09.2015
+% adapted 11.04.2017 - added the option to compute the spikes/cycle/seconds
+%
 
 
 for n = 1:length(ex.Trials)
