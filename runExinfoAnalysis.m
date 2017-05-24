@@ -103,7 +103,7 @@ for kk = i_strt:length(exinfo)
 
         if ~exinfo(kk).isadapt
 
-           exinfo(kk) = new_psthPlot_red(exinfo(kk), ex0, ex2);
+           exinfo(kk) = psthPlot(exinfo(kk), ex0, ex2);
            rasterPlot( exinfo(kk), ex0, ex2);
            tuningCurvePlot(exinfo(kk));        
            znormplot(ex0, ex2, exinfo(kk));

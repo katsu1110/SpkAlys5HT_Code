@@ -1,163 +1,156 @@
-function  psthPlot( exinfo, exB, exD )
-%plots a smoothed psth for every window
-% NOTE: LATENCY IS OVERWRITTEN TO FULL POPULATION RESUTLS
+function exinfo = psthPlot( exinfo, exB, exD )
+% exinfo = psthPlot( exinfo, exB, exD )
+% 
+% plots a smoothed psth for every stimulus condition and the thereof
+% computed latency as a function of stimulus.
+% the figure is saved in exinfo.fig_psth, the latency is saved in
+% exinfo.lat and exinfo.lat_drug.
+% 
+% 
+% input arguments:
+% exinfo        - the result structure exinfo
+% exB           - the experiment file of the baseline experiment
+% exD           - the experiment file of the drug experiment
+% 
+% 
+% @CL
 
 
 h = figure('Name', exinfo.figname, 'UserData', exinfo, ...
-    'Position', [526   227   953   754]);
+    'Position', [897   588   682   396]);
 
-% plots per window
-s(1:5) = plotHelper(exinfo.psth, 'base', exinfo.ratepar(exinfo.ratepar<1000), ...
-    0, exinfo.lat);
-s(6:10) = plotHelper(exinfo.psth_drug, exinfo.drugname, ...
-    exinfo.ratepar_drug(exinfo.ratepar_drug<1000), ...
-    6, exinfo.lat_drug);
+col= getCol(exinfo);
 
-% averaged across all windows
-[s(11:13) , latB, latD] = plotHelperAll(exinfo, exB, exD );
+% plot the PSTH
+[parB, latB, pvalB, sB, ntrialsB] = plotHelper(exinfo, exB, 0, 'baseline');
+[parD, latD, pvalD, sD, ntrialsD] = plotHelper(exinfo, exD, 3, exinfo.drugname);
 
-% assignment of averaged latencies 
-exinfo.lat = latB;
-exinfo.lat_drug = latD;
+% ajust the axes position
+sB(1).Position(1) = 0.08;
+sB(1).Position(2) = sB(1).Position(2)+0.05;
+sB(1).Position(4) = sB(1).Position(4)-0.1;
 
-% align psth plots
-ymax = max([s([1:4, 6:9 11:12]).YLim]);
-set(s([1:4, 6:9 11:12]), 'ylim', [0 ymax]);
-
-% align latency plots
-ymax = max([s([5 10 13]).YLim]);
-set(s([5 10 13]), 'ylim', [0 ymax]);
+sD(1).Position(1) = 0.08;
+sD(1).Position(2) = sD(1).Position(2)+0.05;
+sD(1).Position(4) = sD(1).Position(4)-0.1;
 
 
-s(10).YLabel.String = '';
-s(1).YLabel.String = '10ms';
-s(7).YLabel.String = 'smoothed';
+% plot the latency as function of the stimulus for both experiments
+s = subplot(1, 3, [2 3]); % stimuli vs latency
+plot(parB, latB, 'o-', 'Color', col, 'MarkerFaceColor', col); hold on;
+plot(parD, latD, 'o--', 'Color', col);
 
-%use the correct parmaeter scale
+xlabel(exinfo.param1);  ylabel('latency');
+s.XTick = parB;      box off;
+legend('baseline', exinfo.drugname, 'Location','northoutside','Orientation','horizontal');
+xlim([min([parB parD]), max([parB parD])]);
+
+% add the p-value of the latency estimate 
+text(parB, latB, ntrialwstar(ntrialsB, pvalB), 'FontSize', 11);
+text(parD, latD, ntrialwstar(ntrialsD, pvalD), 'FontSize', 11);
+
+
 if strcmp(exinfo.param1, 'co') || strcmp(exinfo.param1, 'sf')
-    set(s([5 10 13]), 'XScale', 'log');
+    set(s, 'XScale', 'log');
 end
 
+
+%% save the figure
 savefig(h, exinfo.fig_psth);
 close(h);
+
+
+%% add latency to exinfo
+exinfo.lat = [parB; latB'; pvalB'];
+exinfo.lat_drug = [parD; latD'; pvalD'];
+
 end
+
 
 
 %%
-function s = plotHelper(psth, name, par, row_i, lat)
+function [parvls, lat, pval, s, ntrials] = plotHelper(exinfo, ex, off, titletxt)
+% plot the psth and compute the latency on the fly
 
-col = lines(length(par));
 
-if row_i == 0
-    s(5) = subplot(4, 6, [13 14 19 20] );
-else
-    s(5) = subplot(4, 6, [15 16 21 22] );
+% stimulus 
+parvls = unique([ex.Trials.(exinfo.param1)]);
+parvls = parvls(parvls < 1000);
+
+% define variables
+col = lines(length(parvls));
+lat = nan(length(parvls), 1);
+ntrials = nan(length(parvls), 1);
+pval = lat;
+
+
+% PSTH plot
+s(1) = subplot(2, 3, 1+off); 
+
+% loop through all stimuli parameter and get psth and latency
+for pari = 1:length(parvls)
+    
+    ind = [ex.Trials.(exinfo.param1)] == parvls(pari);
+    [lat(pari), pval(pari), psth_all, ~] = getLatencyDG(exinfo, ex.Trials(ind), true);
+    
+    % plotting
+    plot(psth_all, 'Color', col(pari, :), 'LineWidth', 1.5); hold on
+    
+    ntrials(pari) = sum(ind);
 end
+
+box off;
+axes(s(1));
+rightAdjTitle(['all ' titletxt]); 
+xlabel('time');
+ylabel('spk/s'); 
+
+set(s, 'XLim', [0 450], 'Box', 'off', 'TickDir', 'out');
+
+
+%%% legend for lines
+s(2) = axes('Position', [0.01 s(1).Position(2)-0.1 0.3 0.03]);
+l = length(parvls);
+xlim([0, l+1]);
+for pos = 1:l
+    plot([pos-0.5, pos+0.5], [0 0], 'Color', [col(pos, :) 0.5], 'LineWidth', 3);
+    hold on;
+    text(pos-0.35, 0, sprintf('%1.2f ', parvls(pos)), ...
+        'FontSize', 8);
+end
+axis off
+
+end
+
+
+
+function rightAdjTitle(titletext)
+
+t = title(titletext);
+set(t, 'horizontalAlignment', 'right', 'units', 'normalized');
+
+h1 = get(t, 'position');
+set(t, 'position', [1 h1(2) h1(3)]);
+
+end
+
+
+
+function c = ntrialwstar(n , p)
+
+c = cell(length(n), 1);
+
+for i  =1:length(n)
     
-
-% smooth the psth with a gaussian kernel
-kernel = gaussian(0, 20, 1, 0, -70:70); kernel = kernel/sum(kernel);
-
-for wind_i = 1:4
-
-    % smoothed psth
-    s(wind_i) = subplot(4, 6, wind_i+row_i);
-    
-    for par_i = 1:length(par)
-        plot(conv(psth{par_i, wind_i, 1}, kernel, 'same'), 'Color', col(par_i, :));
-        hold on;
+    c{i} = num2str(n(i));
+    if p(i) <0.001
+        c{i} = [c{i} '***'];
+    elseif p(i) <0.01
+        c{i} = [c{i} '**'];
+    elseif p(i) <0.5
+        c{i} = [c{i} '*'];
     end
-    hold off
-    xlim([0 450]);
-    title(sprintf(['w %1d ' name ' psth'], wind_i));
-    
-    % latency and number of rep
-    axes(s(5))
-    plot(par, lat(:, wind_i), 'Color', [0.5 0.5 0.5 0.5], 'LineWidth', wind_i);hold on;
-    for par_i = 1:length(par)
-         plot(par(par_i), lat(par_i, wind_i), 'o', ...
-             'MarkerFaceColor', col(par_i, :), 'MarkerEdgeColor', col(par_i, :));
-         hold on;
-         text(par(par_i), lat(par_i, wind_i)+5, num2str(psth{par_i, wind_i, 2}), ...
-         'FontSize', 10+wind_i/2, 'FontWeight', 'bold');
-    end
-    title([name ' thin-w1, thick-w4']);
-    ylabel('latency');
-    xlabel('stimulus parameter');
-    set(gca, 'XTick', par);
-    xlim([min(par) max(par)]);
 end
 
-
 end
-
-
-
-
-function [s, latB, latD] = plotHelperAll(exinfo, exB, exD)
-
-
-% smooth the psth with a gaussian kernel
-kernel = gaussian(0, 20, 1, 0, -70:70); kernel = kernel/sum(kernel);
-col = lines(max( [length(exinfo.ratepar) length(exinfo.ratepar_drug) ] ));
-
-
-%%% smoothed psth for BASELINE
-s(1) = subplot(4, 6, [5 6]);
-paramB = exinfo.ratepar(exinfo.ratepar<1000);
-
-for idx = 1:length(paramB)
-    ctrials = exB.Trials ( [exB.Trials.(exinfo.param1)] == paramB(idx) );
-    [latB(idx) psthB nB(idx)] = getLatencyDG( exinfo, ctrials, true );
-    
-    plot(psthB,  'Color', col(idx, :));
-    hold on;
-end
-title('baseline');  xlim([0 450]);    
-legend(num2str(paramB'), 'Location', 'EastOutside');
-
-
-
-%%% smoothed psth for DRUG
-s(2) = subplot(4, 6, [11 12]);
-paramD = exinfo.ratepar_drug(exinfo.ratepar_drug<1000);
-
-for idx = 1:length(paramD)
-
-    ctrials = exD.Trials ( [exD.Trials.(exinfo.param1)] == paramB(idx) );
-    [latD(idx) psthD nD(idx)] = getLatencyDG( exinfo, ctrials, true );
-    
-    plot(psthD, 'Color', col(idx, :));
-    hold on;
-end
-title(exinfo.drugname); xlim([0 450]);
-legend(num2str(paramD'), 'Location', 'EastOutside');
-
-
-
-%%% latency and number of rep
-s(3) = subplot(4, 6, [17 18 23 24]);
-c = getCol(exinfo);
-
-% Baseline
-plot(paramB, latB, 'o-', 'Color', c, 'MarkerFaceColor', c);
-for idx = 1:length(paramB)
-    text(paramB(idx), latB(idx), num2str(nB(idx)), 'FontSize', 12);
-    hold on;
-end
-
-% Drug
-plot(paramD, latD, 'o--', 'Color', c);
-for idx = 1:length(paramD)
-    text(paramD(idx), latD(idx), num2str(nD(idx)), 'FontSize', 12);
-    hold on;
-end
-
-title('baseline-, drug--');
-xlabel(exinfo.param1);
-set(gca, 'XTick', exinfo.ratepar, 'XLim', [min([paramB, paramD]) max([paramB, paramD])]); 
-
-end
-
-
 
