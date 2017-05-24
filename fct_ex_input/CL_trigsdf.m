@@ -1,5 +1,11 @@
 function [raster, sdf, nsac, nspikes, spikes, times, details] = ...
     CL_trigsdf(Trials, width, times, varargin)
+
+%[raster, sdf, nsac, nspikes, spikes, times, details] = ...
+%     CL_trigsdf(Trials, width, times, varargin)
+% %suppresses command line output
+% 
+%former
 % [sdf, nsac, nspikes, spikes, times] = trigsdf(Trials, width, times, ...)
 %
 % trigsdf takes a vector list of Trials, spikes
