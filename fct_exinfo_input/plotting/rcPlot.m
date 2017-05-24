@@ -34,7 +34,7 @@ if ~isempty(exinfo.sdfs.extras) % blank
 end
 ylim_ = get(baseplot, 'ylim');
 
-% window of noise calculation
+% window of noise (baseline variability) calculation
 fill([exinfo.times(201)/10,  exinfo.times(201)/10, ...
     exinfo.times(400)/10, exinfo.times(400)/10] , ...
     [0 ylim_(2)/10 ylim_(2)/10 0], g, 'EdgeColor', g); ho
@@ -63,7 +63,7 @@ if ~isempty(exinfo.sdfs_drug.extras) % blank
     leg{i+1} = sprintf('blank \t n=%1.0f', exinfo.sdfs_drug.extras{1}.n); 
 end
 
-% window for noise calculation
+% window for noise (baseline variability) calculation
 fill([exinfo.times_drug(201)/10,  exinfo.times_drug(201)/10, ...
     exinfo.times_drug(400)/10, exinfo.times_drug(400)/10 ], ...
     [0 ylim_(2)/10 ylim_(2)/10 0], g, 'EdgeColor', g); 
@@ -100,7 +100,7 @@ plot(drugplot, [lat_drug+dur_drug, lat_drug+dur_drug], ylim_, 'k');
 
 %--------------------------------- third plot showing normalized sd(sdfs)
 
-s3 = subplot(3,1,3);
+subplot(3,1,3);
 c = getCol(exinfo);
 
 % normalzed deviations from mean response for both conditions
@@ -120,6 +120,8 @@ xlim([0 160]);
 
 end
 
+
+%% ignore this subfunction
 function plotRCxORxCO(exinfo)
 
 nplot = length(exinfo.sdfs.y(1,:));
@@ -189,8 +191,7 @@ end
 xlabel(exinfo.drugname);
 set(s2, 'YLim', [0 max(max(horzcat(exinfo.sdfs_drug.s{:})))]);
 
-%--------------------------------- third plot showing normalized sdf dev
-
+%--------------------------------- third plot showing normalized var(sdf)
 
 % amplified deviation to mean response
 c = getCol(exinfo);

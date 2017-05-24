@@ -86,7 +86,7 @@ if any(strcmp(varargin, 'tcfit')) || any(strcmp(varargin, 'all'))
     
     %% pfreferred orientation fit evaluation
     
-    if strcmp(exinfo.param1, 'or');
+    if strcmp(exinfo.param1, 'or')
         if isfield(exinfo.fitparam, 'OR')
             
             for i = 1:length(exinfo.fitparam.OR)
