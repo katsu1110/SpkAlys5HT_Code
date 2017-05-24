@@ -1,119 +1,146 @@
 function [ex, argout] = evalSingleDG( exinfo, fname, varargin )
-% batch file that calls all functions to evaluated drifiting grating trials
+% batch file that calls all functions to analyse spiking activity in
+% resposne to drifiting grating experiments
+% 
+% @CL
 
-argout = {};
+% accumulates the results over the course of the code
+argout = {}; 
 
-%% Load data
+%================================================================ load data
 ex = loadCluster( fname, 'ocul', exinfo.ocul ); % load raw data
-[ex, spkrate, spkcount] = znormex(ex, exinfo);
-
-
-%% Duration of the experiment
-expduration = ex.Trials(end).TrialEnd - ex.Trials(1).TrialStart;
-
-%% Selectivity measured by Anova
+[ex, spkrate] = znormex(ex, exinfo);
+%============================= Analysis of stimulus selectivity using ANOVA
 if any(strcmp(varargin, 'anova')) || any(strcmp(varargin, 'all'))
     p_argout = SelectivityCheck(exinfo, ex);
     argout = [argout p_argout{:}];
 end
-%% Fano Factor
+%===================================================== Fano Factor analysis
 if any(strcmp(varargin, 'ff')) || any(strcmp(varargin, 'all'))
     ff_argout = FF(exinfo, ex);
     argout = [argout ff_argout{:}];
 end
-%% Noise correlation and signal correlation
+%============================================= Noise and signal correlation
 if any(strcmp(varargin, 'rsc')) || any(strcmp(varargin, 'all'))
-    rsc_argout = getRsc(exinfo, fname);
+    rsc_argout = getCoVariabilityCoeff(exinfo, fname);
     argout = [argout rsc_argout{:}];
 end
-
-%% Tuning curve fit
+%========================================================= Tuning curve fit
 if any(strcmp(varargin, 'tcfit')) || any(strcmp(varargin, 'all'))
     tc_argout = fitTC(exinfo, spkrate, ex, fname);
     argout = [argout tc_argout{:}];
 end
-%% Tc height diff
+%====================================================== Tuning curve height 
 if any(strcmp(varargin, 'tcheight')) || any(strcmp(varargin, 'all'))
    minspk = min([spkrate.mn]);
    maxspk = max([spkrate.mn]);
    tcdiff = (maxspk - minspk) / mean([maxspk, minspk]);
    argout = [argout {'tcdiff', tcdiff}];
 end
-
-%% Phase selectivity
+%======================================================== Phase selectivity
 if any(strcmp(varargin, 'phasesel')) || any(strcmp(varargin, 'all'))
     phasesel = getPhaseSelectivity(ex, 'stim', exinfo.param1);
     argout = [argout {'phasesel', phasesel}];
 end
-
-%% assign output arguments
+%===================================== organize results as output arguments
 argout =  [argout {'rateMN', [spkrate.mn]', 'rateVARS', [spkrate.var]', ...
     'ratePAR', [spkrate.(exinfo.param1)]', 'rateSME', [spkrate.sem]', ...
     'rateSD', [spkrate.sd]', 'rawspkrates', [spkrate.sd]', ...
     'rate_resmpl', {spkrate.resamples}, ...
-    'nrep', [spkrate.nrep]', ...
-    'expduration', expduration}];
+    'nrep', [spkrate.nrep]'}];
 
 end
     
     
+%% subfunctions to compute the analysis
 
+%% co-variability
 
-%% Cluster Analysis
-function rsc_argout = getRsc(exinfo, fname)
+function res_argout = getCoVariabilityCoeff(exinfo, fname)
+% compute the noise and signal correlation between single and multiunit
+% activity based on the full and second half of the experiment.
+% Reducing the analysis window to the second half reduces the risk of
+% artificially increased co-variability by effects of adaptation or the
+% gradual increase of the 5HT effect in the beginning.
+% 
 
 % load data
-ex = loadCluster(fname, 'ocul', exinfo.ocul );
+ex_su = loadCluster(fname, 'ocul', exinfo.ocul ); % cluster 1 or 2 <=> single unit activity
 
-fnamec0 = strrep(fname, exinfo.cluster, 'c0'); % load cluster 0
-exc0 = loadCluster( fnamec0, 'ocul', exinfo.ocul );
+fname_mu = strrep(fname, exinfo.cluster, 'c0'); % cluster 0 <=> multiunit activity
+ex_mu = loadCluster( fname_mu, 'ocul', exinfo.ocul );
 
 
 %%% all trials
-[ex, spkrate_c1 ,spkcount_c1] = znormex(ex, exinfo);
-[exc0, spkrate_c0, spkcount_c0] = znormex(exc0, exinfo); % z norm
-
-% Noise Correlation
-[rsc, prsc] = corr([ex.Trials.zspkcount]', [exc0.Trials.zspkcount]', 'rows', 'complete');
-% Signale Correlation
-[rsig, prsig] = corr([spkcount_c1.mn]', [spkcount_c0.mn]', 'rows', 'complete');
-
-trials = struct('spkRate', [ex.Trials.spkRate], 'zspkCount', [ex.Trials.zspkcount], 'param',[ex.Trials.(exinfo.param1)]);
-trials0 = struct('spkRate', [exc0.Trials.spkRate], 'zspkCount', [exc0.Trials.zspkcount], 'param',[exc0.Trials.(exinfo.param1)]);
-
-
-rsc_all = {'rsc', rsc, 'prsc', prsc, 'rsig', rsig,...
-    'prsig', prsig, 'c0geomn', geomean([ mean([spkrate_c0.mn]), mean([spkrate_c1.mn]) ]),...
-    'trials_c0', trials0, 'trials_c1', trials};
+[rsc, prsc, rsig, prsig, c0geomn, trials_su, trials_mu] = ...
+    getCoVariabilityCoeff_helper(ex_su, ex_mu, exinfo);
+res_fullexp = {'rsc', rsc, 'prsc', prsc, 'rsig', rsig,'prsig', prsig, ...
+    'c0geomn', c0geomn, 'trials_c0', trials_mu, 'trials_c1', trials_su};
 
 
 %%% 2nd half
-ex.Trials = getPartialTrials(ex.Trials); 
-[ex, spkrate, spkcount_c1] = znormex(ex, exinfo);
+ex_su.Trials = getPartialTrials(ex_su.Trials, 2); 
+ex_mu.Trials = getPartialTrials(ex_mu.Trials, 2);
 
-exc0.Trials = getPartialTrials(exc0.Trials);
-[exc0, spkrate_c0, spkcount_c0] = znormex(exc0, exinfo); % z norm
+[rsc_2nd, prsc_2nd, rsig_2nd, prsig_2nd, c0geomn_2nd] = ...
+    getCoVariabilityCoeff_helper(ex_su, ex_mu, exinfo);
 
-% Noise Correlation
-[rsc, prsc] = corr([ex.Trials.zspkcount]', [exc0.Trials.zspkcount]', 'rows', 'complete');
-% Signale Correlation
-[rsig, prsig] = corr([spkrate.mn]', [spkrate_c0.mn]', 'rows', 'complete');
-
-rsc_2nd = {'rsc_2nd', rsc, 'prsc_2nd', prsc, 'rsig_2nd', rsig, ...
-    'prsig_2nd', prsig, 'c0geomn_2nd', geomean([ mean([spkrate_c0.mn]), mean([spkrate_c1.mn]) ])};
+res_2ndhalf = {'rsc_2nd', rsc_2nd, 'prsc_2nd', prsc_2nd, 'rsig_2nd', rsig_2nd, ...
+    'prsig_2nd', prsig_2nd, 'c0geomn_2nd', c0geomn_2nd};
 
 
-% concatenate
-rsc_argout = [rsc_all, rsc_2nd];
+% concatenate results
+res_argout = [res_2ndhalf, res_fullexp];
     
 end
 
+
+function [rsc, prsc, rsig, prsig, c0geomn, trials_su, trials_mu] = ...
+    getCoVariabilityCoeff_helper(ex_su, ex_mu, exinfo)
+% compute the noise correlation and signal correlation
+%
+% noise correlations are computed as the pearson correlation between
+% stimulus z-normed spike counts.
+%
+% signal correlations are computed as the pearson correlation between raw
+% tuning curves.
+
+[ex_su, spkrate_su ,spkcount_su] = znormex(ex_su, exinfo);
+[ex_mu, spkrate_mu, spkcount_mu] = znormex(ex_mu, exinfo); % z norm
+
+% Noise Correlation
+[rsc, prsc] = corr([ex_su.Trials.zspkcount]', [ex_mu.Trials.zspkcount]', ...
+    'rows', 'complete');
+
+% Signale Correlation
+[rsig, prsig] = corr([spkcount_su.mn]', [spkcount_mu.mn]', ...
+    'rows', 'complete');
+
+
+trials_su = struct('spkRate', [ex_su.Trials.spkRate], ...
+    'zspkCount', [ex_su.Trials.zspkcount], ...
+    'param',[ex_su.Trials.(exinfo.param1)]);
+trials_mu= struct('spkRate', [ex_mu.Trials.spkRate], ...
+    'zspkCount', [ex_mu.Trials.zspkcount], ...
+    'param',[ex_mu.Trials.(exinfo.param1)]);
+
+% the geometric mean of spike rates
+c0geomn = geomean([ mean([spkrate_mu.mn]), mean([spkrate_su.mn]) ]);
+
+end
+
+
+
+
 %%
 function argout = SelectivityCheck(exinfo, ex)
-% Anova for selectivity
+% test whether the unit shows significant selectivity to a stimulus by
+% performing an ANOVA on the averaged spike rates of the different stimulus
+% conditions
+%
+% ignore trials with blanks for this
 
 idx_nonblank = getNoBlankIdx(exinfo, ex);
-
 
 p_anova = anova1([ex.Trials(idx_nonblank).spkRate], ...
     [ex.Trials(idx_nonblank).(exinfo.param1)],'off');
@@ -125,45 +152,68 @@ end
 
 %%
 function argout = FF(exinfo, ex)
-% Fano Factors
+% computation of spiking variability 
+% this function calls FanoFactors.mat, a function that computes different
+% metrices of variability (classic FF as variance/mean, binned FF, etc.)
+% 
+% as for the co-variability the analysis is once based on the entire
+% experiment and once based on the second half only.
+% 
+% 
+%
 
-% results for all data
+
+% results for the full experiment
 [ex, spkrate, spkcount] = znormex(ex, exinfo);
 
 [ ff.classic, ff.fit, ff.mitchel, ff.church ] = ...
     FanoFactors( ex, [spkcount.mn], [spkcount.var], [spkrate.nrep], exinfo.param1);
 
 
-% results for the second half
-ex.Trials = getPartialTrials(ex.Trials);
+% results for the second experiment
+ex.Trials = getPartialTrials(ex.Trials, 2);
 [ex, spkrate, spkcount] = znormex(ex, exinfo);
 
 [ ff.classic_2ndhalf, ff.fit_2ndhalf, ff.mitchel_2ndhalf, ff.church_2ndhalf ] = ...
     FanoFactors( ex, [spkcount.mn], [spkcount.var], [spkrate.nrep], exinfo.param1);
-
-
 
 argout = {'ff', ff};
 end
 
 %%
 function argout = fitTC(exinfo, spkrate, ex, fname)
-% Fitting the tuning curve with established functions
+% fitting descriptive tuning functions to the raw tuning curves
+%
+%
+% each feature (orientation, contrast, ...) has it's descriptive function
+% (e.g. gaussian, sigmoid, ...). We therefore have to distinguish between
+% features and call different fitting functions.
+% 
 
 if strcmp(exinfo.param1, 'or')
+    % fitting the orientation tuning curve
+    
     fitparam = fitOR( [spkrate.mn], [spkrate.sem], [spkrate.or] );
     
 elseif strcmp(exinfo.param1, 'co')
+    % fitting the contrast tuning curve
     
-    idx_nonblank = getNoBlankIdx(exinfo, ex);
     fitparam = fitCO([spkrate.mn], [spkrate.(exinfo.param1)]);
     
-    % check for underspampling
+    % check for underspampled contrast variations
+    % in many experiments the area around the putative c50 is sparsely
+    % sampled. in order to make a useful statement about c50 or saturation,
+    % we need to check, whether we also have selectivity before and after
+    % c50. I do so by computing the ANOVA on the response to contrasts
+    % smaller or greater than the putative c50. 
+    idx_nonblank = getNoBlankIdx(exinfo, ex); % ignore the blank trials
+
     i_cosmc50 = [ex.Trials.(exinfo.param1)]<=fitparam.c50 & idx_nonblank; % smaller than c50
     fitparam.undersmpl(1) = anova1([ex.Trials(i_cosmc50).spkRate], [ex.Trials(i_cosmc50).(exinfo.param1)],'off');
     
     i_cohic50 = [ex.Trials.(exinfo.param1)]>fitparam.c50 & idx_nonblank;% higher than c50
     fitparam.undersmpl(2) = anova1([ex.Trials(i_cohic50).spkRate], [ex.Trials(i_cohic50).(exinfo.param1)],'off');
+    
     
     % in case of the drug file, test the contrast gain and activity gain model 
     if strfind( fname , exinfo.drugname )
@@ -171,9 +221,11 @@ elseif strcmp(exinfo.param1, 'co')
     end
     
 elseif strcmp(exinfo.param1, 'sz')
+    % fitting the size tuning curve
     fitparam = fitSZ([spkrate.mn], [spkrate.sem], [spkrate.(exinfo.param1)]);
     
 elseif strcmp(exinfo.param1, 'sf')
+    % fitting the spatial frequency tuning curve
     fitparam_lin = fitSF([spkrate.mn], [spkrate.sem], [spkrate.(exinfo.param1)], false );
     fitparam_log = fitSF([spkrate.mn], [spkrate.sem], [spkrate.(exinfo.param1)], true );
     
@@ -189,8 +241,9 @@ end
 
 %%
 function idx_nonblank = getNoBlankIdx(exinfo, ex)
+% trials with blanks
 
-if strcmp(exinfo.param1, 'co')
+if strcmp(exinfo.param1, 'co') %sanity check, in case the blank was coded as 0% contrast
     idx_nonblank = [ex.Trials.(exinfo.param1)] ~= ex.exp.e1.blank & ...
         [ex.Trials.(exinfo.param1)] ~= 0;
 else
