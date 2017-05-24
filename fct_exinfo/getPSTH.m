@@ -1,12 +1,12 @@
 function [psth, t] = getPSTH(Trials)
 % returns the psth normalized to spks/s and corresponding time vector
 % 
-% takes a struct of trials from a classical ex.mat file and converts the
-% spikes to a psth. Time bin width is 1ms.
+% takes a struct of trials from a ex.mat file and converts the
+% spike trains to a psth. Time bin width is 1ms.
 %
 % @Corinna Lorenz, 24.08.2016
 
-fs = 1000; 
+fs = 1000; % sampling frequency
 
 allspk = []; 
 for i = 1:length(Trials)

@@ -1,9 +1,12 @@
 function stats = getFixWindStats( exinfo )
-% get min max and median window
+% get min max and median size of the fixation window
+%
+%
+% @CL 
 
 
-ID = unique([exinfo.id]);
 
+ID = unique([exinfo.id]); % all units
 
 for kk = 1:length(ID)
     
