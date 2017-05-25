@@ -1,15 +1,33 @@
 function fitparam =  fitCO_drug(mn, co, fitparam)
-% fitparam =  fitCO_drug(resp, co, basefit)
+% fitparam =  fitCO_drug(resp, co, fitparam)
 % 
 % test different modulations of the fitted baseline tuning curve (contrast
-% gain model, activity gain model, response gain model). 
+% gain model, activity gain model, response gain model) and extent the
+% fitparam structure witht the results.
 % 
+% input:
+% mn        - mean stimulus response in the drug conditio
+% co        - contrast samples corresponding to mn
+% fitparam  - results of the tuning fit fo the baseline experiment ( see
+%               fitCO for more information)
+% 
+% 
+% outpu: 
+% fitparam with the additiona fields:
+% .a_cg, .r2_ag     - mbest fitting modulation factor in the contrast gain
+%       model and the correspongin fitting quality (i.e. explained variance)
+% 
+% .a_ag, .r2_ag     - same for the acticity gain model
+% 
+% .a_cg, .r2_ag     - same for the response gain model
+% 
+% see Williford and Maunsell, 2006
 % 
 % 
 % @CL
 
 
-idxblank = co>1 || co==0;
+idxblank = co>1 | co==0;
 co = co(~idxblank); % safety check, ignore blanks
 mn = mn(~idxblank);
 
@@ -20,17 +38,17 @@ ss_tot = sum( (mn - mean(mn)).^2 ); % sum of squared errors
 
 
 % contrast gain model, scaling c50
-fitparam.a_cg       = fminsearch(@(a) contrastgain(co, mn, basefit, a), a0);
+fitparam.a_cg       = fminsearch(@(a) contrastgain(co, mn, fitparam, a), a0);
 ss_res_cg           = contrastgain(co, mn, fitparam, fitparam.a_cg);
 fitparam.r2_cg      = 1 - (ss_res_cg/ss_tot); 
 
 % activity gain model, scaling the enitre function
-fitparam.a_ag       = fminsearch(@(a) activitygain(co, mn, basefit, a), a0);
+fitparam.a_ag       = fminsearch(@(a) activitygain(co, mn, fitparam, a), a0);
 ss_res_ag           = activitygain(co, mn, fitparam, fitparam.a_ag);
 fitparam.r2_ag      = 1 - (ss_res_ag/ss_tot); 
 
 % activity gain model, scaling the response gain
-fitparam.a_rg       = fminsearch(@(a) responsegain(co, mn, basefit, a), a0);
+fitparam.a_rg       = fminsearch(@(a) responsegain(co, mn, fitparam, a), a0);
 ss_res_rg           = responsegain(co, mn, fitparam, fitparam.a_ag);
 fitparam.r2_rg      = 1 - (ss_res_rg/ss_tot); 
 
@@ -60,12 +78,12 @@ end
 
 
 
-function ss = contrastgain(co, r, basefit, a)
+function ss = contrastgain(co, r, fitparam, a)
 % contrast gain function, returns sum of squared residuals
 % a is the modulation factor modulating c50
     
-n = basefit.n;
-rpred = basefit.rmax .* ( co.^n ./ (co.^n + (a* (basefit.c50^n)) ) ) + basefit.m;
+n = fitparam.n;
+rpred = fitparam.rmax .* ( co.^n ./ (co.^n + (a* (fitparam.c50^n)) ) ) + fitparam.m;
     
 ss = sum((rpred-r).^2);
 
@@ -75,12 +93,12 @@ end
 
 
 
-function ss = activitygain(co, r, basefit, a)
+function ss = activitygain(co, r, fitparam, a)
 % activity gain function, returns sum of squared residuals
 % a is the modulation factor of the entire function
     
-n = basefit.n;
-rpred = a .* ( basefit.rmax .* ( co.^n ./ (co.^n + (basefit.c50^n) ) ) + basefit.m);
+n = fitparam.n;
+rpred = a .* ( fitparam.rmax .* ( co.^n ./ (co.^n + (fitparam.c50^n) ) ) + fitparam.m);
     
 ss = sum((rpred-r).^2);
 if a<0;  ss = 10^6;  end
@@ -88,13 +106,13 @@ end
 
 
 
-function ss = responsegain(co, r, basefit, a)
+function ss = responsegain(co, r, fitparam, a)
 % response gain function, returns sum of squared residuals
 % a is the modulation factor of the entire function except the spontanouse
 % firing
 
-n = basefit.n;
-rpred = a .* ( basefit.rmax .* ( co.^n ./ (co.^n + (basefit.c50^n) ) ) )+ basefit.m;
+n = fitparam.n;
+rpred = a .* ( fitparam.rmax .* ( co.^n ./ (co.^n + (fitparam.c50^n) ) ) )+ fitparam.m;
     
 ss = sum((rpred-r).^2);
 if a<0;  ss = 10^6;  end
