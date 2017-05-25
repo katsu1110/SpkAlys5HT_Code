@@ -8,7 +8,7 @@ function [ex, argout] = evalSingleDG( exinfo, fname, varargin )
 argout = {}; 
 
 %================================================================ load data
-ex = loadCluster( fname, 'ocul', exinfo.ocul ); % load raw data
+ex = loadCluster( fname, 'ocul', exinfo.ocul, 'loadlfp', false ); % load raw data
 [ex, spkrate] = znormex(ex, exinfo);
 %============================= Analysis of stimulus selectivity using ANOVA
 if any(strcmp(varargin, 'anova')) || any(strcmp(varargin, 'all'))
@@ -65,10 +65,10 @@ function res_argout = getCoVariabilityCoeff(exinfo, fname)
 % 
 
 % load data
-ex_su = loadCluster(fname, 'ocul', exinfo.ocul ); % cluster 1 or 2 <=> single unit activity
+ex_su = loadCluster(fname, 'ocul', exinfo.ocul, 'loadlfp', false ); % cluster 1 or 2 <=> single unit activity
 
 fname_mu = strrep(fname, exinfo.cluster, 'c0'); % cluster 0 <=> multiunit activity
-ex_mu = loadCluster( fname_mu, 'ocul', exinfo.ocul );
+ex_mu = loadCluster( fname_mu, 'ocul', exinfo.ocul, 'loadlfp', false );
 
 
 %%% all trials
