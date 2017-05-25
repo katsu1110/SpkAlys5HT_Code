@@ -41,8 +41,14 @@ function exinfo = runExinfoAnalysis( varargin )
 
 %% define default variables and parse input
 
-exinfo = [];
+
+addpath(genpath(pwd)); % add all subfolders to the path
+addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code')); % add all subfolders to the path
+addpath(genpath('C:\Users\Corinna\Documents\CODE\GenAlyz_Code'));
+
 rng(2384569);       % set seed for the random number generator. do not change this number. 
+exinfo = [];
+
 p_flag = false;     % not plotting the results is the default setting
 i_strt = 1;         % starting index for the loop through exinfo
 save_flag = false;   % not saving the result structure is default

@@ -34,6 +34,11 @@ function exinfo = initExinfo(varargin)
 % @CL 
 % commented 19.05.2017 
 
+%% add all subfolders to the path
+addpath(genpath(pwd)); 
+addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code')); % add all subfolders to the path
+addpath(genpath('C:\Users\Corinna\Documents\CODE\GenAlyz_Code'));
+
 
 %% initiate variables
 kk = 0;
@@ -50,7 +55,7 @@ cd(cfolder);
 % result structure
 exinfo = struct(...  
     'id', [], ... %<- unit ID. Mango is indicated by ID.0, Kaki by ID.5
-    'idi', [], ...  %<- in case there are multiple ocular conditions, they all have the same ID. This is to distinguis them/
+    'idi', [], ...  %<- in case there are multiple ocular conditions, they all have the same idi. This is to identify them.
     'monkey', {}, ... %<- string indicating mango or kaki
     'fname', [], 'fname_drug', [], ... %<- filename of the baseline and drug ex file
     'date', [], 'date_drug', [], ... %<- date of the recording
@@ -291,11 +296,11 @@ for i = 1:length(F_drug)
     end
     
     % ...the animal
-    if contains(fname, 'kaki')
+    if contains(fname, 'mango')
         idxa = 1;
         monkey = 'ma';
         id_off = 0;
-    elseif contains(fname, 'mango')
+    elseif contains(fname, 'kaki')
         idxa = 0;
         monkey = 'ka';
         id_off = 0.5;
@@ -303,7 +308,7 @@ for i = 1:length(F_drug)
        error('Could not determine the animal name.');
     end
     
-    id = str2double(fname(14+idxa:17+idxa))+id_off;
+    id = str2double(fname(15+idxa:17+idxa))+id_off;
     
     %--------------------------------- derive information from the ex files
     % ...electrode depth
@@ -469,9 +474,11 @@ for i = 1:length(F_drug)
     
 end
 
-exinfo = setPhaseSelTFexp( exinfo );
 
 save(fullfile(figdir.Data, 'empty_exinfo.mat'), 'exinfo')
+exinfo = setPhaseSelTFexp( exinfo );
+save(fullfile(figdir.Data, 'empty_exinfo.mat'), 'exinfo')
+
 end
 
 
