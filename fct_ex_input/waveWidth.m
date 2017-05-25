@@ -48,7 +48,13 @@ else
     
     
     % wave width - distance between peak and trough
-    [~, idxmin] = findpeaks(-mnwave,'MinPeakHeight', 0.025);
+    try
+        [~, idxmin] = findpeaks(-mnwave,'MinPeakHeight', 0.025);
+    catch
+        rmpath(genpath('Z:\Corinna\SharedCode\File Exchange Code\chronux_2_11'));
+                [~, idxmin] = findpeaks(-mnwave,'MinPeakHeight', 0.025);
+        addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code\chronux_2_11'));
+    end
     idxmin = idxmin(1);
     
     [~, idxmax] = max(mnwave);   % find first maximum after min
