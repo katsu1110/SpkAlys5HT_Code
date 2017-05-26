@@ -79,7 +79,7 @@ end
 t = 0.001:0.001:length(sdfs)/1000;
 f1 = a; % f1 is the amplitude
 
-% use the highest mean response to compute
+% use the highest mean response to compute the result estimate f1/f0
 [~, i] = max(f1);
 f1f0 = f1(i)/f0(i);
 

@@ -16,7 +16,7 @@ parb(~idx) = 10^4;
 exinfo.upfi_drug = find(exinfo.ratepar_drug == exinfo.ratepar( exinfo.upfi ));
 
 
-%% non-parametric change, i.e. relative change in the integrated area under the tc curve
+%% bootstrap
 exinfo = bootstrap_exinfo( exinfo );
 
 %% gain change

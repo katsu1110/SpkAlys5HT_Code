@@ -22,7 +22,10 @@ function exinfo = runExinfoAnalysis( varargin )
 %   evalBothEx      - returns the comparative analysis results
 % 
 % It further calls these functions  
-%   getValidField           - ???
+%   getValidField           - determines the experiment with best
+%                               type-II regression fit for experiments with
+%                               the same stimulus type for the same unit
+%                               cluster
 %   getDominantEyeField     - determines the eye preference, important for
 %                               experiments with varying ocularity
 % - setReceptiveFieldSize   - determines the RF width by finding and
