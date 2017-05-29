@@ -137,10 +137,8 @@ end
 %--------------------------------------------------------------- add fields
 exinfo = getValidField(exinfo);
 exinfo = getDominantEyeField(exinfo);
-exinfo = setReceptiveFieldSize( exinfo );
-exinfo = addSortingValue(exinfo);
-exinfo = addNumInExp(exinfo);
 exinfo = addStruct(exinfo);
+
 
 
 % save the result structure in a superordinate folder named Data
