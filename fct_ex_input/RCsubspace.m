@@ -24,6 +24,8 @@ while j<= length(varargin)
        case 'plot'
            p_flag = true;
            figure;
+       case 'exinfo'
+           j=j+1;
        case 'lat_flag'
            lat_flag = varargin{j+1};
            j=j+1;
@@ -145,7 +147,7 @@ parfor i = 1:nsmpl
     ex_boot.Trials = ex.Trials(bootidx);
     
     % use HN function to compute the usual res struct
-    res_boot{i} = HN_computeLatencyAndNetSpk([], ex_boot, 'lat_flag', 0);
+    res_boot{i} = HN_computeLatencyAndNetSpk([], ex_boot, 'lat_flag', false);
 %     latfp_boot(i) = res_boot{i}.latFP;
 %     lathmax_boot(i) = res_boot{i}.lat;
     bootsmpl(:,:,i) = res_boot{i}.netSpikesPerFrame;
