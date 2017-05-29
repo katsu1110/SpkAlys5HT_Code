@@ -28,13 +28,15 @@ for i = 1:length(unit_id)
     % XPos
     [fnames, fdir] = getExFileNames(unit_id(i));
     fnamesX = fnames( contains(fnames, 'XPos') );
-    fnamesX = fnamesX( contains(fnamesX, 'c1') & contains(x, 'sortLH') );
+    fnamesX = fnamesX( contains(fnamesX, 'c1') & contains(fnamesX, 'sortLH') );
     
+    % if there was no RF experiment for this unit, than look for the
+    % preceding unit recordings
     k = 1;
     while isempty(fnamesX) 
         [fnames, fdir] = getExFileNames(unit_id(i)-k);
-        fnamesX = fnames( contains(fnames, 'YPos') );
-        fnamesX = fnamesX( contains(fnamesX, 'c1') & strfind(fnamesX, 'sortLH') );
+        fnamesX = fnames( contains(fnames, 'XPos') );
+        fnamesX = fnamesX( contains(fnamesX, 'c1') & contains(fnamesX, 'sortLH') );
         k = k+1;        
     end
     
@@ -48,13 +50,13 @@ for i = 1:length(unit_id)
     % YPos
     [fnames, fdir] = getExFileNames(unit_id(i));
     fnamesY = fnames( contains(fnames, 'YPos') );
-    fnamesY = fnamesY( contains(fnamesY, 'c1') & strfind(fnames, 'sortLH') );
+    fnamesY = fnamesY( contains(fnamesY, 'c1') & contains(fnamesY, 'sortLH') );
 
     k = 1;
     while isempty(fnamesX) 
         [fnames, fdir] = getExFileNames(unit_id(i)-k);
         fnamesY = fnames( contains(fnames, 'YPos') );
-        fnamesY = fnamesY( contains(fnamesY, 'c1') & strfind(fnames, 'sortLH'));
+        fnamesY = fnamesY( contains(fnamesY, 'c1') & contains(fnamesY, 'sortLH'));
         k = k+1;        
     end
         
