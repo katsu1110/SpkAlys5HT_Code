@@ -10,8 +10,10 @@ function exinfo = addSortingValue( exinfo )
 
 
 % load spike sorting files
-A = readSpikingTable('Kaki_SpikeSortingFile.csv');
-B = readSpikingTable('Mango_SpikeSortingFile.csv');
+A = readSpikingTable(fullfile('Z:\Corinna\SharedCode\File Exchange Code\InternalFiles', ...
+    'Kaki_SpikeSortingFile.csv'));
+B = readSpikingTable(fullfile('Z:\Corinna\SharedCode\File Exchange Code\InternalFiles', ...
+    'Mango_SpikeSortingFile.csv'));
 
 % retract relevant information
 sorting.matfilename = [{B.matfilename}'; {A.matfilename}'];
