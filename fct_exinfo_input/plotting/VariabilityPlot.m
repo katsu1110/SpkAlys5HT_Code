@@ -1,4 +1,4 @@
-'fig_varxtime'function  h = VariabilityPlot( exinfo, ex_base, ex_drug )
+function  h = VariabilityPlot( exinfo, ex_base, ex_drug )
 % h = VariabilityPlot( exinfo, ex_base, ex_drug )
 % 
 % summary of the variability and co-variability analysis. 
