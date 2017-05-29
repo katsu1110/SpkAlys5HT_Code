@@ -43,7 +43,7 @@ addpath(genpath('C:\Users\Corinna\Documents\CODE\GenAlyz_Code'));
 %% initiate variables
 kk = 0;
 idi = 1;
-fname = 'Z:\Corinna\filenames\SU110716_CL_all.txt'; % txt file containing the experiment filenames
+fname = 'Z:\Corinna\filenames\SU_CL_all.txt'; % txt file containing the experiment filenames
 
 cfolder = cd('..');
 figdir.pre = fullfile(cd, 'Figures\'); %folder destination for all figures
@@ -249,7 +249,7 @@ broken_incl_5HT_rest = broken_id(~ismember(broken_excl_5HT, broken_id));
 % open file
 fileID = fopen(fname, 'r');
 SU_dir = textscan(fileID, '%s'); F = SU_dir{1};
-
+fclose(fileID);
 
 % divide the filenames into baseline and drug experiments
 idx = find( ~contains(F, '5HT') & ~contains(F, 'NaCl') );  % indices of all baseline experiments
@@ -475,8 +475,21 @@ for i = 1:length(F_drug)
 end
 
 
-save(fullfile(figdir.Data, 'empty_exinfo.mat'), 'exinfo')
+
+
+% retrieve information from other sources
+
+% phase selectivity --> TF experiment
 exinfo = setPhaseSelTFexp( exinfo );
+
+% RF size --> XPos / YPos experiment
+exinfo = setReceptiveFieldSize( exinfo );
+
+% experiment number in the recording session, spike sporting isolation quality, etc
+% --> google spreadsheet
+exinfo = addSortingValue(exinfo);
+exinfo = addNumInExp(exinfo);
+
 save(fullfile(figdir.Data, 'empty_exinfo.mat'), 'exinfo')
 
 end
@@ -494,6 +507,7 @@ for i = 1:length(fnames)
     end
 end
 end
+
 
 
 
