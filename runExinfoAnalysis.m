@@ -15,25 +15,48 @@ function exinfo = runExinfoAnalysis( varargin )
 %                       running initExinfo. 
 % 'save'            - this input causes the output to be saved as
 %                       exinfo.mat
+%
+% 
+% 
 % 
 % This function calls the following functions forwarding any input argument
 % given to runExinfoAnalysis
+%   initExinfo      - initializes exinfo if none is given as input.
 %   evalSingleEx    - returns single unit analysis results
 %   evalBothEx      - returns the comparative analysis results
+%
+%     Arguments passed on to evalSingleDG:
+%     'rsc'             - runs the analysis of co-variability.
+%     'ff'              - the analysis of variability is performed. 
+%     'anova'           - runs an ANOVA on the raw tuning curve to check the
+%                           selectivity.
+%     'tcfit'           - fits the descriptive functions to the tuning curve.
+%     'tcheight'        - computes the amplitude of the tuning curve divided by
+%                           the mean height.
+%     'phasesel'        - runs the computation of phase selectivity on this
+%                           experiment.
 % 
-% It further calls these functions  
+%     Arguments passed on to evalBothEx:
+%       't2reg'         - fits the type-II linear regression
+%       'wavewdt'       - computes the spike waveform's wave width
+%      
+% 
+% 'all'         - performs all of these computations.
+% 
+%     Arguments passed on to evalSingleRC-RCsubspace:
+%       'plot'                  - plots the sdfs and latency estimates
+%       'lat_flag', boolean     - computes the latency estimate (default) or not.
+%       'bootstrap_n', integer  - specifies the number of bootstrap samples
+%
+% 
+% The function further calls these functions  
 %   getValidField           - determines the experiment with best
 %                               type-II regression fit for experiments with
 %                               the same stimulus type for the same unit
 %                               cluster
 %   getDominantEyeField     - determines the eye preference, important for
 %                               experiments with varying ocularity
-% - setReceptiveFieldSize   - determines the RF width by finding and
-%                               analyzing the YPos.mat and XPos.mat files
-% - addSortingValue         - retrieves the spike sorting quality
-% - addNumInExp             - retrieves information about the preceeding
-%                               drug experiments
-% - addStruct               - obsolete but important for the gui. adds the
+%   addStruct               - obsolete but important for the gui. adds the
 %                               fields gaussr2(_drug) and sets the latency
 %                               field to -10 if it is empty.
 % 
