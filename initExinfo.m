@@ -30,7 +30,17 @@ function exinfo = initExinfo(varargin)
 % 'figdir', XX    - XX being a folder name, destination for all matlab
 %                   figures associated with this exinfo structure
 %
-%
+% 
+% The function further calls:
+% - setReceptiveFieldSize   - determines the RF width by finding and
+%                               analyzing the YPos.mat and XPos.mat files
+% - addSortingValue         - retrieves the spike sorting quality
+% - addNumInExp             - retrieves information about the preceeding
+%                               drug experiments
+%  
+% 
+% 
+% 
 % @CL 
 % commented 19.05.2017 
 
