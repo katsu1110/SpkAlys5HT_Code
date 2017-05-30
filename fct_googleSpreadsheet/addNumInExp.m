@@ -1,9 +1,15 @@
 function exinfo = addNumInExp( exinfo )
 % exinfo = addNumInExp( exinfo )
 % 
-% loads the spike sorting tables and reads out the number of 5HT
-% experiments within the unit recording for each drug experiment
-%
+% loads the spike sorting tables and reads out the number of drug
+% experiments within the unit recording for each drug experiment. if NaCl
+% was applied in the experiment, it says how many NaCl experiments were
+% performed previously and vice versa for experiments with 5HT application.
+% (go to the subfunction getDeltaNexpHelper if you want to change that).
+% 
+% 
+% 
+% 
 % Following fields are added:
 %   dn_id           - the number of preceeding drug experiments before the 
 %                       current one during the recording of this unit
@@ -35,7 +41,7 @@ sorting.matfilename = [{B.matfilename}'; {A.matfilename}'];
 sorting.iontophoresis = [{B.iontophoresis}'; {A.iontophoresis}'];
 
 
-% loop throught the result structure and add retract the information about
+% loop throught the result structure and retrieve the information about
 % preceeding events
 for i = 1:length(exinfo)
     
@@ -158,7 +164,7 @@ dn.session = sum( idx_session < idx_cex );
             dt = (t2 - t1);
             
             %%% the cummulative time of drug application before the start of this
-            %%% exeriment
+            %%% experiment
             idx = idx(idx<idx_cex);
             dt_cum = 0;
             for kk =1:length(idx)
@@ -177,7 +183,7 @@ end
 %%
 function fname = fulfillfdir(fname_short, monkey, id, drugname)
 % this function computes the correct directory and the filename and returns
-% the concatination of both, i.e. the ful filename.
+% the concatination of both, i.e. the full filename.
 
 % file directory
 if strcmp(monkey , 'ka')
@@ -186,7 +192,7 @@ else
     fdir = ['Z:\data\mango\' getStringID(id) '\'];
 end
 
-% file name
+% filename
 fname_short = strrep(fname_short, '.mat', '');
 [~, i_end] = regexp(fname_short, getStringID(id, monkey));
 fname_ful = [fname_short(1:i_end+1) 'c1_sortLH_' fname_short(i_end+2:end) '_' drugname '.mat'];
@@ -195,7 +201,7 @@ fname_ful = [fname_short(1:i_end+1) 'c1_sortLH_' fname_short(i_end+2:end) '_' dr
 fname = fullfile(fdir, fname_ful);
 
 
-% this is hard coded alrorithms to check for alternative filenames that
+% this is hardcoded alrorithms to check for alternative filenames that
 % are valid 
 if ~exist(fname, 'file')
     fname = strrep(fname, 'XX', 'CO');
