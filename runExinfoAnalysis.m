@@ -26,27 +26,27 @@ function exinfo = runExinfoAnalysis( varargin )
 %   evalBothEx      - returns the comparative analysis results
 %
 %     Arguments passed on to evalSingleDG:
-%     'rsc'             - runs the analysis of co-variability.
+%     'rsc'             - run the analysis of co-variability.
 %     'ff'              - the analysis of variability is performed. 
-%     'anova'           - runs an ANOVA on the raw tuning curve to check the
+%     'anova'           - run an ANOVA on the raw tuning curve to check the
 %                           selectivity.
-%     'tcfit'           - fits the descriptive functions to the tuning curve.
-%     'tcheight'        - computes the amplitude of the tuning curve divided by
+%     'tcfit'           - fit the descriptive functions to the tuning curve.
+%     'tcheight'        - compute the amplitude of the tuning curve divided by
 %                           the mean height.
-%     'phasesel'        - runs the computation of phase selectivity on this
+%     'phasesel'        - run the computation of phase selectivity on this
 %                           experiment.
 % 
 %     Arguments passed on to evalBothEx:
-%       't2reg'         - fits the type-II linear regression
-%       'wavewdt'       - computes the spike waveform's wave width
+%       't2reg'         - fit the type-II linear regression
+%       'wavewdt'       - compute the spike waveform's wave width
 %      
 % 
 % 'all'         - performs all of these computations.
 % 
 %     Arguments passed on to evalSingleRC-RCsubspace:
-%       'plot'                  - plots the sdfs and latency estimates
-%       'lat_flag', boolean     - computes the latency estimate (default) or not.
-%       'bootstrap_n', integer  - specifies the number of bootstrap samples
+%       'plot'                  - plot the sdfs and latency estimates
+%       'lat_flag', boolean     - compute the ML latency estimate (default) or not.
+%       'bootstrap_n', integer  - specify the number of bootstrap samples
 %
 % 
 % The function further calls these functions  
@@ -64,13 +64,14 @@ function exinfo = runExinfoAnalysis( varargin )
 % @CL 
 
 
-
+clc;
+close all;
 %% define default variables and parse input
 
 
-addpath(genpath(pwd)); % add all subfolders to the path
-addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code')); % add all subfolders to the path
-addpath(genpath('C:\Users\Corinna\Documents\CODE\GenAlyz_Code'));
+% addpath(genpath(pwd)); % add all subfolders to the path
+% addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code')); % add all subfolders to the path
+% addpath(genpath('C:\Users\Corinna\Documents\CODE\GenAlyz_Code'));
 
 rng(2384569);       % set seed for the random number generator. do not change this number. 
 exinfo = [];
@@ -123,9 +124,9 @@ for kk = i_strt:length(exinfo)
     %drug
     [ex2, args2] = evalSingleEx(exinfo(kk), exinfo(kk).fname_drug, varargin{:});
     exinfo(kk) = assignInfo(exinfo(kk), '_drug', args2{:});
-
+    
+    
     %------------------------------------------ operations on both ex files
-    exinfo(kk).tf = ex0.stim.vals.tf;
     exinfo(kk) = evalBothEx(ex0, ex2,  exinfo(kk), p_flag, varargin{:});
   
        
@@ -136,12 +137,22 @@ for kk = i_strt:length(exinfo)
         if ~exinfo(kk).isadapt
 
            exinfo(kk) = psthPlot(exinfo(kk), ex0, ex2);
-           rasterPlot( exinfo(kk), ex0, ex2);
            tuningCurvePlot(exinfo(kk));        
-           znormplot(ex0, ex2, exinfo(kk));
-           exinfo(kk) = phasePlot(exinfo(kk), ex0, ex2);
+            exinfo(kk) = phasePlot(exinfo(kk), ex0, ex2);
+            
+            
+           % these functions resort on variability and co-variability related fields of exinfo
+           % to this end they are only performed if the analysis was
+           % computed
+           if any(strcmp(varargin, 'all')) ||...
+                   (any(strcmp(varargin, 'ff')) && any(strcmp(varargin, 'rsc' )))
+               rasterPlot( exinfo(kk), ex0, ex2);
+                znormplot(ex0, ex2, exinfo(kk));
+                VariabilityPlot(exinfo(kk), ex0, ex2);
+           end
            
-           VariabilityPlot(exinfo(kk), ex0, ex2);
+           
+           
         end
 
         exinfo(kk) = getISI_All(exinfo(kk), ex0, ex2, p_flag);
@@ -160,15 +171,14 @@ end
 %--------------------------------------------------------------- add fields
 exinfo = getValidField(exinfo);
 exinfo = getDominantEyeField(exinfo);
+
 exinfo = addStruct(exinfo);
 
 
 
 % save the result structure in a superordinate folder named Data
 if save_flag
-    cfolder = cd('..');
     datadir = fullfile(cd, 'Data\');%folder destination 
-    cd(cfolder);
     save(fillfile(datadir, ['exinfo' fig_suffix '.mat']), 'exinfo', '-v7.3'); 
 end
 
@@ -176,6 +186,11 @@ end
 
 function exinfo = assignInfo(exinfo, apx, varargin)
 % arguments from evalSingleEx assigned to exinfo
+%
+% for this function it is important that input and output exinfo have the
+% exact same fields.
+
+
 j = 1;
 
 while j<length(varargin)
