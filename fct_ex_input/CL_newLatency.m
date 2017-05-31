@@ -1,5 +1,5 @@
-function res = CL_newLatency(res)
-% res = CL_newLatency(res)
+function res = CL_newLatency(res, p_flag, ml_lat_flag)
+% res = CL_newLatency(res, p_flag, ml_lat_flag)
 % 
 % 
 % This function computes two latency metrics 
@@ -21,9 +21,12 @@ function res = CL_newLatency(res)
 % for the maxmimum value of the second stimulus dimension, assuming that
 % this is contrast.
 % 
+% If ml_lat_flag is false, the  ML estimate is skipped
+% If ml_lat_flag and p_flag is true, the ML estimate is plotted.
+% 
 % 
 %@CL 22.01.2016
-%
+%@CL adapted 31.05.2017     added additional input arguments
 
 
 % estimate the latency using the deviation across stimulus selective
@@ -41,7 +44,7 @@ end
 
 % call the latency computations
 [res.sdfs.lat2hmax, res.sdfs.dur, res.sdfs.latFP] = ...
-    CL_newLatency_helper(res.vars2(:), res.times);
+    CL_newLatency_helper(res.vars2(:), res.times, p_flag, ml_lat_flag);
 
 res.lat = res.sdfs.lat2hmax;
 res.dur = res.sdfs.dur;
@@ -52,7 +55,7 @@ end
 
 
 
-function [lat2hmax, dur, latfp, pPoisson] = CL_newLatency_helper(vars, times)
+function [lat2hmax, dur, latfp, pPoisson] = CL_newLatency_helper(vars, times, p_flag, ml_lat_flag)
 
 
 
@@ -81,9 +84,13 @@ if max(sd)>mean(noise)*4
     dur = times(idx)/10 - lat2hmax;
     
     try
-        % some additional arguments improve the ML 
-        [latfp, ~, pPoisson] = friedmanpriebe(round(sd(200:end).*100), ...
-            'minTheta', 250, 'responseSign', 0, 'graphics', false);
+        if ml_lat_flag
+            % some additional arguments improve the ML
+            [latfp, ~, pPoisson] = friedmanpriebe(round(sd(200:end).*100), ...
+                'minTheta', 250, 'responseSign', 0, 'graphics', p_flag);
+        else
+            latfp = -1;
+        end
     catch
        disp('there were problems computing the latency using the ML algorithm') 
     end

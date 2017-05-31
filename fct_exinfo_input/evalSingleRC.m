@@ -12,7 +12,23 @@ function [ex, argout] = evalSingleRC( exinfo, fname, varargin )
 % 
 % @CL
 
+%% define variables and parse input
+j=1; 
+lat_flag = true;
+p_flag = false;
 
+while j<= length(varargin)
+   switch varargin{j}
+       case 'exinfo'
+           j=j+1;
+       case 'lat_flag'
+           lat_flag = varargin{j+1};
+           j=j+1;
+       case 'plot'
+           p_flag = true;
+   end
+   j=j+1;
+end
 
 %% load the ex file 
 
@@ -24,13 +40,17 @@ ex = loadCluster( fname, 'loadlfp', false );
 [ res, spkstats, fitparam ] = RCsubspace(ex, varargin{:} );
 
 
-% name the
-if contains(fname, '5HT') && contains(fname, 'NaCl')
-    set(gcf, 'Name', [exinfo.figname '_' exinfo.drugname]);
-    savefig(gcf, [exinfo.fig_sdfs(1:end-4) '_mlfit_drug.fig'])
-else
-    set(gcf, 'Name', [exinfo.figname '_base']);
-    savefig(gcf, [exinfo.fig_sdfs(1:end-4) '_mlfit_base.fig'])
+if lat_flag && p_flag
+    % name and save the figure of the ML response latency estimate
+    if contains(fname, '5HT') && contains(fname, 'NaCl')
+        set(gcf, 'Name', [exinfo.figname '_' exinfo.drugname]);
+        savefig(gcf, [exinfo.fig_sdfs(1:end-4) '_mlfit_drug.fig'])
+        close(gcf)
+    else
+        set(gcf, 'Name', [exinfo.figname '_base']);
+        savefig(gcf, [exinfo.fig_sdfs(1:end-4) '_mlfit_base.fig'])
+        close(gcf)
+    end
 end
 
 % res = getLat2D(res, exinfo);% only if there are two stimulus dimensions evaluated
@@ -67,17 +87,14 @@ end
 
 
 %% assign output arguments
-if any(strcmp(varargin, 'lat_flag'))
-        argout = [];
-else
-    argout = {'resdur', res.dur, 'resvars', res.vars2, 'lat', res.latFP, 'lat2Hmax', res.lat,...
-    'p_anova', p_anova};
-end
-argout =  [argout {'fitparam', fitparam, ...
+
+argout =  {'fitparam', fitparam, ...
     'rateMN', spkstats.mn, 'ratePAR', spkstats.or, 'rateSME', spkstats.sem, ...
     'tcdiff', tcdiff, 'sdfs', res.sdfs,...
-     'times', res.times, ...
-    'p_anova', p_anova, 'nrep', nrep}];
+    'times', res.times, ...
+    'resdur', res.dur, 'resvars', res.vars2,...
+    'lat', res.latFP, 'lat2Hmax', res.lat,...
+    'p_anova', p_anova, 'nrep', nrep};
 
 end
 

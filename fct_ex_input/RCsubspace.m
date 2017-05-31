@@ -7,27 +7,20 @@ function [ res, ratestruc, tcfit ] = RCsubspace( ex, varargin )
 % and latency analysis but also the tuning fit.
 %
 % Optional arguments are:
-%   'plot'                  - plots the sdfs and latency estimates
-%   'lat_flag', boolean     - computes the latency estimate (default) or not.
+%   'plot'                  - plots the ML latency estimate plot, see
+%                               friedmanpriebe.m for more information
+%   'lat_flag', boolean     - computes the ML latency estimate (default) or not.
 %   'bootstrap_n', integer  - specifies the number of bootstrap samples
 %
 %
 
 %% define variables and parse input
-p_flag = false;    
-lat_flag = true;    % compute the latency estimate. Especially the ML algorithms takes some time, therefore I implemented a flag to skip it.
 nsmpl = 1000;       % number of resampling processes  
 j=1; 
 
 while j<= length(varargin)
    switch varargin{j}
-       case 'plot'
-           p_flag = true;
-           figure;
        case 'exinfo'
-           j=j+1;
-       case 'lat_flag'
-           lat_flag = varargin{j+1};
            j=j+1;
        case 'bootstrap_n'
            nsmpl = varargin{j+1};
@@ -37,7 +30,7 @@ while j<= length(varargin)
 end
 
 %% get errorbars by resampling
-[res, ratestruc] = resampleRC(ex, nsmpl, 'lat_flag', lat_flag);
+[res, ratestruc] = resampleRC(ex, nsmpl, varargin);
 
 
 %% fit tuning curves
@@ -69,49 +62,50 @@ end
 
 
 
-%% plot SDFs and latency estiamtes
-if p_flag
-
-    % this is not yet adapted to handle two stimulus dimensions
-    
-    % the raw and fitted spike tuning curve
-    subplot(2,2,1);
-    plot(tcfit.x, tcfit.y, 'r-'); hold on;
-    errorbar(tcfit.val.or, tcfit.val.mn, tcfit.val.sem, 'rx');
-    
-    % stimulus triggered SDFs
-    subplot(2,2,[3 4]);
-    c = hsv(length(res.sdfs.s));
-    for i = 1:length(res.sdfs.s) % orientation samples
-        plot(res.times/10, res.sdfs.s{i}, 'Color', c(i,:), 'DisplayName', ...
-            sprintf('%1.0f \t n=%1.0f', res.sdfs.x(i), res.sdfs.n(i))); 
-        hold on;
-    end
-    plot(res.times/10, res.sdfs.extras{1}.sdf, 'r:'); ho
-    legend('show', 'Location', 'EastOutside');
-    
-    
-    % deviation across selective SDFs and latency estiamtes
-    latfp = res.latFP;  % latency estimate using ML (parametric)
-    lathmax = res.lat;  % latency estimate using half-maximal response threshold (non-p)
-    dur = res.dur;      % response duration (non-parametric only)
-    
-    ylim_ = get(gca, 'ylim'); 
-    
-    plot([latfp latfp], ylim_, 'k');
-    plot([lathmax lathmax], ylim_, 'k--');
-    plot([lathmax+dur, lathmax+dur], ylim_, 'k');
-    
-    
-    s = horzcat(res.sdfs.s{:}); 
-    meanfr = mean(mean(s(201:400),2)); % mean firing rate across all stimulus conditions
-    
-    title(sprintf('lat: %1.1f (hmax %1.1f), dur: %1.1f, \n average sd: %1.2f, mean fr: %1.2f',...
-        res.latFP, res.lat, res.dur, mean(sqrt(res.vars(201:400))), meanfr));
-    xlim([0 160]); grid on;
-    ylabel('spk/s');
-
-end
+% %% plot SDFs and latency estiamtes
+% if p_flag
+% 
+%     % this is not yet adapted to handle two stimulus dimensions
+%     
+%     % the raw and fitted spike tuning curve
+%     subplot(2,2,1);
+%     plot(tcfit.x, tcfit.y, 'r-'); hold on;
+%     errorbar(tcfit.val.or, tcfit.val.mn, tcfit.val.sem, 'rx');
+%     xlabel('orientation'); ylabel('spks/frame');
+%     
+%     % stimulus triggered SDFs
+%     subplot(2,2,[3 4]);
+%     c = hsv(length(res.sdfs.s));
+%     for i = 1:length(res.sdfs.s) % orientation samples
+%         plot(res.times/10, res.sdfs.s{i}, 'Color', c(i,:), 'DisplayName', ...
+%             sprintf('%1.0f \t n=%1.0f', res.sdfs.x(i), res.sdfs.n(i))); 
+%         hold on;
+%     end
+%     plot(res.times/10, res.sdfs.extras{1}.sdf, 'r:'); ho
+%     legend('show', 'Location', 'EastOutside');
+%     
+%     
+%     % deviation across selective SDFs and latency estiamtes
+%     latfp = res.latFP;  % latency estimate using ML (parametric)
+%     lathmax = res.lat;  % latency estimate using half-maximal response threshold (non-p)
+%     dur = res.dur;      % response duration (non-parametric only)
+%     
+%     ylim_ = get(gca, 'ylim'); 
+%     
+%     plot([latfp latfp], ylim_, 'k');
+%     plot([lathmax lathmax], ylim_, 'k--');
+%     plot([lathmax+dur, lathmax+dur], ylim_, 'k');
+%     
+%     
+%     s = horzcat(res.sdfs.s{:}); 
+%     meanfr = mean(mean(s(201:400),2)); % mean firing rate across all stimulus conditions
+%     
+%     title(sprintf('lat: %1.1f (hmax %1.1f), dur: %1.1f, \n average sd: %1.2f, mean fr: %1.2f',...
+%         res.latFP, res.lat, res.dur, mean(sqrt(res.vars(201:400))), meanfr));
+%     xlim([0 160]); grid on;
+%     ylabel('spk/s');
+% 
+% end
 
 end
 
