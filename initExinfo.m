@@ -55,11 +55,8 @@ kk = 0;
 idi = 1;
 fname = 'Z:\Corinna\filenames\SU_CL_all.txt'; % txt file containing the experiment filenames
 
-cfolder = cd('..');
 figdir.pre = fullfile(cd, 'Figures\'); %folder destination for all figures
 figdir.Data = fullfile(cd, 'Data\');%folder destination for data
-
-cd(cfolder);
 
 
 % result structure
@@ -404,7 +401,9 @@ for i = 1:length(F_drug)
         exinfo(kk).ocul = ocul;
         exinfo(kk).drugname = drugname;
         
+        
         exinfo(kk).param1 = stimtypes{1};      exinfo(kk).param2 = stimtypes{2};
+        exinfo(kk).tf = ex0.stim.vals.tf;
         exinfo(kk).is5HT      = contains(drugname, '5HT');
         exinfo(kk).isadapt    = contains(fname_drug, 'adapt');
         exinfo(kk).isRC       = contains(fname_drug, 'RC');
@@ -490,15 +489,15 @@ end
 % retrieve information from other sources
 
 % phase selectivity --> TF experiment
-exinfo = setPhaseSelTFexp( exinfo );
+% exinfo = setPhaseSelTFexp( exinfo );
 
 % RF size --> XPos / YPos experiment
-exinfo = setReceptiveFieldSize( exinfo );
+% exinfo = setReceptiveFieldSize( exinfo );
 
 % experiment number in the recording session, spike sporting isolation quality, etc
 % --> google spreadsheet
-exinfo = addSortingValue(exinfo);
-exinfo = addNumInExp(exinfo);
+% exinfo = addSortingValue(exinfo);
+% exinfo = addNumInExp(exinfo);
 
 save(fullfile(figdir.Data, 'empty_exinfo.mat'), 'exinfo')
 
