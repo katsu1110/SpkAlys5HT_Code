@@ -41,7 +41,7 @@ mn = mn(co_all<=1);
 
 
 %%% fitting settings
-opt = optimset('MaxIter', 10^4, 'MaxFunEvals', 10^4, 'TolFun', 0.001);
+opt = optimset('MaxIter', 10^4, 'MaxFunEvals', 10^4, 'TolFun', 0.001,'Display','off');
 
 
 %%% in order to improve the fitting algorithm, I repeat the procedure with
