@@ -1,5 +1,5 @@
 function ex = loadCluster(fname, varargin)
-% all preprocessing goes here
+% all loading and preprocessing goes here
 
 
 %% define variables and parse input

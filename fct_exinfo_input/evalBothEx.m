@@ -1,9 +1,10 @@
 function exinfo = evalBothEx(ex0, ex2, exinfo, p_flag, varargin)
 %evalBothEx evaluates operations on both base (ex0) and drug (ex2) files
+% and performed the comparative analyses
+%
+% @CL
 
-
-
-%% preferred/unpreferred stimuli occuring in both files
+% ==================== preferred/unpreferred stimuli occuring in both files
 idx = ismember(exinfo.ratepar, exinfo.ratepar_drug) &  exinfo.ratepar<1000;
 parb = exinfo.ratemn;
 
@@ -16,10 +17,10 @@ parb(~idx) = 10^4;
 exinfo.upfi_drug = find(exinfo.ratepar_drug == exinfo.ratepar( exinfo.upfi ));
 
 
-%% bootstrap
+% =============================================================== bootstrap
 exinfo = bootstrap_exinfo( exinfo );
 
-%% gain change
+% ====================================================== type-II regression
 if any(strcmp(varargin, 't2reg')) || any(strcmp(varargin, 'all'))
     [gslope, yoff, r2, bootstrp] = type2reg(exinfo, p_flag);
     
@@ -31,11 +32,12 @@ if any(strcmp(varargin, 't2reg')) || any(strcmp(varargin, 'all'))
     %exinfo.reg_bootstrp = bootstrp;
 end
 
-%% fitting parameters
+% ====================================================== fitting parameters
 if any(strcmp(varargin, 'tcfit')) || any(strcmp(varargin, 'all'))
     if isfield(exinfo.fitparam, 'others') && isfield(exinfo.fitparam.others, 'OR')
+        % RC experiments with varying or and co only
         
-        %%% orientation
+        % compute the type-II regression for orientation tuning curves for each contrast condition ... 
         for i = 1:length(exinfo.fitparam.others.OR)
             
             cont = exinfo.fitparam.others.OR(i).val.mn;
@@ -50,7 +52,8 @@ if any(strcmp(varargin, 'tcfit')) || any(strcmp(varargin, 'all'))
             exinfo.fitparam.others.OR(i).r2reg = xvar;
         end
         
-        %%% contrast
+        
+        % ... and for contrast tuning curves averaged across all orientations
         cont = exinfo.fitparam.others.CO.val;
         drug = exinfo.fitparam_drug.others.CO.val;
         
@@ -66,6 +69,7 @@ if any(strcmp(varargin, 'tcfit')) || any(strcmp(varargin, 'all'))
         
     elseif strcmp(exinfo.param1, 'sf')      %%% spatial frequency
         
+        % find the best fit - 
         % first entry linear fit, second entry log scaled fit
         others_base = exinfo.fitparam.others;
         others_drug= exinfo.fitparam_drug.others;
@@ -84,8 +88,11 @@ if any(strcmp(varargin, 'tcfit')) || any(strcmp(varargin, 'all'))
     end
     
     
-    %% pfreferred orientation fit evaluation
-    
+    %%% pfreferred orientation fit evaluation
+    % 
+    % in case the preferred orientations (mu) are more than 150 degrees
+    % apart they are at different extremes of the circular values and their difference could be misleading.
+    % in this case, I allow mu to be in the range of [0 210].
     if strcmp(exinfo.param1, 'or')
         if isfield(exinfo.fitparam, 'OR')
             
@@ -115,7 +122,7 @@ if any(strcmp(varargin, 'tcfit')) || any(strcmp(varargin, 'all'))
 end
 
 
-%% wave form
+% ======================================================= waveform analysis
 if any(strcmp(varargin, 'wavewdt')) || any(strcmp(varargin, 'all'))
     
     if isfield(ex0.Trials, 'Waves') && isfield(ex2.Trials, 'Waves')
@@ -133,8 +140,12 @@ end
 
 end
 
+%% subfunctions
 
 function  plotCOTC(exinfo)
+% plots the contrast tuning curve from RC experiments
+% only occurs if both or and co varied in the experiment
+% 
 
 % tuning curve
 h = figure('Name', exinfo.figname);
