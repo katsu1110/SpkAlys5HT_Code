@@ -68,10 +68,11 @@ clc;
 close all;
 %% define default variables and parse input
 
-
-% addpath(genpath(pwd)); % add all subfolders to the path
-% addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code')); % add all subfolders to the path
-% addpath(genpath('C:\Users\Corinna\Documents\CODE\GenAlyz_Code'));
+% adding folder to the MATLAB search path takes some time
+% I normally just do this ones and then comment it
+addpath(genpath(pwd)); % add all subfolders to the path
+addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code')); % add all subfolders to the path
+addpath(genpath('C:\Users\Corinna\Documents\CODE\GenAlyz_Code'));
 
 rng(2384569);       % set seed for the random number generator. do not change this number. 
 exinfo = [];
