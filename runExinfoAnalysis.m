@@ -165,7 +165,6 @@ for kk = i_strt:length(exinfo)
     
     %-------------------------------------- temp save, useful for debugging
 %     if save_flag && mod(kk, 30)==0 
-%         save(['exinfo' fig_suffix '.mat'], 'exinfo', '-v7.3'); 
 %     end
 end
 
@@ -180,7 +179,6 @@ exinfo = addStruct(exinfo);
 % save the result structure in a superordinate folder named Data
 if save_flag
     datadir = fullfile(cd, 'Data\');%folder destination 
-    save(fillfile(datadir, ['exinfo' fig_suffix '.mat']), 'exinfo', '-v7.3'); 
 end
 
 end
