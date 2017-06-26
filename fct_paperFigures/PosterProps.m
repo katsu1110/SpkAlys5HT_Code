@@ -25,10 +25,13 @@ function PosterProps(ax, xlim_, ylim_, varargin)
 %     PosterProps(ax, xlim, ylim, 'sz', 20)
 % - 'alpha' is used to change the transperency parameter, must be [0,1]
 %     PosterProps(ax, xlim, ylim, 'alpha', 0.5)
-% - 'untity' adds a grey unity line and puts it in the background
+% - 'unity' adds a grey unity line and puts it in the background
 %     PosterProps(ax, xlim, ylim, 'unity')
 % - 'nounity' deletes preexisting, dashed lines counteracting with 'unity'
+% - 'cross' plots a cross indicating the null point on the axes
+% - 'square' makes the plot outline square
 % - 'save' saves the figure as .svg under the given name
+% - 'fname' the name the figure is supposed to be saved as
 %
 % %
 % Other setttings that can not be altered:
@@ -39,10 +42,10 @@ function PosterProps(ax, xlim_, ylim_, varargin)
 %
 % NOTE: This function was written under use of Matlab R2015a. There have
 % been major changes in the plotting functions between 2014 to 2015,
-% especially with the transparancy. I would recommend to use R2015a or
+% especially with the transperancy. I would recommend to use R2015a or
 % later versions to work with PosterProps (also because I think plots look
-% nicer with new versions, otherwise try to make a copy and adapt it to
-% older versions.
+% nicer with new versions). Otherwise try to make a copy and adapt it to
+% older Matlab versions.
 %
 % NOTE2: Put the unity function in the same folder to guarantee smooth
 % collaborations.

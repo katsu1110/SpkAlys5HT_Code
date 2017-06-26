@@ -92,12 +92,12 @@ end
 
 
 function res = resample2(A)
-% resample from A
+% resample 1000 times from A
 
 n = length(A); 
 nsmpl = 1000; % number 
 
-res = ones(n, nsmpl); %initial variable to prevent overhead
+res = ones(n, nsmpl); %initialize variable to prevent overhead
 idx = randi(n, 1000, n); % combination of indices corresponding to A's data
 
 for i = 1:nsmpl
