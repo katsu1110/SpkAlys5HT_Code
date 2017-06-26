@@ -29,26 +29,40 @@ end
 end
 
 
-function [ratemn, res_mnmn] = getMnAndResDist(ratemn, resmpls, nrep, i1, i2)
-%returns data with similar rate 
+function [mnspkrates, resampled_mn] = getMnAndResDist(mnspkrates, resmpls, nrep, i1, i2)
+%returns the average response across stimulus conditions (i.e. the area
+% under the tuning curve divided by the number of tested stimuli) 
+% and the same metric for the bootstrapped responses.
+%
+%
+%
+% i1 and i2 are the stimuli in the baseline and drug condition. Note that
+% it is important that we consider the same stimulus set when comparing the
+% two experiments.
 
-idx = ismember(i1, i2);
-ratemn = ratemn(idx); % mean spike rate (across raw tc)
-resmpls = resmpls(idx); % resamples, cell array
-nrep = nrep(idx);
 
-% compute the average tuning curve from the resampled stimulus conditions
-res_mn = nan(length(resmpls), 1000);
+idx = ismember(i1, i2); % use only those stimuli that were used in both experiments
+
+mnspkrates = mnspkrates(idx); % average spike rates (raw tc)
+resmpls = resmpls(idx); % re-samples, cell array
+% nrep = nrep(idx); %only needed for weighted average
+
+
+% each column in each cell contains a set of resampled spiking responses
+% compute the mean for each of these sets to obtain the distribution for
+% each data point in the tuning curve
+resampled_mn = nan(length(resmpls), 1000);
 for i = 1:length(resmpls)
-    res_mn(i,:) = mean(resmpls{i},1);
+    resampled_mn(i,:) = mean(resmpls{i},1);
 end
 
+% now we can average across the resampled and averaged responses
 try
-    if size(nrep, 1)>1
-        nrep = nrep';
-    end
-    res_mnmn = nrep*res_mn / sum(nrep); % weighted average
-
+%     if size(nrep, 1)>1
+%         nrep = nrep';
+%     end
+%     res_mnmn = nrep*res_mn / sum(nrep); % weighted average
+    resampled_mn = mean(resampled_mn); 
 catch
     disp('');
 end
@@ -62,15 +76,16 @@ end
 function ci = getCI(y)
 % 25, 50 and 75% intervals
 % allows for Tukey's test of outliers
+
 ci(1) = prctile(y, 5);
 ci(2) = prctile(y, 25);
 ci(3) = prctile(y, 50);
 ci(4) = prctile(y, 75);
 ci(5) = prctile(y, 95);
 
+
 % k times the quartiles as range for outliers
 k = 0;
-
 ci(1) = ci(1)-k*(ci(3)-ci(1));
 ci(2) = ci(2)-k*(ci(3)-ci(2));
 ci(4) = ci(4)+k*(ci(4)-ci(3));
