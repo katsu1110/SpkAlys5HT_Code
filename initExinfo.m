@@ -76,6 +76,9 @@ exinfo = struct(...
     'yoff', [], ... %<- type-II regression y offset
     'r2reg', [], ... %<- type-II regression explained variance
     'yoff_rel', [], ... %<- type-II regression y offset for normalized spike rates (note that the slope and fit do not change)
+    'yoff_rel_wo_null', [],... %<- type-II regression y offset for normalized spike rates > 0
+    'gslope_rel_wo_null', [], ...%<- type-II regression slope for normalized spike rates > 0
+    'reg_bootstrp_rel_wo_null', [], ... %<- regression bootstrp
     'param1', {},... %<- first stimulus dimension tested (or, co, sz, ...)
     'param2', {}, ... %<- second stimulus dimension tested (me or co), important for RC orxco files
     'nonparam_ratio', [], ... %<- ratio between mean firing rate
@@ -103,7 +106,7 @@ exinfo = struct(...
     'bridx', [], ... %<- ???
     'isi_frct', [],... %<- ???
     'x0', [], 'y0', [], ... %<- stimulus position
-    'ecc', [],... %<- ???
+    'ecc', [],... %<- eccentricity, the distance of the stimulus position to the fixation point
     'pfi', [], 'pfi_drug', [], ... %<- index for the preferred stimulus (highest response)
     'upfi', [], 'upfi_drug', [], ...%<- index for the unpreferred stimulus (lowest response)
     'tf_f1f0', [], ... %<- ???
@@ -174,13 +177,13 @@ exinfo = struct(...
     'gridX', [], 'gridY', [], ... %<- grid position - note that the information in the ex file are not always correct. look uo the google spreadsheet for the correct position.
     'expstrt', [], ... %<- time stamp of the first trial start
     'ret2base', [], ... %<- boolean value, true if this baseline experiment recovered from the effect of preceeding drug application 
-    'iscmp2base', [], ... %<- ???
     'reg_slope', [], ... %<- result of the latency control analysis using subsampling. Slope of the regression fit Latency ~ Noise (Baseline SD in SDFs)
     'reg_off', [], ... %<- corresponding offset of the regression
     'noise', [], 'noise_drug', [], ... %<- noise (SD) across SDFs, RC experiments only
     'lat_c', [], 'lat_drug_c', [], ... %<- noise corrected latency estimate, RC experiments only
     'predicted_lat_change', [], ... %<- predicted latency change based on the change in baseline noise
-    'fig_latjackknife', [] ... %<- figure of the experiment subsampling for the latency control analysis
+    'fig_latjackknife', [], ... %<- figure of the experiment subsampling for the latency control analysis
+    'fixspan', [], 'fixspan_drug', []... %<- struct containing the fixcation accuracy, see fixationSpan.m
     ); 
    
 
@@ -283,7 +286,7 @@ for i = 1:length(F_drug)
     ex2 = loadCluster(fname_drug,'reward', false, 'loadlfp', false);
     
     
-    %------------------------------- derive information from the filename
+    %-------------------------- derive information from the filename about
     % ...the applied drug
     if contains(fname_drug, 'NaCl')
         drugname = 'NaCl';
@@ -317,7 +320,7 @@ for i = 1:length(F_drug)
     
     id = str2double(fname(15+idxa:17+idxa))+id_off;
     
-    %--------------------------------- derive information from the ex files
+    %------------------------- derive information from the ex files about
     % ...electrode depth
     if isfield(ex0.Trials, 'ed')
         ed = ex0.Trials(1).ed;
@@ -325,28 +328,31 @@ for i = 1:length(F_drug)
         ed = nan;
     end
     
-    % stimulus types (usually one or two, e.g. or and me, or and co,...)
+    % ...stimulus types (usually one or two, e.g. or and me, or and co,...)
     stimtypes = {ex0.exp.e1.type, ex0.exp.e2.type};
     
-    % stimulus position in x and y, and resulting eccentricity 
+    % ...stimulus position in x and y, and resulting eccentricity 
     x0 = ex0.stim.vals.x0;  
     y0 = ex0.stim.vals.y0;  
     ecc = sqrt( x0^2 + y0^2 ); 
     
-    % applied drug dose, in nA
+    % ...applied drug dose, in nA
     [dose, dosernd] = getDose(ex2); 
     
-    % recorded voltage
+    % ...recorded voltage
     volt = getVolt(ex2);    
     
-    % electrode position !inconsistant with the google spreadsheet table
-    [gridX, gridY, ] = getGridPosition( ex0 ); 
+    % ...electrode position !inconsistant with the google spreadsheet table
+    [gridX, gridY] = getGridPosition( ex0 ); 
     
-    % beginning of the experiment
+    % ...beginning of the experiment
     expStrt = min( [ex0.Trials(1).TrialStart, ex2.Trials(1).TrialStart] ); 
-
     
-    % generic figure name
+    % ...fixation accuracy
+    fixspan_base = 0;%fixationSpan(ex0);
+    fixspan_drug = 0;%fixationSpan(ex2);
+    
+    % ...generic figure name
     figname_gen = [fname((19:42)+idxa) '_' fname_drug((37:42)+idxa) ...
         '_' stimtypes{1} 'x' stimtypes{2} ];
     
@@ -384,15 +390,21 @@ for i = 1:length(F_drug)
         exinfo(kk).ed = ed;
         exinfo(kk).volt = volt;
         exinfo(kk).resistance = volt/dose; 
+        exinfo(kk).ret2base = -1;
         
         exinfo(kk).x0 = x0;                   
         exinfo(kk).y0 = y0;
         exinfo(kk).ecc = ecc;
         exinfo(kk).gridX = gridX;
         exinfo(kk).gridY = gridY;
+        exinfo(kk).fixspan_base = fixspan_base;
+        exinfo(kk).fixspan_drug = fixspan_drug;
         exinfo(kk).expstrt = expStrt;
         exinfo(kk).expduration = ex0.Trials(end).TrialEnd - ex0.Trials(1).TrialStart;
         exinfo(kk).expduration_drug = ex2.Trials(end).TrialEnd - ex2.Trials(1).TrialStart;
+        
+        
+        
         
         exinfo(kk).fname = fname;             exinfo(kk).fname_drug = fname_drug;
         exinfo(kk).date = getExDate(ex0);     exinfo(kk).date_drug = getExDate(ex2);
@@ -489,14 +501,14 @@ end
 % retrieve information from other sources
 
 % phase selectivity --> TF experiment
-% exinfo = setPhaseSelTFexp( exinfo );
+exinfo = setPhaseSelTFexp( exinfo );
 
 % RF size --> XPos / YPos experiment
-% exinfo = setReceptiveFieldSize( exinfo );
+exinfo = setReceptiveFieldSize( exinfo );
 
 % experiment number in the recording session, spike sporting isolation quality, etc
 % --> google spreadsheet
-% exinfo = addSortingValue(exinfo);
+exinfo = addSortingValue(exinfo);
 % exinfo = addNumInExp(exinfo);
 
 save(fullfile(figdir.Data, 'empty_exinfo.mat'), 'exinfo')
