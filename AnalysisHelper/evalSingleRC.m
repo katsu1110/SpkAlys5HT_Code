@@ -79,11 +79,11 @@ for i = 1:length(idx)
         A = squeeze(spkstats.bootstrap(i,1,:));
         B = squeeze(spkstats.bootstrap(j,1,:));
         
-        p_anova(i, j) = min([sum(A<B)/1000, sum(B>A)/1000]);
+        p_anova(i, j) = min([sum(A<B)/1000, sum(A>=B)/1000]);
     end
 end
 
-% p_anova = max(max(p_anova))
+p_anova = max(max(p_anova));
 
 
 %% assign output arguments

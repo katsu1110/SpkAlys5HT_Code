@@ -1,9 +1,9 @@
 function exinfo = setReceptiveFieldSize( exinfo )
 % exinfo = setReceptiveFieldSize( exinfo )
 % 
-% searches the XPos and YPos files for each session and assigns the width
-% of the receptive field in the x and y dimension to all corresponding
-% entries
+% searches the XPos and YPos files for each session and assigns the
+% equivalent width of the receptive field in the x and y dimension to all
+% corresponding entries
 % 
 % @CL
 
@@ -19,12 +19,11 @@ end
 for i = 1:length(unit_id)
 
     wY = nan; wX = nan;
-%     fprintf('working on sessison : %1.1f \n', session(i));
+    fprintf('working on unit : %1.1f \n', unit_id(i));
     
     %find all entries belonging to this session
     idx = find([exinfo.id]==unit_id(i));
     
-           
     % XPos
     [fnames, fdir] = getExFileNames(unit_id(i));
     fnamesX = fnames( contains(fnames, 'XPos') );
@@ -68,7 +67,7 @@ for i = 1:length(unit_id)
     end
     
     
-    % assign receptive field size
+    %========================================== assign receptive field size
     if isempty(fnamesY) && isempty(fnamesX) 
         
         if idx(1)>1 && (exinfo(idx(1)-1).date - exinfo(idx(1)).date) <0.8 
@@ -78,7 +77,6 @@ for i = 1:length(unit_id)
             for j = 1:length(idx)
                 exinfo(idx(j)).RFwx = nanmean(wX);
                 exinfo(idx(j)).RFwy = nanmean(wY);
-                exinfo(idx(j)).RFw = nanmean([exinfo(idx(j)).RFwy exinfo(idx(j)).RFwx]);
             end
             
         else
@@ -89,13 +87,22 @@ for i = 1:length(unit_id)
     for j = 1:length(idx)
         exinfo(idx(j)).RFwx = nanmean(wX);
         exinfo(idx(j)).RFwy = nanmean(wY);
-        exinfo(idx(j)).RFw = nanmean([exinfo(idx(j)).RFwy exinfo(idx(j)).RFwx]);
+        
+        if isnan(exinfo(idx(j)).RFwy)
+            exinfo(idx(j)).RFw = exinfo(idx(j)).RFwx;
+            
+        elseif isnan(exinfo(idx(j)).RFwx)
+            exinfo(idx(j)).RFw = exinfo(idx(j)).RFwy;
+            
+        elseif ~isnan(exinfo(idx(j)).RFwx) && ~isnan(exinfo(idx(j)).RFwy)
+            exinfo(idx(j)).RFw = ...
+                sqrt(exinfo(idx(j)).RFwy.^2 + exinfo(idx(j)).RFwx^2);
+            
+        end
     end
 
-    
-
-        
-    rf(i) = nanmean([exinfo(idx(j)).RFwy exinfo(idx(j)).RFwx]);
+           
+    rf(i) = exinfo(idx(j)).RFw;
     ecc(i) = exinfo(idx(j)).ecc;
     clearvars wX wY
         
@@ -132,7 +139,8 @@ end
 
 %%
 function w = getMarginalDist(trials, posname)
-% marginal distribution of spike rate to different bar position 
+% equivalent width of the marginal distribution of spike rate to different
+% bar position
 
 trials = trials([trials.Reward]==1);
 trials = trials([trials.(posname)]< 1000);
@@ -157,10 +165,10 @@ if anova1([trials.spkRate], [trials.(posname)], 'off') > 0.08
     w = nan;
 else
     
-    % substract spontaneous firing rate
+    % substract baseline firing rate
     meanspk = meanspk - min(meanspk);
-    meanspk = meanspk/max(meanspk);
-    
+    meanspk = meanspk/max(meanspk); % a redundant step...
+
     % area / height of the gaussian like curve
     A = sum(meanspk); h = max(meanspk);
     w = A / h;

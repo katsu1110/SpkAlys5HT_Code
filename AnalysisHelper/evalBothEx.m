@@ -20,16 +20,25 @@ exinfo.upfi_drug = find(exinfo.ratepar_drug == exinfo.ratepar( exinfo.upfi ));
 % =============================================================== bootstrap
 exinfo = bootstrap_exinfo( exinfo );
 
+% ================================================= modulation significance
+
+exinfo.pmodulation = pModulation( ex0, ex2, exinfo, 0 );
+
 % ====================================================== type-II regression
 if any(strcmp(varargin, 't2reg')) || any(strcmp(varargin, 'all'))
-    [gslope, yoff, r2, bootstrp] = type2reg(exinfo, p_flag);
+    [gslope, yoff, r2, bootstrp] = type2reg(exinfo, 1);
     
     exinfo.gslope = gslope(1);
     exinfo.yoff = yoff(1);
     exinfo.r2reg = r2(1);
     
     exinfo.yoff_rel = yoff(2);
-    %exinfo.reg_bootstrp = bootstrp;
+    
+    exinfo.yoff_rel_wo_null = yoff(3);
+    exinfo.gslope_rel_wo_null = gslope(3);
+    exinfo.r2reg_rel_wo_null = r2(3);
+    
+    exinfo.reg_bootstrp_rel_wo_null = bootstrp;
 end
 
 % ====================================================== fitting parameters

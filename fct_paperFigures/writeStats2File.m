@@ -13,17 +13,31 @@ fclose(fileID);
 % n 5HT
 [~,idxn]  = regexp(s, 'N = '); 
 i5ht = idxn(1); l = 3;
-while ~isempty(strfind( s( i5ht:i5ht+l ), ')')) && l>0
+while contains( s( i5ht:i5ht+l ), ')') && l>0
     l = l-1;
 end
 stats.n5HT = str2double( s( i5ht:i5ht+l ) );
 
 % n NaCl
 inacl = idxn(4); l = 3;
-while ~isempty(strfind( s( inacl:inacl+l ), ')')) && l>0
+while contains( s( inacl:inacl+l ), ')') && l>0
     l = l-1;
 end
 stats.nNaCl = str2double( s( inacl:inacl+l ) );
+
+
+
+% median values
+[~, idxmed]= regexp(s, '(5, 50, 95');
+
+% median in 5HT
+stats.med5HTx = getMedFromString(s, idxmed(1));
+stats.med5HTy = getMedFromString(s, idxmed(2));
+
+% median NaCl
+% ... in x
+stats.medNaClx = getMedFromString(s, idxmed(4));
+stats.medNaCly = getMedFromString(s, idxmed(5));
 
 
 % paired signrank p value
@@ -156,7 +170,13 @@ end
 
 
 
+function med = getMedFromString(s, idxmed)
 
+s2 = s(idxmed:idxmed+100);
+idx = strfind(s2, '/');
+med = str2double( s2( idx(1)+1: idx(2)-1 ) );
+
+end
 
 
 

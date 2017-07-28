@@ -97,11 +97,16 @@ function res = resample2(A)
 n = length(A); 
 nsmpl = 1000; % number 
 
+if n > 0
 res = ones(n, nsmpl); %initialize variable to prevent overhead
 idx = randi(n, 1000, n); % combination of indices corresponding to A's data
 
 for i = 1:nsmpl
     res(:, i) = A(idx(i, :)); %assigning the randomized resamples
+end
+
+else
+   res = []; 
 end
 
 end

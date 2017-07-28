@@ -10,7 +10,7 @@ elseif p<0.05
 elseif p<0.08
     stars = 'o';
 else
-    stars = '';
+    stars = ' ';
 end
     
 end

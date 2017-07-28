@@ -34,7 +34,7 @@ uni_r = 'r';
 uni_k = 'k';
 
 
-alpha = 0.7;
+alpha = 0.5;
 fsz = 8;
 sz = 10;
 

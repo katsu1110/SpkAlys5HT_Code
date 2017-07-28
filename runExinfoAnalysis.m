@@ -111,9 +111,9 @@ end
 %% loop through each file and add other information
 for kk = i_strt:length(exinfo)
 
-%     if exinfo(kk).isRC % helpfull for debugging
-%         continue;
-%     end
+    if exinfo(kk).isRC % helpfull for debugging
+        continue;
+    end
     
     fprintf('WORKING ON ROW %1i, file %1.1f \n', kk, exinfo(kk).id);
 
@@ -270,6 +270,8 @@ while j<length(varargin)
         case 'trials_c0'
             eval([ 'exinfo.trials_c0' apx ' = varargin{j+1};']);
         case 'trials_c1'
+            eval([ 'exinfo.trials_c1' apx ' = varargin{j+1};']);
+        case 'dirsel'
             eval([ 'exinfo.trials_c1' apx ' = varargin{j+1};']);
     end
     j = j+2;

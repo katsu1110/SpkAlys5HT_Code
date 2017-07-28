@@ -4,13 +4,13 @@ function exinfo = getRecoveryP( exinfo )
 clc
 % get the mean bootstrapped data
 for i = 1:length(exinfo)
-    if ~exinfo(i).isRC;     
-        exinfo(i) = bootstrap_exinfo( exinfo(i), true ); 
-    end
+    if exinfo(i).isRC
         
         exinfo(i).ret2base = false;
         exinfo(i).iscmp2base = true;
         exinfo(i).fig_recovery = [];
+        exinfo(i).fig_recovery2 = [];
+    end
 end
 
 
@@ -61,28 +61,30 @@ if checkocul
     
 elseif ~isempty(exinfo)
     
-    if exinfo(1).dt_id >0
-        iscmp2base = false;
-    else
-        iscmp2base = true;
-    end
     
-    [~, firstidx] = min([exinfo.dt_id]);
-    mu = exinfo(firstidx).nrep' * exinfo(firstidx).ratemn / sum(exinfo(firstidx).nrep);
-    
+    [~, firstidx] = min([exinfo.dt_id]); % index of the first baseline experiment
+    ex0 = loadCluster(exinfo(firstidx).fname, 'ocu', exinfo(firstidx).ocul, 'loadlfp', false);
     
     for k = 1:length(exinfo)
-    
-        ct = prctile(exinfo(k).rate_resmpl, [5 95]);
-        exinfo(k).ret2base = mu > ct(1) && mu < ct(2);
-                
-        exinfo(k).iscmp2base = iscmp2base;
-        
 
+        exinfo(k).fig_recovery2 = ...
+                fullfile(cd, 'Figures\Recovery\', [exinfo(k).figname '_recovTest.fig']);
+            
         
+        if k == firstidx
+            exinfo(k).ret2base = [2 2];
+        else
+            ex2 = loadCluster(exinfo(k).fname, 'ocul', exinfo(k).ocul, 'loadlfp', false);
+            
+            exinfo(k).ret2base = pModulation(ex0, ex2, exinfo(k), 1);
+            set(gcf, 'UserData', {exinfo(k), exinfo(firstidx)});
+            savefig(gcf, exinfo(k).fig_recovery);
+            close(gcf);
+        end
         
     end
-%     exinfo = plotRecoveryAndEffect(exinfo);
+    
+   exinfo = plotRecoveryAndEffect(exinfo);
 end
 
 end
@@ -140,7 +142,8 @@ end
 xlim([.9 max(x)+0.1]);
 axis off
 
-fname = ['C:\Users\Corinna\Documents\Code\plots\Recovery\' fname];
+
+fname = fullfile(cd, 'Figures\Recovery\', fname);
 set(h, 'UserData', exinfo);
 savefig(h, fname);
 delete(h);

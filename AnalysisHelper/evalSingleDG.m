@@ -10,6 +10,33 @@ argout = {};
 %================================================================ load data
 ex = loadCluster( fname, 'ocul', exinfo.ocul, 'loadlfp', false ); % load raw data
 [ex, spkrate] = znormex(ex, exinfo);
+
+%==================================================== Direction Selectivity
+if any(strcmp(varargin, 'dirsel')) || any(strcmp(varargin, 'all'))
+    
+    if strcmp(exinfo.param1, 'or')
+        dirsel = getDIRsel(fname);
+    else
+        dirsel = -1;
+    end
+    
+    argout = [argout {'dirsel', dirsel}];
+end
+
+%======================================================== Circualr Variance
+if any(strcmp(varargin, 'circvar')) || any(strcmp(varargin, 'all'))
+    
+    if strcmp(exinfo.param1, 'or')
+        i_theta = [spkrate.or]<360;
+        circvar = compCircularVariance([spkrate(i_theta).mn], [spkrate(i_theta).or] );
+    else
+        circvar = -1;
+    end
+    
+    argout = [argout {'circvar', circvar}];
+end
+
+
 %============================= Analysis of stimulus selectivity using ANOVA
 if any(strcmp(varargin, 'anova')) || any(strcmp(varargin, 'all'))
     p_argout = SelectivityCheck(exinfo, ex);
@@ -26,7 +53,7 @@ if any(strcmp(varargin, 'rsc')) || any(strcmp(varargin, 'all'))
     argout = [argout rsc_argout{:}];
 end
 %========================================================= Tuning curve fit
-if any(strcmp(varargin, 'tcfit')) || any(strcmp(varargin, 'all'))
+if any(strcmp(varargin, 'tcfit')) %|| any(strcmp(varargin, 'all'))
     tc_argout = fitTC(exinfo, spkrate, ex, fname);
     argout = [argout tc_argout{:}];
 end
@@ -166,16 +193,30 @@ function argout = FF(exinfo, ex)
 % results for the full experiment
 [ex, spkrate, spkcount] = znormex(ex, exinfo);
 
-[ ff.classic, ff.fit, ff.mitchel, ff.church ] = ...
-    FanoFactors( ex, [spkcount.mn], [spkcount.var], [spkrate.nrep], exinfo.param1);
+[ ff.classic, ff.fit, ~, ~ ] = ...
+    FanoFactors( ex, [spkcount.(exinfo.param1)], ...
+    [spkcount.mn], [spkcount.var], [spkrate.nrep], exinfo.param1);
 
 
-% results for the second experiment
-ex.Trials = getPartialTrials(ex.Trials, 2);
-[ex, spkrate, spkcount] = znormex(ex, exinfo);
+% results for the experiment neglecting the first 20 trials
+ex_20plus = ex;
+ex_20plus.Trials = ex_20plus.Trials(21:end);
 
-[ ff.classic_2ndhalf, ff.fit_2ndhalf, ff.mitchel_2ndhalf, ff.church_2ndhalf ] = ...
-    FanoFactors( ex, [spkcount.mn], [spkcount.var], [spkrate.nrep], exinfo.param1);
+[ex_20plus, spkrate_20plus, spkcount_20plus] = znormex(ex_20plus, exinfo);
+
+[ ff.classic_20plus, ff.fit_20plus, ~, ~ ] = ...
+    FanoFactors( ex_20plus,  [spkcount_20plus.(exinfo.param1)], ...
+    [spkcount_20plus.mn], [spkcount_20plus.var], [spkrate_20plus.nrep], exinfo.param1);
+
+
+% results for the 2nd half of the experiment
+ex_2ndhalf = ex;
+ex_2ndhalf.Trials = getPartialTrials(ex_2ndhalf.Trials, 2);
+[ex_2ndhalf, spkrate_2ndhalf, spkcount_2ndhalf] = znormex(ex_2ndhalf, exinfo);
+
+[ ff.classic_2ndhalf, ff.fit_2ndhalf, ~, ~ ] = ...
+    FanoFactors( ex_2ndhalf,  [spkcount_2ndhalf.(exinfo.param1)], ...
+    [spkcount_2ndhalf.mn], [spkcount_2ndhalf.var], [spkrate_2ndhalf.nrep], exinfo.param1);
 
 argout = {'ff', ff};
 end

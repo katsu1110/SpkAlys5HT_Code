@@ -43,30 +43,26 @@ end
 
 R = R_raw;
 
-%R = R_raw-Rblank;
+% R = R_raw-Rblank;
 % R(R<0) = 0; % in case the spontaneous activity is higher than driven responses
 
 % response to the preferred direction
 [~, maxi] = max(R);
 Rpref = R(maxi);
 
-
-% response to the null direction (that is the reverse drifting direction)
+% response to the null direction (that is the inverse drifting direction)
 theta_null = mod(theta(maxi)+180, 360);
 
 Rnull = R( theta == theta_null );
 
-% finally, the direction selectivity is 1 minus the ratio between the
-% response difference and the preferred direction response
-ds = (Rpref-Rnull)/Rpref;
- 
-
 if isempty(Rnull)
     ds = nan;
     warning('there is no null direction. direction selecitivy was set to nan');
+else
+    % finally, the direction selectivity is 1 minus the ratio between the
+    % response difference and the preferred direction response
+    ds = (Rpref-Rnull)/(Rpref+Rnull);
 end
-
-
 
 if p_flag
     

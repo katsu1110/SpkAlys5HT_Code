@@ -62,6 +62,10 @@ if any(strcmp(fig2plot, 'Variability'))
     nfig = nfig-1;
 end
 
+if any(strcmp(fig2plot, 'Regression'))
+    nfig = nfig-1;
+end
+
 
 if nfig > 0
     h = figure('Visible', 'off');
@@ -73,6 +77,17 @@ while j<=length(fig2plot)
     
     switch fig2plot{j}
        
+        case 'Direction Selectivity'
+           
+           temp = figure;
+           getDIRsel( datinfo(1).fname, 'plot')
+           set(findobj(gca, 'type', 'line'), 'LineStyle', '-');
+           getDIRsel( datinfo(1).fname_drug, 'plot')
+           title(sprintf(['DS baseline: %1.2f \n', datinfo(1).drugname ': %1.2f'], ...
+               datinfo(1).ds2, datinfo(1).ds2));
+                  
+           set(findobj(gca, 'type', 'line'), 'Color', getCol(datinfo(1)));
+           
         case 'LFP Gui'
             
             ex1 = loadCluster(datinfo(1).fname, 'ocul', datinfo(1).ocul);
@@ -83,9 +98,98 @@ while j<=length(fig2plot)
             continue
             
         case 'Variability'
-            h_var = openfig(datinfo(1).fig_noisecorr, 'visible');
+            
+            col = lines(3);
+            figure('UserData', datinfo(1));
+            ff_name = 'ff';
+            
+            subplot(1,2,1);
+            scatter([datinfo(1).(ff_name).classic.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic.spkcnt_var], 40, 'filled', ...
+                'MarkerFaceColor', col(1,:),...
+                'MarkerFaceAlpha', 0.6); hold on;
+            
+            text([datinfo(1).(ff_name).classic.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic.spkcnt_var], ...
+                num2str([datinfo(1).(ff_name).classic.stimrep]'),...
+                'Color', col(1,:));
+            
+            
+            scatter([datinfo(1).(ff_name).classic_2ndhalf.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic_2ndhalf.spkcnt_var], 40, 'filled', ...
+                'MarkerFaceColor', col(2,:),...
+                'MarkerFaceAlpha', 0.6); hold on;
+            
+            text([datinfo(1).(ff_name).classic_2ndhalf.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic_2ndhalf.spkcnt_var], ...
+                num2str([datinfo(1).(ff_name).classic_2ndhalf.stimrep]'),...
+                'Color', col(2,:));
+
+            
+            scatter([datinfo(1).(ff_name).classic_20plus.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic_20plus.spkcnt_var], 40, 'filled', ...
+                'MarkerFaceColor', col(3,:),...
+                'MarkerFaceAlpha', 0.6); hold on;
+            
+            text([datinfo(1).(ff_name).classic_20plus.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic_20plus.spkcnt_var], ...
+                num2str([datinfo(1).(ff_name).classic_20plus.stimrep]'), ...
+                'Color', col(3,:));
+            
+            eqax; unity
+            xlabel('spike count mean') ;ylabel('spike count variance');
+            axis square
+            xlim_= get(gca, 'XLim');
+            set(gca, 'XLim', [0.1 xlim_(2)]);
+            set(gca, 'YLim', [0.1 xlim_(2)]);
+            
+            subplot(1,2,2);
+            ff_name = 'ff_drug';
+            scatter([datinfo(1).(ff_name).classic.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic.spkcnt_var], 40, 'filled', ...
+                'MarkerFaceColor', col(1,:),...
+                'MarkerFaceAlpha', 0.6); hold on;
+            
+            text([datinfo(1).(ff_name).classic.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic.spkcnt_var], ...
+                num2str([datinfo(1).(ff_name).classic.stimrep]'),...
+                'Color', col(1,:));
+            
+            
+            scatter([datinfo(1).(ff_name).classic_2ndhalf.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic_2ndhalf.spkcnt_var], 40, 'filled', ...
+                'MarkerFaceColor', col(2,:),...
+                'MarkerFaceAlpha', 0.6); hold on;
+            
+            text([datinfo(1).(ff_name).classic_2ndhalf.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic_2ndhalf.spkcnt_var], ...
+                num2str([datinfo(1).(ff_name).classic_2ndhalf.stimrep]'),...
+                'Color', col(2,:));
+
+            
+            scatter([datinfo(1).(ff_name).classic_20plus.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic_20plus.spkcnt_var], 40, 'filled', ...
+                'MarkerFaceColor', col(3,:),...
+                'MarkerFaceAlpha', 0.6); hold on;
+            
+            text([datinfo(1).(ff_name).classic_20plus.spkcnt_mn], ...
+                [datinfo(1).(ff_name).classic_20plus.spkcnt_var], ...
+                num2str([datinfo(1).(ff_name).classic_20plus.stimrep]'), ...
+                'Color', col(3,:));
+            
+            xlabel('spike count mean') ;ylabel('spike count variance');
+            axis square
+            eqax; unity
+            xlim_= get(gca, 'XLim');
+            set(gca, 'XLim', [0.1 xlim_(2)]);
+            set(gca, 'YLim', [0.1 xlim_(2)]);
+
+            legend('', 'full exp', '2nd half', '20+');
+
+            
+            h_var = openfig(datinfo(1).fig_varxtime, 'visible');
             set(h_var, 'UserData', datinfo(1));
-%             
+            
 %             h_var2 = openfig(strrep(datinfo(1).fig_varxtime, 'Variability', 'Phase'), 'visible');
             j = j+1;
             pos = pos+1;
@@ -99,9 +203,13 @@ while j<=length(fig2plot)
             temp = openfig(datinfo(1).fig_waveform, 'invisible');
             
         case 'Regression'
-            temp = openfig(datinfo(1).fig_regl, 'invisible');
+%             temp = openfig(datinfo(1).fig_regl, 'invisible');
+            openfig(datinfo(1).fig_regl);
+             j = j+1;
+            pos = pos+1;
+            continue
             
-        case 'ISI'
+        case 'pval mod'
             temp = openfig(datinfo(1).fig_bri, 'invisible');
             
         case 'Raster'

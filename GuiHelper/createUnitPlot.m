@@ -27,6 +27,7 @@ dat.xlab = [val.xlab ' '  spec.stimx ' ' spec.eyex];
 dat.ylab = [val.ylab ' ' spec.stimy ' ' spec.eyey];
 dat.expInfo = val.exinfo;
 
+
 clearvars val
 
 % remove nan values

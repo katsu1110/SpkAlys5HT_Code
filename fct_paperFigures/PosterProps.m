@@ -50,6 +50,13 @@ function PosterProps(ax, xlim_, ylim_, varargin)
 % NOTE2: Put the unity function in the same folder to guarantee smooth
 % collaborations.
 
+
+
+% sc = findobj(gca, 'type', 'scatter');
+% for i = 1:length(sc)
+%    sc(i).MarkerFaceColor = sc(i).MarkerEdgeColor; 
+% end
+
 h = setPaperPlotsProps();delete(h);
 global uni_k uni_r;
 
@@ -107,16 +114,18 @@ set(ax, 'xlim', [xlim_(1) xlim_(end)], ...
 
 
 % format scatter plot
-set(findobj(ax, 'Type', 'Scatter'), 'SizeData', sz, 'MarkerFaceAlpha', transpy, ...
- 'MarkerEdgeAlpha', 0.6, 'MarkerEdgeColor', 'w', 'LineWidth', 0.3); 
+% set(findobj(ax, 'Type', 'Scatter'), 'SizeData', sz, 'MarkerFaceAlpha', transpy, ...
+%  'MarkerEdgeAlpha', 0.6, 'MarkerEdgeColor', 'w', 'LineWidth', 0.3); 
 
+set(findobj(ax, 'Type', 'Scatter'), 'SizeData', sz, 'MarkerFaceAlpha', transpy, ...
+ 'MarkerEdgeAlpha', 0.8, 'LineWidth', 0.3); 
 
 % format line plot with specified data
 set(findobj(ax, 'Type', 'Line', 'LineStyle', 'o'), 'MarkerSize',sz, ...
     'MarkerFaceAlpha', transpy, 'MarkerEdgeAlpha', 0.3);
 
 % format error bar
-set(findobj(ax,'Type', 'Errorbar'), 'MarkerSize', 2, 'LineWidth', 0.35);
+set(findobj(ax,'Type', 'Errorbar'), 'MarkerSize', 2, 'LineWidth', 0.35, 'MarkerFaceColor', 'none');
 
 % format dashed lines
 set(findobj(ax,'Type', 'Line', 'LineStyle', '--'), 'LineStyle', ':');
@@ -125,11 +134,11 @@ set(findobj(ax,'Type', 'Line', 'LineStyle', '--'), 'LineStyle', ':');
 % change black color to dark grey
 set(findobj(ax, 'Type', 'Line', 'Color', 'k'),'Color',uni_k);
 set(findobj(ax, 'Type', 'Scatter', 'MarkerFaceColor', 'k'),'MarkerFaceColor',uni_k);
-set(findobj(ax, 'Type', 'Errorbar', 'Color', 'k'), 'Color',uni_k);
+set(findobj(ax, 'Type', 'Errorbar', 'Color', 'k'), 'Color',uni_k, 'CapSize', 0);
 
 set(findobj(ax, 'Type', 'Line', 'Color', 'r'),'Color',uni_r);
 set(findobj(ax, 'Type', 'Scatter', 'MarkerFaceColor', 'r'),'MarkerFaceColor',uni_r);
-set(findobj(ax, 'Type', 'Errorbar', 'Color', 'r'), 'Color',uni_r);
+set(findobj(ax, 'Type', 'Errorbar', 'Color', 'r'), 'Color',uni_r, 'CapSize', 0);
 
 
 % add unity or cross. note that both are not compatible with each other 
