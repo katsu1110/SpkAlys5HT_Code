@@ -52,7 +52,7 @@ for i = 1:length(unit_id)
     fnamesY = fnamesY( contains(fnamesY, 'c1') & contains(fnamesY, 'sortLH') );
 
     k = 1;
-    while isempty(fnamesX) 
+    while isempty(fnamesY) 
         [fnames, fdir] = getExFileNames(unit_id(i)-k);
         fnamesY = fnames( contains(fnames, 'YPos') );
         fnamesY = fnamesY( contains(fnamesY, 'c1') & contains(fnamesY, 'sortLH'));
