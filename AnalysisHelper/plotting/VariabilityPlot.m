@@ -22,13 +22,13 @@ krl = ones(1,3); krl = krl/sum(krl); % kernel to smooth the z-scored responses
 % load baseline cluster 0 / multiunit activity
 fnamec0 = strrep(exinfo.fname, exinfo.cluster, 'c0'); % load cluster 0
 ex_base_c0 = loadCluster( fnamec0, 'ocul', exinfo.ocul, 'loadlfp', false);
-[ex_base_c0, spkrate_base_c0] = znormex(ex_base_c0, exinfo); % z norm
+[ex_base_c0, spkrate_base_c0] = znormex(ex_base_c0, exinfo, 0); % z norm
 
 
 % load drug cluster 0 / multiunit activity
 fnamec0 = strrep(exinfo.fname_drug, exinfo.cluster, 'c0'); % load cluster 0
 ex_drug_c0 = loadCluster( fnamec0, 'ocul', exinfo.ocul, 'loadlfp', false);
-[ex_drug_c0, spkrate_drug_c0] = znormex(ex_drug_c0, exinfo); % z norm
+[ex_drug_c0, spkrate_drug_c0] = znormex(ex_drug_c0, exinfo, 0); % z norm
 
 
 

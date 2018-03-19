@@ -66,14 +66,20 @@ function mSpk = getMeanSpkPerCond(Trials, param)
 
 % stimulus parameter
 parVal = unique([Trials.(param)]);
-    
-for i = 1:length(parVal)
-    
-    idx = [Trials.(param)] == parVal(i);
-    mSpk(i).mn = mean(vertcat(Trials(idx).spkin100msbin), 1);
-    mSpk(i).var = var(vertcat(Trials(idx).spkin100msbin), 0, 1);
-    mSpk(i).parVal = parVal(i);
-    
+
+if isempty(parVal)
+    mSpk.mn = [];
+    mSpk.var = [];
+    mSpk.parVal = [];
+else
+    for i = 1:length(parVal)
+
+        idx = [Trials.(param)] == parVal(i);
+        mSpk(i).mn = mean(vertcat(Trials(idx).spkin100msbin), 1);
+        mSpk(i).var = var(vertcat(Trials(idx).spkin100msbin), 0, 1);
+        mSpk(i).parVal = parVal(i);
+
+    end
 end
 
 end

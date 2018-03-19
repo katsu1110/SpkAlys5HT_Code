@@ -28,6 +28,10 @@ function DataPressed(~, ~, datinfo, fig2plot)
 % - 'Spike Density' opens the figure with the spike density function and
 % the deviation of orientation selective components used to estimate the
 % response latency (only Reverse Correlation Analysis data)
+% - 'interaction ps' shows results of the analysis on interactions between
+% FR and pupil size
+% - 'eyedata' opens figs regarding fixation precision, microsaccade
+% summary, eye pos distribution
 % -  'Recovery' ?
 %
 % @CL
@@ -61,10 +65,9 @@ end
 if any(strcmp(fig2plot, 'Variability'))
     nfig = nfig-1;
 end
-
-if any(strcmp(fig2plot, 'Regression'))
-    nfig = nfig-1;
-end
+% if any(strcmp(fig2plot, 'Interaction'))
+%     nfig = nfig-1;
+% end
 
 
 if nfig > 0
@@ -76,18 +79,25 @@ temp =[];
 while j<=length(fig2plot)
     
     switch fig2plot{j}
+            
+    case 'eyedata'
+%         eyedir = 'D:\Users\kk\interaction_project\dataset\Figures\Eye\';
+        eyedir = 'Z:\Katsuhisa\interaction_project\dataset\Figures\Eye\';
+        
+        % baseline 
+        slash = strfind(datinfo(1).fname, '\');
+        f = [eyedir datinfo(1).fname(slash(end)+1:end) '.fig'];
+        openfig(f, 'visible')
+        
+        % drug
+        slash = strfind(datinfo(1).fname_drug, '\');
+        f = [eyedir datinfo(1).fname_drug(slash(end)+1:end) '.fig'];
+        openfig(f, 'visible')        
+
+         
+        j = j+1;
+        continue
        
-        case 'Direction Selectivity'
-           
-           temp = figure;
-           getDIRsel( datinfo(1).fname, 'plot')
-           set(findobj(gca, 'type', 'line'), 'LineStyle', '-');
-           getDIRsel( datinfo(1).fname_drug, 'plot')
-           title(sprintf(['DS baseline: %1.2f \n', datinfo(1).drugname ': %1.2f'], ...
-               datinfo(1).ds2, datinfo(1).ds2));
-                  
-           set(findobj(gca, 'type', 'line'), 'Color', getCol(datinfo(1)));
-           
         case 'LFP Gui'
             
             ex1 = loadCluster(datinfo(1).fname, 'ocul', datinfo(1).ocul);
@@ -98,118 +108,27 @@ while j<=length(fig2plot)
             continue
             
         case 'Variability'
-            
-            col = lines(3);
-            figure('UserData', datinfo(1));
-            ff_name = 'ff';
-            
-            subplot(1,2,1);
-            scatter([datinfo(1).(ff_name).classic.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic.spkcnt_var], 40, 'filled', ...
-                'MarkerFaceColor', col(1,:),...
-                'MarkerFaceAlpha', 0.6); hold on;
-            
-            text([datinfo(1).(ff_name).classic.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic.spkcnt_var], ...
-                num2str([datinfo(1).(ff_name).classic.stimrep]'),...
-                'Color', col(1,:));
-            
-            
-            scatter([datinfo(1).(ff_name).classic_2ndhalf.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic_2ndhalf.spkcnt_var], 40, 'filled', ...
-                'MarkerFaceColor', col(2,:),...
-                'MarkerFaceAlpha', 0.6); hold on;
-            
-            text([datinfo(1).(ff_name).classic_2ndhalf.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic_2ndhalf.spkcnt_var], ...
-                num2str([datinfo(1).(ff_name).classic_2ndhalf.stimrep]'),...
-                'Color', col(2,:));
-
-            
-            scatter([datinfo(1).(ff_name).classic_20plus.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic_20plus.spkcnt_var], 40, 'filled', ...
-                'MarkerFaceColor', col(3,:),...
-                'MarkerFaceAlpha', 0.6); hold on;
-            
-            text([datinfo(1).(ff_name).classic_20plus.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic_20plus.spkcnt_var], ...
-                num2str([datinfo(1).(ff_name).classic_20plus.stimrep]'), ...
-                'Color', col(3,:));
-            
-            eqax; unity
-            xlabel('spike count mean') ;ylabel('spike count variance');
-            axis square
-            xlim_= get(gca, 'XLim');
-            set(gca, 'XLim', [0.1 xlim_(2)]);
-            set(gca, 'YLim', [0.1 xlim_(2)]);
-            
-            subplot(1,2,2);
-            ff_name = 'ff_drug';
-            scatter([datinfo(1).(ff_name).classic.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic.spkcnt_var], 40, 'filled', ...
-                'MarkerFaceColor', col(1,:),...
-                'MarkerFaceAlpha', 0.6); hold on;
-            
-            text([datinfo(1).(ff_name).classic.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic.spkcnt_var], ...
-                num2str([datinfo(1).(ff_name).classic.stimrep]'),...
-                'Color', col(1,:));
-            
-            
-            scatter([datinfo(1).(ff_name).classic_2ndhalf.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic_2ndhalf.spkcnt_var], 40, 'filled', ...
-                'MarkerFaceColor', col(2,:),...
-                'MarkerFaceAlpha', 0.6); hold on;
-            
-            text([datinfo(1).(ff_name).classic_2ndhalf.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic_2ndhalf.spkcnt_var], ...
-                num2str([datinfo(1).(ff_name).classic_2ndhalf.stimrep]'),...
-                'Color', col(2,:));
-
-            
-            scatter([datinfo(1).(ff_name).classic_20plus.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic_20plus.spkcnt_var], 40, 'filled', ...
-                'MarkerFaceColor', col(3,:),...
-                'MarkerFaceAlpha', 0.6); hold on;
-            
-            text([datinfo(1).(ff_name).classic_20plus.spkcnt_mn], ...
-                [datinfo(1).(ff_name).classic_20plus.spkcnt_var], ...
-                num2str([datinfo(1).(ff_name).classic_20plus.stimrep]'), ...
-                'Color', col(3,:));
-            
-            xlabel('spike count mean') ;ylabel('spike count variance');
-            axis square
-            eqax; unity
-            xlim_= get(gca, 'XLim');
-            set(gca, 'XLim', [0.1 xlim_(2)]);
-            set(gca, 'YLim', [0.1 xlim_(2)]);
-
-            legend('', 'full exp', '2nd half', '20+');
-
-            
-            h_var = openfig(datinfo(1).fig_varxtime, 'visible');
+            h_var = openfig(datinfo(1).fig_noisecorr, 'visible');
             set(h_var, 'UserData', datinfo(1));
-            
+%             
 %             h_var2 = openfig(strrep(datinfo(1).fig_varxtime, 'Variability', 'Phase'), 'visible');
             j = j+1;
             pos = pos+1;
             continue
-            
-           
-        case 'Tuning Curve'
-        temp = openfig(datinfo(1).fig_tc, 'invisible');
-            
-        case 'Wave Form'
-            temp = openfig(datinfo(1).fig_waveform, 'invisible');
-            
-        case 'Regression'
-%             temp = openfig(datinfo(1).fig_regl, 'invisible');
-            openfig(datinfo(1).fig_regl);
-             j = j+1;
-            pos = pos+1;
-            continue
-            
-        case 'pval mod'
+                    
+            case 'Tuning Curve'
+                    temp = openfig(datinfo(1).fig_tc, 'invisible');
+                    
+            case 'Wave Form'
+                    temp = openfig(datinfo(1).fig_waveform, 'invisible');
+                    
+            case 'Regression'
+                    temp = openfig(datinfo(1).fig_regl, 'invisible');
+        
+         case 'Interaction'
+                    temp = openfig(datinfo(1).fig_intr);
+                    
+        case 'ISI'
             temp = openfig(datinfo(1).fig_bri, 'invisible');
             
         case 'Raster'
@@ -248,18 +167,22 @@ while j<=length(fig2plot)
     end
     
     
-    
-    ax = findobj(temp, 'Type', 'axes');
-    newax = copyobj(ax, h);    
-    
-    close(temp);
-    
-    for i = 1:length(newax)
-        newax(i).Position = [0.1+(0.9/nfig)*(pos-1)  ...
-            0.12+(0.8/length(newax))*(i-1) ...
-            0.85/nfig-0.05 ...
-            0.8/length(newax)-0.1];
-        newax(i).Title.FontSize = 8;
+    if ~any(strcmp(fig2plot, 'Interaction'))
+        ax = findobj(temp, 'Type', 'axes');
+        newax = copyobj(ax, h);    
+
+        close(temp);
+
+        try
+            for i = 1:length(newax)
+                newax(i).Position = [0.1+(0.9/nfig)*(pos-1)  ...
+                    0.12+(0.8/length(newax))*(i-1) ...
+                    0.85/nfig-0.05 ...
+                    0.8/length(newax)-0.1];
+                newax(i).Title.FontSize = 8;
+            end
+        catch
+        end
     end
     
     pos = pos+1;
@@ -267,7 +190,7 @@ while j<=length(fig2plot)
 end
 
 
-if nfig>0
+if nfig>0 
     h.Position = [287   500   350*nfig  450];
     h.Name = datinfo(1).figname;
     h.UserData = datinfo;

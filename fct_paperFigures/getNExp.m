@@ -38,7 +38,7 @@ writeNExp(exinfo(~is5HT), 'All - NaCl', minrep, minspk);
 % writeNExp(exinfo_RC(~[exinfo_RC.is5HT]), 'RevCorr - NaCl', minrep, 0.1);
 
 
-fprintf('\n\n');
+
 end
 
 
@@ -57,13 +57,6 @@ writeLine(exinfo);
 writeLine(exinfo(isbr));
 writeLine(exinfo(isbrincl));
 writeMethodStats(exinfo(isbrincl));
-fprintf('\n\n mango ');
-writeMethodStats(exinfo(isbrincl & [exinfo.ismango]));
-
-fprintf('\n\n kaki ');
-writeMethodStats(exinfo(isbrincl & ~[exinfo.ismango]));
-
-
 
 % 
 % % general inclusion criteria
@@ -142,27 +135,18 @@ ecc = prctile([exinfo(~ic2 & idx).ecc], [0,50,100]);  % eccentricity
 %----- variables that are merged across units and clusters
 dt_drug = prctile([exinfo.dose], [0,50,100]); 
 
-idx_recov = [exinfo.recov_p]>0.05 & [exinfo.t_recov]>=0;
+idx_recov = ~ic2 & [exinfo.recov_p]>0.05 & [exinfo.t_recov]>=0;
 rec_t = prctile([exinfo(idx_recov).t_recov], ...
     [0,50,100]);  % duration of recovery for fully recovered data 
 
 
-% fprintf(['median and range for all broken&incl units... \n' ...
-%     ' RF size (=eqw) (1 per unit):          %1.2f [%1.2f/%1.2f] \n'...
-%     ' eccentricity (1 per unit):            %1.2f [%1.2f/%1.2f] \n'...
-%     ' recovery time [s] (fully rec. only):  %1.2f [%1.2f/%1.2f] \n'...
-%     '   n recovered:                        %1d'], ...
-%     rf_sz([2,1,3]), ecc([2,1,3]), rec_t([2,1,3]), sum(idx_recov));
-
 fprintf(['median and range for all broken&incl units... \n' ...
     ' RF size (=eqw) (1 per unit):          %1.2f [%1.2f/%1.2f] \n'...
     ' eccentricity (1 per unit):            %1.2f [%1.2f/%1.2f] \n'...
-    ' recovery time [s] (fully rec. only):  %1.2f [%1.2f/%1.2f] '], ...
-    rf_sz([2,1,3]), ecc([2,1,3]), rec_t([2,1,3]));
+    ' recovery time [s] (fully rec. only):  %1.2f [%1.2f/%1.2f] \n'...
+    '   n recovered:                        %1d'], ...
+    rf_sz([2,1,3]), ecc([2,1,3]), rec_t([2,1,3]), sum(idx_recov));
+
 
 
 end
-
-
-
-

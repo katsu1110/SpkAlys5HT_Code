@@ -5,7 +5,7 @@ function [ spikes ] = Churchlandetal( Trials )
 %
 
 addTime = 0.200;
-
+spikes = [];
 for i = 1:length(Trials)
     
     % frame presentation times

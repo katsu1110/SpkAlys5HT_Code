@@ -17,8 +17,8 @@ function idx = findIdxMatchingFname(fname_spksort, fname, monkey)
 
 [fnamePref, fnameSuf] = getIDX(fname_spksort, monkey);
 
-idx = find( cellfun(@(x) contains(fname,x), fnamePref) & ...
-    cellfun(@(x) contains(fname,x), fnameSuf));
+idx = find( ~cellfun(@(x) isempty(strfind(fname,x)), fnamePref) & ...
+    ~cellfun(@(x) isempty(strfind(fname,x)), fnameSuf));
 
 % sanity check
 if length(idx)>2

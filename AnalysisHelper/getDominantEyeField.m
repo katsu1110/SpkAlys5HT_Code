@@ -88,11 +88,11 @@ cmpExp = num2cell(zeros(length(exinfo), 1));
 [exinfo.cmpExp] = deal(cmpExp{:});
 
 for uid = unique([exinfo.idi])
-    idx = find([exinfo.idi] == uid);
-    [~, maxi] =  max( cellfun(@max, {exinfo(idx).ratemn} ) );
+    idx = find([exinfo.idi] == uid);    
     
     if ~isempty(idx)
-        exinfo(idx(maxi)).cmpExp = 1;
+            [~, maxi] =  max( cellfun(@max, {exinfo(idx).ratemn} ,'UniformOutput', true) );
+            exinfo(idx(maxi)).cmpExp = 1;
     end
 end
 

@@ -30,7 +30,7 @@ while j<= length(varargin)
 end
 
 %% get errorbars by resampling
-[res, ratestruc] = resampleRC(ex, nsmpl, varargin);
+[res, ratestruc] = resampleRC(ex, nsmpl, varargin{:});
 
 
 %% fit tuning curves

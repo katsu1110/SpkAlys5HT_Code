@@ -1,4 +1,4 @@
-function stats = setStats( h, inclusioncrit )
+function stats = setStats( h, inclusioncrit)
 % adds a string to the figure handle h's UserData with all statistical
 % tests and their results for the attached data set. The string can be
 % called via h.UserData.Stats
@@ -9,32 +9,25 @@ function stats = setStats( h, inclusioncrit )
 %
 
 dat = h.UserData;
-psig = cellfun(@(x) x(2), {dat.expInfo.pmodulation})<0.05;
-enhancedresp = [dat.expInfo.nonparam_ratio]>=1;
 idx = [dat.expInfo.is5HT];
 
 x = dat.x; y = dat.y;
 
-
-
 %%% all
-s = getStatsHelper(x, y, idx, psig, enhancedresp);
+s = getStatsHelper(x, y, idx);
 
 %%% mango
 idx2 =[dat.expInfo.ismango];
-s_ma = getStatsHelper(x(idx2), y(idx2), idx(idx2), psig(idx2), enhancedresp(idx2));
+s_ma = getStatsHelper(x(idx2), y(idx2), idx(idx2));
 
 %%% kaki
 idx2 =~[dat.expInfo.ismango];
-s_ka = getStatsHelper(x(idx2), y(idx2), idx(idx2), psig(idx2), enhancedresp(idx2));
+s_ka = getStatsHelper(x(idx2), y(idx2), idx(idx2));
 
 
 
 % concatenate and save in UserData
-strrep(inclusioncrit, 'w\o', 'without');
-xlab = strrep(dat.xlab, 'w\o', 'without');
-ylab = strrep(dat.ylab, 'w\o', 'without');
-dat.Stats = sprintf(['X = ' xlab ' \nY = ' ylab '\n\n' inclusioncrit '\n\nALL' s...
+dat.Stats = sprintf(['X = ' dat.xlab ' \nY = ' dat.ylab '\n\n' inclusioncrit '\n\nALL' s...
     '\n----------\n\n' 'MANGO' s_ma ...
     '\n----------\n\n' 'KAKI' s_ka]);
 set(h, 'UserData', dat);
@@ -43,13 +36,13 @@ stats = dat.Stats;
 end
 
 
-function s = getStatsHelper(X, Y, idx, psig, enhancedresp)
+function s = getStatsHelper(X, Y, idx)
 % calls the statistics for a particular data set
 % idx is the index indicating 5HT (==1) and NaCl (==0) experiments
 
-s_5HT = getStatsPairedSample(X(idx), Y(idx), psig(idx), enhancedresp(idx));
+s_5HT = getStatsPairedSample(X(idx), Y(idx));
 s_5HT_corr = getCorr(X(idx)', Y(idx)');
-s_NaCl = getStatsPairedSample(X(~idx), Y(~idx), psig(~idx), enhancedresp(~idx));
+s_NaCl = getStatsPairedSample(X(~idx), Y(~idx));
 s_NaCl_corr = getCorr(X(~idx)', Y(~idx)');
 
 s_x = getStatsTwoSample(X(idx), X(~idx));
@@ -93,12 +86,12 @@ s = sprintf('2-sample ttest p=%1.2e, \t wilcoxon p=%1.2e \n', ptt, pwil);
 
 end
 
-function s = getStatsPairedSample(X, Y, psig, enhancedresp)
+function s = getStatsPairedSample(X, Y)
 % paired test parametric and non-parametric
 
-s_base  = getDistParam(X, psig, enhancedresp);
-s_drug = getDistParam(Y, psig, enhancedresp);
-s_diff = getDistParam(X-Y, psig, enhancedresp);
+s_base  = getDistParam(X);
+s_drug = getDistParam(Y);
+s_diff = getDistParam(X-Y);
 
 % check for normal distribution
 if isempty(X)
@@ -119,7 +112,7 @@ end
 
 
 
-function s = getDistParam(A, psig, enhancedresp)
+function s = getDistParam(A)
 % descriptive and normative statistics of a data set A
 
 n = length(A);
@@ -158,9 +151,9 @@ end
 
 
 
-s = sprintf(['(N = %1d (%1d, %1d)) \n' ...
+s = sprintf(['(N = %1.0f) \n' ...
     'percentile (5, 50, 95): %1.2e/%1.2e/%1.2e, \t mean: %1.2e +- %1.2f SD, \t GM: %1.2e \n' ...
     'test for normal dist p=%1.2e, \t t-test vs. 0 p = %1.2e, \t signrank test vs 0 p: %1.2e \n\n'], ...
-    n, sum(psig(enhancedresp)), sum(psig(~enhancedresp)), prct, mn_, std_, geomn_, psphericity, pttest, psignr);
+    n, prct, mn_, std_, geomn_, psphericity, pttest, psignr);
 
 end

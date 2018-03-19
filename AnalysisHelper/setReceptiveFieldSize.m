@@ -1,11 +1,18 @@
-function exinfo = setReceptiveFieldSize( exinfo )
+function exinfo = setReceptiveFieldSize( exinfo , pupilop, varargin)
 % exinfo = setReceptiveFieldSize( exinfo )
 % 
-% searches the XPos and YPos files for each session and assigns the
-% equivalent width of the receptive field in the x and y dimension to all
-% corresponding entries
+% searches the XPos and YPos files for each session and assigns the width
+% of the receptive field in the x and y dimension to all corresponding
+% entries
 % 
 % @CL
+%
+% pupil split added by Katsuhisa (11.08.17)
+% +++++++++++++++++++++++++++++++++++++++++++++
+
+if nargin==1
+    pupilop = 0;
+end
 
 unit_id = unique([exinfo.id]);
 
@@ -18,17 +25,20 @@ end
 % loop through all unit recordings
 for i = 1:length(unit_id)
 
-    wY = nan; wX = nan;
-    fprintf('working on unit : %1.1f \n', unit_id(i));
+%     fprintf('working on sessison : %1.1f \n', session(i));
     
     %find all entries belonging to this session
     idx = find([exinfo.id]==unit_id(i));
     
+           
     % XPos
     [fnames, fdir] = getExFileNames(unit_id(i));
     fnamesX = fnames( contains(fnames, 'XPos') );
     fnamesX = fnamesX( contains(fnamesX, 'c1') & contains(fnamesX, 'sortLH') );
     
+    wX = nan(1, length(fnamesX));
+    wXs = nan(1, length(fnamesX));
+    wXl = nan(1, length(fnamesX));
     % if there was no RF experiment for this unit, than look for the
     % preceding unit recordings
     k = 1;
@@ -42,6 +52,11 @@ for i = 1:length(unit_id)
     if ~isempty(fnamesX)
         for j =1:length(fnamesX)
             ex = loadCluster(fullfile(fdir, fnamesX{j}), 'loadlfp', false);
+            if pupilop==1
+                 [sps_idx, lps_idx] = medianSplitByPS(ex.Trials);
+                 wXs(j) = getMarginalDist(ex.Trials(sps_idx), 'x0');
+                 wXl(j) = getMarginalDist(ex.Trials(lps_idx), 'x0');
+            end
             wX(j) = getMarginalDist(ex.Trials, 'x0');
         end
     end
@@ -50,9 +65,13 @@ for i = 1:length(unit_id)
     [fnames, fdir] = getExFileNames(unit_id(i));
     fnamesY = fnames( contains(fnames, 'YPos') );
     fnamesY = fnamesY( contains(fnamesY, 'c1') & contains(fnamesY, 'sortLH') );
-
+    
+    wY = nan(1, length(fnamesY));
+    wYs = nan(1, length(fnamesY));
+    wYl = nan(1, length(fnamesY));
+    
     k = 1;
-    while isempty(fnamesX) 
+    while isempty(fnamesY) 
         [fnames, fdir] = getExFileNames(unit_id(i)-k);
         fnamesY = fnames( contains(fnames, 'YPos') );
         fnamesY = fnamesY( contains(fnamesY, 'c1') & contains(fnamesY, 'sortLH'));
@@ -62,12 +81,17 @@ for i = 1:length(unit_id)
     if ~isempty(fnamesY)
         for j =1:length(fnamesY)
             ex = loadCluster(fullfile(fdir, fnamesY{j}), 'loadlfp', false);
+            if pupilop==1
+                 [sps_idx, lps_idx] = medianSplitByPS(ex.Trials);
+                 wYs(j) = getMarginalDist(ex.Trials(sps_idx), 'y0');
+                 wYl(j) = getMarginalDist(ex.Trials(lps_idx), 'y0');
+            end
             wY(j) = getMarginalDist(ex.Trials, 'y0');
         end
     end
     
     
-    %========================================== assign receptive field size
+    % assign receptive field size
     if isempty(fnamesY) && isempty(fnamesX) 
         
         if idx(1)>1 && (exinfo(idx(1)-1).date - exinfo(idx(1)).date) <0.8 
@@ -75,8 +99,19 @@ for i = 1:length(unit_id)
             wY = exinfo(idx(1)-1).RFwy;
             
             for j = 1:length(idx)
-                exinfo(idx(j)).RFwx = nanmean(wX);
-                exinfo(idx(j)).RFwy = nanmean(wY);
+                if pupilop==0
+                    RFwx = nanmean(wX);
+                    RFwy = nanmean(wY);
+                    RFw = nanmean([RFwy RFwx]);
+                elseif pupilop==1
+                    RFwx = [nanmean(wX), nanmean(wXs), nanmean(wXl)];
+                    RFwy = [nanmean(wY), nanmean(wYs), nanmean(wYl)];
+                    RFw = nanmean([RFwy; RFwx]);
+                end
+                
+                exinfo(idx(j)).RFwx = RFwx;
+                exinfo(idx(j)).RFwy = RFwy;
+                exinfo(idx(j)).RFw = RFw;
             end
             
         else
@@ -85,26 +120,31 @@ for i = 1:length(unit_id)
     end
     
     for j = 1:length(idx)
-        exinfo(idx(j)).RFwx = nanmean(wX);
-        exinfo(idx(j)).RFwy = nanmean(wY);
-        
-        if isnan(exinfo(idx(j)).RFwy)
-            exinfo(idx(j)).RFw = exinfo(idx(j)).RFwx;
-            
-        elseif isnan(exinfo(idx(j)).RFwx)
-            exinfo(idx(j)).RFw = exinfo(idx(j)).RFwy;
-            
-        elseif ~isnan(exinfo(idx(j)).RFwx) && ~isnan(exinfo(idx(j)).RFwy)
-            exinfo(idx(j)).RFw = ...
-                sqrt(exinfo(idx(j)).RFwy.^2 + exinfo(idx(j)).RFwx^2);
-            
+        if pupilop==0
+            RFwx = nanmean(wX);
+            RFwy = nanmean(wY);
+            RFw = nanmean([RFwy RFwx]);
+        elseif pupilop==1
+            RFwx = [nanmean(wX), nanmean(wXs), nanmean(wXl)];
+            RFwy = [nanmean(wY), nanmean(wYs), nanmean(wYl)];
+            RFw = nanmean([RFwy; RFwx]);
         end
+
+        exinfo(idx(j)).RFwx = RFwx;
+        exinfo(idx(j)).RFwy = RFwy;
+        exinfo(idx(j)).RFw = RFw;
     end
 
-           
-    rf(i) = exinfo(idx(j)).RFw;
+    
+
+        
+    rf(i) = nanmean([exinfo(idx(j)).RFwy exinfo(idx(j)).RFwx]);
     ecc(i) = exinfo(idx(j)).ecc;
-    clearvars wX wY
+    if pupilop==0
+        clearvars wX wY
+    elseif pupilop==1
+        clearvars wX wY wXs wYs wXl wYl
+    end
         
 end
 
@@ -139,8 +179,7 @@ end
 
 %%
 function w = getMarginalDist(trials, posname)
-% equivalent width of the marginal distribution of spike rate to different
-% bar position
+% marginal distribution of spike rate to different bar position 
 
 trials = trials([trials.Reward]==1);
 trials = trials([trials.(posname)]< 1000);
@@ -165,10 +204,10 @@ if anova1([trials.spkRate], [trials.(posname)], 'off') > 0.08
     w = nan;
 else
     
-    % substract baseline firing rate
+    % substract spontaneous firing rate
     meanspk = meanspk - min(meanspk);
-    meanspk = meanspk/max(meanspk); % a redundant step...
-
+    meanspk = meanspk/max(meanspk);
+    
     % area / height of the gaussian like curve
     A = sum(meanspk); h = max(meanspk);
     w = A / h;

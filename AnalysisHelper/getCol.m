@@ -11,7 +11,7 @@ else
         
     fname = getFname(ex);
     
-    if ~contains(fname, '5HT')
+    if isempty(strfind(fname, '5HT'))
         c = 'k';
     else
         c = 'r';

@@ -135,8 +135,8 @@ for i = 1:length(id_i)
     
     if length(idx_temp) > 1
 %         [~,k] = max(cellfun(@max, {exinfo(idx_temp).ratemn}));
-%         idx_su = [idx_su; idx_temp(k)];
-        idx_su = [idx_su; idx_temp(1)];
+%           idx_su = [idx_su; idx_temp(k)];
+            idx_su = [idx_su; idx_temp(1)];
     else
         idx_su = [idx_su; idx_temp];
     end

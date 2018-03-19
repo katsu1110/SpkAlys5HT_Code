@@ -111,8 +111,5 @@ MangoSpikeSortingFile.generalcomment = rawCellColumns(:, 11);
 MangoSpikeSortingFile.includedtoanalysis = rawCellColumns(:, 12);
 MangoSpikeSortingFile.excludedduetoelectordes = rawCellColumns(:, 13);
 
-
-MangoSpikeSortingFile = MangoSpikeSortingFile(~cellfun(@isempty, MangoSpikeSortingFile.matfilename),: );
-
 MangoSpikeSortingFile = table2struct(MangoSpikeSortingFile);
 

@@ -27,9 +27,6 @@ end
 % sdfs filter kernel
 kern = ones(40,1)/40; 
 
-% sampling frequency
-fs = 1000;
-
 % spontaneoue activtiy from blank trials
 blanktrials = ex.Trials([ex.Trials.Reward]==1 & [ex.Trials.(stim)]>1000);
 if ~isempty(blanktrials)
@@ -60,18 +57,18 @@ for k = 1:length(allstim)
     try
         sdfs(k,1:length(psth)) = filter(kern,1, psth);
 
-        % neglect the first 100ms corresponding to the general latency
-        x = t(100:end);
-        y = sdfs(k,100:length(psth)) ;
+        % neglect the first 50ms corresponding to the general latency
+        x = t(50:end);
+        y = sdfs(k,50:length(psth)) ;
         [a(k),f0(k)] = f1f0Sine (y, x, tf(k));
                 
         % alternatively compute the fft
-%         [pow, freq] = pmtm(y, 3, length(y)*10, 1000);
-%         
-%         freq_new = 0:0.01:tf(k)+0.01;
-%         pow_new = interp1(freq, pow, freq_new, 'spline');
-%         f0_(k) = mean(y);
-%         f1_(k) = pow_new( find(freq_new >= tf(k), 1, 'first'));
+        [pow, freq] = pmtm(y, 3, length(y)*10, 1000);
+        
+        freq_new = 0:0.01:tf(k)+0.01;
+        pow_new = interp1(freq, pow, freq_new, 'spline');
+        f0_(k) = mean(y);
+        f1_(k) = pow_new( find(freq_new >= tf(k), 1, 'first'));
         
     catch
         error('could not compute f0 or f1')
@@ -79,10 +76,11 @@ for k = 1:length(allstim)
      
 end
 
+t = 0.001:0.001:length(sdfs)/1000;
 f1 = a; % f1 is the amplitude
 
-% use the profile with the highest mean firing rate to estimate the final f1/f0
-[~, i] = max(f0);
+% use the highest mean response to compute the result estimate f1/f0
+[~, i] = max(f1);
 f1f0 = f1(i)/f0(i);
 
 
@@ -90,10 +88,7 @@ if p_flag
     %%% plot results
     figure('Position', [   836   247   545   701]);
     
-    
     offset = max(max(sdfs));
-    t = 0.001:0.001:length(sdfs)/1000;
-
     for k = 1:length(allstim)
         subplot(length(allstim), 2, (k*2)-1)
         plot(t, sin(t *pi*2*tf(k) ) * offset/2+ offset/2, 'Color', [0.8 0.8 0.8]); hold on;

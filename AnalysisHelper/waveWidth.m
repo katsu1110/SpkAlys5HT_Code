@@ -51,9 +51,9 @@ else
     try
         [~, idxmin] = findpeaks(-mnwave,'MinPeakHeight', 0.025);
     catch
-        rmpath(genpath('Z:\Corinna\SharedCode\File Exchange Code\chronux_2_11'));
+        rmpath(genpath('C:\Users\katsuhisa\Documents\code\analysis\integrated\corinnas\HNetc\chronux_2_11'));
                 [~, idxmin] = findpeaks(-mnwave,'MinPeakHeight', 0.025);
-        addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code\chronux_2_11'));
+        addpath(genpath('C:\Users\katsuhisa\Documents\code\analysis\integrated\corinnas\HNetc\chronux_2_11'));
     end
     idxmin = idxmin(1);
     

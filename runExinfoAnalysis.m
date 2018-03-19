@@ -70,9 +70,15 @@ close all;
 
 % adding folder to the MATLAB search path takes some time
 % I normally just do this ones and then comment it
-addpath(genpath(pwd)); % add all subfolders to the path
-addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code')); % add all subfolders to the path
-addpath(genpath('C:\Users\Corinna\Documents\CODE\GenAlyz_Code'));
+disp('wait...')
+
+addpath(genpath(pwd)); 
+addpath(genpath('C:\Users\katsuhisa\Documents\code\analysis\integrated\interaction_project\GenAlyz_Code'));
+addpath(genpath('C:\Users\katsuhisa\Documents\code\analysis\integrated\corinnas\HNetc'));
+
+% addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code')); % add all subfolders to the path
+
+disp('all the paths added.')
 
 rng(2384569);       % set seed for the random number generator. do not change this number. 
 exinfo = [];
@@ -93,7 +99,7 @@ while  j<= length(varargin)
             j = j+2;
         case 'exinfo' % result structure. prevents initExinfo
             exinfo = varargin{j+1};
-            j = j+2;
+            varargin = varargin([1:j-1,j+2:end]);
         case 'save' % input string to save the result structure
             save_flag = true;
             j = j+1;
@@ -111,9 +117,9 @@ end
 %% loop through each file and add other information
 for kk = i_strt:length(exinfo)
 
-    if exinfo(kk).isRC % helpfull for debugging
-        continue;
-    end
+%     if exinfo(kk).isRC % helpfull for debugging
+%         continue;
+%     end
     
     fprintf('WORKING ON ROW %1i, file %1.1f \n', kk, exinfo(kk).id);
 
@@ -132,27 +138,46 @@ for kk = i_strt:length(exinfo)
   
        
     %--------------------------------------------------------- plot results
-
+    if any(strcmp(varargin, 'pupil')) || any(strcmp(varargin, 'all'))
+        try
+            % interaction btw. 5HT & pupil
+            plotIntr(exinfo(kk));
+        catch
+            disp('error in plotIntr')
+        end
+    end
+    
     if ~exinfo(kk).isRC && p_flag
 
         if ~exinfo(kk).isadapt
-
-           exinfo(kk) = psthPlot(exinfo(kk), ex0, ex2);
-           tuningCurvePlot(exinfo(kk));        
-            exinfo(kk) = phasePlot(exinfo(kk), ex0, ex2);
-            
+                
+                % PSTH
+                exinfo(kk) = psthPlot(exinfo(kk), ex0, ex2);
+                
+                % tuning curve
+                tuningCurvePlot(exinfo(kk));        
+                
+%                 % interaction btw. 5HT & pupil
+%                 plotIntr(exinfo(kk));
+                
+                % phase
+                exinfo(kk) = phasePlot(exinfo(kk), ex0, ex2);            
             
            % these functions resort on variability and co-variability related fields of exinfo
            % to this end they are only performed if the analysis was
            % computed
            if any(strcmp(varargin, 'all')) ||...
                    (any(strcmp(varargin, 'ff')) && any(strcmp(varargin, 'rsc' )))
-               rasterPlot( exinfo(kk), ex0, ex2);
+                
+                % raster
+                rasterPlot( exinfo(kk), ex0, ex2);
+                
+                % normalized FR
                 znormplot(ex0, ex2, exinfo(kk));
+                
+                % FF
                 VariabilityPlot(exinfo(kk), ex0, ex2);
            end
-           
-           
            
         end
 
@@ -165,9 +190,11 @@ for kk = i_strt:length(exinfo)
     
     %-------------------------------------- temp save, useful for debugging
 %     if save_flag && mod(kk, 30)==0 
-%     save(fullfile(datadir, 'exinfo.mat'), 'exinfo', '-v7.3'); 
+%         save('exinfo.mat', 'exinfo', '-v7.3'); 
 %     end
 end
+
+
 
 %--------------------------------------------------------------- add fields
 exinfo = getValidField(exinfo);
@@ -175,12 +202,21 @@ exinfo = getDominantEyeField(exinfo);
 
 exinfo = addStruct(exinfo);
 
+try
+    [exinfo] = addAll(exinfo, 0);
+    disp('new analysis on isolation quality and variability is on!')
+catch
+    disp('addAll had an error to be fixed...')
+end
 
 % save the result structure in a superordinate folder named Data
 if save_flag
-    datadir = fullfile(cd, 'Data\');%folder destination 
-    save(fullfile(datadir, 'exinfo.mat'), 'exinfo', '-v7.3'); 
+%     save('D:\Users\kk\interaction_project\dataset\Data\exinfo.mat', 'exinfo', '-v7.3'); 
+    save('Z:\Katsuhisa\interaction_project\dataset\Data\exinfo.mat', 'exinfo', '-v7.3'); 
 end
+
+% % store figures for fixation precision
+% storeEye(exinfo)
 
 end
 
@@ -203,40 +239,112 @@ while j<length(varargin)
             eval([ 'exinfo.lat2Hmax' apx ' = varargin{j+1};']);
         case 'fitparam'
             eval([ 'exinfo.fitparam' apx ' = varargin{j+1};']);
+        case 'fitparam_1'
+            eval([ 'exinfo.fitparam_1' apx ' = varargin{j+1};']);
+        case 'fitparam_2'
+            eval([ 'exinfo.fitparam_2' apx ' = varargin{j+1};']);
         case 'rateMN'
             eval([ 'exinfo.ratemn' apx ' = varargin{j+1};']);
+        case 'rateMN_1'
+            eval([ 'exinfo.ratemn_1' apx ' = varargin{j+1};']);
+        case 'rateMN_2'
+            eval([ 'exinfo.ratemn_2' apx ' = varargin{j+1};']);
         case 'rateVARS'
             eval([ 'exinfo.ratevars' apx ' = varargin{j+1};']);
+        case 'rateVARS_1'
+            eval([ 'exinfo.ratevars_1' apx ' = varargin{j+1};']);
+        case 'rateVARS_2'
+            eval([ 'exinfo.ratevars_2' apx ' = varargin{j+1};']);
         case 'ratePAR'
             eval([ 'exinfo.ratepar' apx ' = varargin{j+1};']);
+        case 'ratePAR_1'
+            eval([ 'exinfo.ratepar_1' apx ' = varargin{j+1};']);
+        case 'ratePAR_2'
+            eval([ 'exinfo.ratepar_2' apx ' = varargin{j+1};']);
         case 'rateSME'
             eval([ 'exinfo.ratesme' apx ' = varargin{j+1};']);
+        case 'rateSME_1'
+            eval([ 'exinfo.ratesme_1' apx ' = varargin{j+1};']);
+        case 'rateSME_2'
+            eval([ 'exinfo.ratesme_2' apx ' = varargin{j+1};']);
         case 'rateSD'
             eval([ 'exinfo.ratesd' apx ' = varargin{j+1};']);
+        case 'rateSD_1'
+            eval([ 'exinfo.ratesd_1' apx ' = varargin{j+1};']);
+        case 'rateSD_2'
+            eval([ 'exinfo.ratesd_2' apx ' = varargin{j+1};']);
         case 'rawspkrates'
             eval([ 'exinfo.rawspkrates' apx ' = varargin{j+1};']);
+        case 'rawspkrates_1'
+            eval([ 'exinfo.rawspkrates_1' apx ' = varargin{j+1};']);
+        case 'rawspkrates_2'
+            eval([ 'exinfo.rawspkrates_2' apx ' = varargin{j+1};']);
         case 'rate_resmpl'
             eval([ 'exinfo.rate_resmpl' apx ' = varargin{j+1};']);
+        case 'rate_resmpl_1'
+            eval([ 'exinfo.rate_resmpl_1' apx ' = varargin{j+1};']);
+        case 'rate_resmpl_2'
+            eval([ 'exinfo.rate_resmpl_2' apx ' = varargin{j+1};']);
         case 'ff'
             eval([ 'exinfo.ff' apx ' = varargin{j+1};']);
+        case 'ff_1'
+            eval([ 'exinfo.ff_1' apx ' = varargin{j+1};']);
+        case 'ff_2'
+            eval([ 'exinfo.ff_2' apx ' = varargin{j+1};']);
         case 'tcdiff'
             eval([ 'exinfo.tcdiff' apx ' = varargin{j+1};']);
+        case 'tcdiff_1'
+            eval([ 'exinfo.tcdiff_1' apx ' = varargin{j+1};']);
+        case 'tcdiff_2'
+            eval([ 'exinfo.tcdiff_2' apx ' = varargin{j+1};']);
         case 'rsc'
             eval([ 'exinfo.rsc' apx ' = varargin{j+1};']);
+        case 'rsc_1'
+            eval([ 'exinfo.rsc_1' apx ' = varargin{j+1};']);
+        case 'rsc_2'
+            eval([ 'exinfo.rsc_2' apx ' = varargin{j+1};']);
         case 'prsc'
             eval([ 'exinfo.prsc' apx ' = varargin{j+1};']);
+        case 'prsc_1'
+            eval([ 'exinfo.prsc_1' apx ' = varargin{j+1};']);
+        case 'prsc_2'
+            eval([ 'exinfo.prsc_2' apx ' = varargin{j+1};']);
         case 'rsig'
             eval([ 'exinfo.rsig' apx ' = varargin{j+1};']);
+        case 'rsig_1'
+            eval([ 'exinfo.rsig_1' apx ' = varargin{j+1};']);
+        case 'rsig_2'
+            eval([ 'exinfo.rsig_2' apx ' = varargin{j+1};']);
         case 'prsig'
             eval([ 'exinfo.prsig' apx ' = varargin{j+1};']);
+        case 'prsig_1'
+            eval([ 'exinfo.prsig_1' apx ' = varargin{j+1};']);
+        case 'prsig_2'
+            eval([ 'exinfo.prsig_2' apx ' = varargin{j+1};']);
         case 'rsc_2nd'
             eval([ 'exinfo.rsc_2nd' apx ' = varargin{j+1};']);
+        case 'rsc_2nd_1'
+            eval([ 'exinfo.rsc_2nd_1' apx ' = varargin{j+1};']);
+        case 'rsc_2nd_2'
+            eval([ 'exinfo.rsc_2nd_2' apx ' = varargin{j+1};']);
         case 'prsc_2nd'
             eval([ 'exinfo.prsc_2nd' apx ' = varargin{j+1};']);
+        case 'prsc_2nd_1'
+            eval([ 'exinfo.prsc_2nd_1' apx ' = varargin{j+1};']);
+        case 'prsc_2nd_2'
+            eval([ 'exinfo.prsc_2nd_2' apx ' = varargin{j+1};']);
         case 'rsig_2nd'
             eval([ 'exinfo.rsig_2nd' apx ' = varargin{j+1};']);
+        case 'rsig_2nd_1'
+            eval([ 'exinfo.rsig_2nd_1' apx ' = varargin{j+1};']);
+        case 'rsig_2nd_2'
+            eval([ 'exinfo.rsig_2nd_2' apx ' = varargin{j+1};']);
         case 'prsig_2nd'
             eval([ 'exinfo.prsig_2nd' apx ' = varargin{j+1};']);
+        case 'prsig_2nd_1'
+            eval([ 'exinfo.prsig_2nd_1' apx ' = varargin{j+1};']);
+        case 'prsig_2nd_2'
+            eval([ 'exinfo.prsig_2nd_2' apx ' = varargin{j+1};']);
         case 'resvars'
             eval([ 'exinfo.resvars' apx ' = varargin{j+1};']);
         case 'expduration'
@@ -255,10 +363,18 @@ while j<length(varargin)
             exinfo.eY = varargin{j+1};
         case  'phasesel'
             eval([ 'exinfo.phasesel' apx ' = varargin{j+1};']);
+        case  'phasesel_1'
+            eval([ 'exinfo.phasesel_1' apx ' = varargin{j+1};']);
+        case  'phasesel_2'
+            eval([ 'exinfo.phasesel_2' apx ' = varargin{j+1};']);
         case  'psth'
             eval([ 'exinfo.psth' apx ' = varargin{j+1};']);
         case 'p_anova'
              eval([ 'exinfo.p_anova' apx ' = varargin{j+1};']);
+        case 'p_anova_1'
+             eval([ 'exinfo.p_anova_1' apx ' = varargin{j+1};']);
+        case 'p_anova_2'
+             eval([ 'exinfo.p_anova_2' apx ' = varargin{j+1};']);
         case 'nrep'
             eval([ 'exinfo.nrep' apx ' = varargin{j+1};']);
         case 'c0rate'
@@ -271,8 +387,61 @@ while j<length(varargin)
             eval([ 'exinfo.trials_c0' apx ' = varargin{j+1};']);
         case 'trials_c1'
             eval([ 'exinfo.trials_c1' apx ' = varargin{j+1};']);
-        case 'dirsel'
-            eval([ 'exinfo.trials_c1' apx ' = varargin{j+1};']);
+        case 'fixationspan'
+            eval([ 'exinfo.fixationspan' apx ' = varargin{j+1};']);
+        case 'variance_eye'
+            eval([ 'exinfo.variance_eye' apx ' = varargin{j+1};']);
+        case 'recentering_win'
+            eval(['exinfo.recentering_win' apx '= varargin{j+1};']);
+       case 'recentering_eye'
+            eval([ 'exinfo.recentering_eye' apx ' = varargin{j+1};']);
+        case 'microsac_amplitude'
+            eval([ 'exinfo.microsac_amplitude' apx ' = varargin{j+1};']);
+        case 'microsac_peakv'
+            eval([ 'exinfo.microsac_peakv' apx ' = varargin{j+1};']);
+        case 'microsac_duration'
+            eval([ 'exinfo.microsac_duration' apx ' = varargin{j+1};']);
+        case 'microsac_angle'
+            eval([ 'exinfo.microsac_angle' apx ' = varargin{j+1};']);
+        case 'microsac_counts'
+            eval(['exinfo.microsac_counts' apx '= varargin{j+1};']);
+        case 'fixationspan_1'
+            eval([ 'exinfo.fixationspan_1' apx ' = varargin{j+1};']);
+        case 'variance_eye_1'
+            eval([ 'exinfo.variance_eye_1' apx ' = varargin{j+1};']);
+        case 'recentering_win_1'
+            eval(['exinfo.recentering_win_1' apx '= varargin{j+1};']);
+       case 'recentering_eye_1'
+            eval([ 'exinfo.recentering_eye_1' apx ' = varargin{j+1};']);
+        case 'microsac_amplitude_1'
+            eval([ 'exinfo.microsac_amplitude_1' apx ' = varargin{j+1};']);
+        case 'microsac_peakv_1'
+            eval([ 'exinfo.microsac_peakv_1' apx ' = varargin{j+1};']);
+        case 'microsac_duration_1'
+            eval([ 'exinfo.microsac_duration_1' apx ' = varargin{j+1};']);
+        case 'microsac_angle_1'
+            eval([ 'exinfo.microsac_angle_1' apx ' = varargin{j+1};']);
+        case 'microsac_counts_1'
+            eval(['exinfo.microsac_counts_1' apx '= varargin{j+1};']);
+        case 'fixationspan_2'
+            eval([ 'exinfo.fixationspan_2' apx ' = varargin{j+1};']);
+        case 'variance_eye_2'
+            eval([ 'exinfo.variance_eye_2' apx ' = varargin{j+1};']);
+        case 'recentering_win_2'
+            eval(['exinfo.recentering_win_2' apx '= varargin{j+1};']);
+       case 'recentering_eye_2'
+            eval([ 'exinfo.recentering_eye_2' apx ' = varargin{j+1};']);
+        case 'microsac_amplitude_2'
+            eval([ 'exinfo.microsac_amplitude_2' apx ' = varargin{j+1};']);
+        case 'microsac_peakv_2'
+            eval([ 'exinfo.microsac_peakv_2' apx ' = varargin{j+1};']);
+        case 'microsac_duration_2'
+            eval([ 'exinfo.microsac_duration_2' apx ' = varargin{j+1};']);
+        case 'microsac_angle_2'
+            eval([ 'exinfo.microsac_angle_2' apx ' = varargin{j+1};']);
+        case 'microsac_counts_2'
+            eval(['exinfo.microsac_counts_2' apx '= varargin{j+1};']);
+
     end
     j = j+2;
 end

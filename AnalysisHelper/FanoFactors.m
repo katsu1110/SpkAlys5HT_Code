@@ -1,4 +1,4 @@
-function [ ff, ff_fit, mitchel, church ] = FanoFactors( ex, stim, Mn, Vars, nrep, param1 )
+function [ ff, ff_fit, mitchel, church ] = FanoFactors( ex, Mn, Vars, nrep, param1 )
 % all kind of fano factor calculations are performed
 % - casual mn/vars
 % - power law fit
@@ -8,7 +8,6 @@ function [ ff, ff_fit, mitchel, church ] = FanoFactors( ex, stim, Mn, Vars, nrep
 
 %------------------------------------------------------ Fano Factor
 ff.ff = ( Vars ./ Mn );
-ff.stim = stim; %stimulus values
 ff.spkcnt_mn = Mn;
 ff.spkcnt_var  = Vars;
 ff.stimrep = nrep;
@@ -17,12 +16,10 @@ ff.stimrep = nrep;
 ff_fit = FitPa.exponent;
 
 %------------------------------------------------------- Mitchel FF
-mitchel = [];
-% [mitchel.mn, mitchel.var] = Mitcheletal(ex.Trials, param1); 
+[mitchel.mn, mitchel.var] = Mitcheletal(ex.Trials, param1); 
 
 %------------------------------------------------------- Churchl FF
-church = [];
-% church = Churchlandetal( ex.Trials );
+church = Churchlandetal( ex.Trials );
     
 end
 

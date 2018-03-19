@@ -20,25 +20,16 @@ exinfo.upfi_drug = find(exinfo.ratepar_drug == exinfo.ratepar( exinfo.upfi ));
 % =============================================================== bootstrap
 exinfo = bootstrap_exinfo( exinfo );
 
-% ================================================= modulation significance
-
-exinfo.pmodulation = pModulation( ex0, ex2, exinfo, 0 );
-
 % ====================================================== type-II regression
 if any(strcmp(varargin, 't2reg')) || any(strcmp(varargin, 'all'))
-    [gslope, yoff, r2, bootstrp] = type2reg(exinfo, 1);
+    [gslope, yoff, r2, bootstrp] = type2reg(exinfo, p_flag);
     
     exinfo.gslope = gslope(1);
     exinfo.yoff = yoff(1);
     exinfo.r2reg = r2(1);
     
     exinfo.yoff_rel = yoff(2);
-    
-    exinfo.yoff_rel_wo_null = yoff(3);
-    exinfo.gslope_rel_wo_null = gslope(3);
-    exinfo.r2reg_rel_wo_null = r2(3);
-    
-    exinfo.reg_bootstrp_rel_wo_null = bootstrp;
+    %exinfo.reg_bootstrp = bootstrp;
 end
 
 % ====================================================== fitting parameters
@@ -144,8 +135,181 @@ if any(strcmp(varargin, 'wavewdt')) || any(strcmp(varargin, 'all'))
     end
 end
 
+% ======================================================= pupil GLM
+if any(strcmp(varargin, 'pupil')) || any(strcmp(varargin, 'all'))
+    len_tr0 = length(ex0.Trials);
+    len_tr2 = length(ex2.Trials);    
+    
+    % structure initialization
+    exinfo.psglm.tc = [];
+    exinfo.psglm.inter_table = nan(2,2);
+    exinfo.psglm.b = [];
+    exinfo.psglm.perf = nan(1,7);
+    
+    % store pupil size time-course
+    % -- drug -- label_tr -- TC ---
+    nmin = 1000;
+    for i = 1:len_tr0
+        if length(ex0.Trials(i).pupil_raw) < nmin
+            nmin = length(ex0.Trials(i).pupil_raw);
+        end
+    end
+    for i = 1:len_tr2
+        if length(ex2.Trials(i).pupil_raw) < nmin
+            nmin = length(ex2.Trials(i).pupil_raw);
+        end
+    end
+    
+    psmat0 = zeros(len_tr0 , 2 + nmin);
+    for i = 1:len_tr0
+        psmat0(i,2) = ex0.Trials(i).n_stm;
+        psmat0(i,3:end) = ex0.Trials(i).pupil_raw(1:nmin);
+    end
+    psmat2 = ones(len_tr2 , 2 + nmin);
+    for i = 1:len_tr2
+        psmat2(i,2) = ex2.Trials(i).n_stm;
+        psmat2(i,3:end) = ex2.Trials(i).pupil_raw(1:nmin);
+    end
+    
+    exinfo.psglm.tc = [psmat0; psmat2];
+        
+    % mean firing rate in the baseline condition    
+    if exinfo.isRC==1
+        bfr = mean([ex0.Trials.spkRate]);
+    end
+    
+    % use only the last stimulus in the DG experiments
+    if ~exinfo.isRC
+        ex0.Trials = ex0.Trials(psmat0(:,2)==4);
+        ex2.Trials = ex2.Trials(psmat2(:,2)==4);
+        len_tr0 = sum(psmat0(:,2)==4);
+        last_tr2 = sum(psmat2(:,2)==4);
+    end
+    
+    % make matrices for GLM
+    mat0 = zeros(len_tr0, 5);
+    mat2 = ones(len_tr2, 5);
+    
+    % baseline
+    for i = 1:len_tr0        
+        
+        % mean firing rate in this stimulus
+        try
+            if exinfo.isRC==1
+                mat0(i,2) = bfr;
+            else
+                mat0(i,2) = exinfo.ratemn(exinfo.ratepar(1:end-1)==ex0.Trials(i).(exinfo.param1));
+            end
+        catch
+            continue
+        end
+        
+        % firing rate in this trial
+        mat0(i,1) = ex0.Trials(i).spkRate;
+        
+        % drug condition
+        mat0(i,3) = 0;
+        
+        % pupil size
+        if exinfo.isRC
+            mat0(i,4) = ex0.Trials(i).pupil_val;
+        else
+            mat0(i,4) = mean(ex0.Trials(i).pupil_raw);
+        end
+        
+        % interaction ... mat0(i,5) = 0
+    end
+    
+    % drug 
+    for i = 1:len_tr2        
+        
+        % mean firing rate in this stimulus
+        try
+            if exinfo.isRC==1
+                mat2(i,2) = bfr;
+            else
+                mat2(i,2) = exinfo.ratemn(exinfo.ratepar_drug(1:end-1)==ex2.Trials(i).(exinfo.param1));
+            end
+        catch
+            continue
+        end
+        
+        % firing rate in this trial
+        mat2(i,1) = ex2.Trials(i).spkRate;
+        
+        % drug condition
+        mat2(i,3) = 1;
+        
+        % pupil size
+        if exinfo.isRC
+            mat2(i,4) = ex2.Trials(i).pupil_val;
+        else
+            mat2(i,4) = mean(ex2.Trials(i).pupil_raw);
+        end
+        
+        % interaction
+        mat2(i,5) = mat2(i,4);
+    end
+        
+    % data matrix
+    mat = [mat0; mat2];
+    mat = mat(~any(isnan(mat),2),:); 
+    mat(:,3:end) = zscore(mat(:,3:end));
 
+    % stimulus only    
+    exinfo.psglm.perf(1) = 1 - (var(abs(mat(:,2) - mat(:,1)))/var(mat(:,1)));
+    
+    % interaction table
+    %%%%%%%%%%%%%%%%%%%%%%%%
+    % FR %% 5HT %%% base %%%
+    % S-ps      %%%      %%%
+    % L-ps      %%%      %%%
+    %%%%%%%%%%%%%%%%%%%%%%%%
+    
+    med0 = median(mat0(:,4));
+    med2 = median(mat2(:,4));
+    exinfo.psglm.inter_table(1,1) = mean(mat2(mat2(:,4) < med2,1));
+    exinfo.psglm.inter_table(2,1) = mean(mat2(mat2(:,4) > med2,1));
+    exinfo.psglm.inter_table(1,2) = mean(mat0(mat0(:,4) < med0,1));
+    exinfo.psglm.inter_table(2,2) = mean(mat0(mat0(:,4) > med0,1));
+    
+    % normalize the table by the grand mean
+    exinfo.psglm.inter_table = exinfo.psglm.inter_table/...
+        mean(mean(exinfo.psglm.inter_table));
+    
+    % model fit (for gain change)
+    for i = 1:3
+        % fitting
+        x_init = zeros(1, i);
+        c = @(x) cost(x, mat, i);    
+        options = optimset('MaxFunEvals',3000);
+        [b1] = fminsearch(c, x_init, options);
+        b = nan(1, 6);
+        b(1:length(b1)) = b1;
+        exinfo.psglm.b = [exinfo.psglm.b; b];
+        
+        % variance explained
+        mout = mymodel(b1, mat, i);
+        exinfo.psglm.perf(i+1) = 1 - (var(abs(mout - mat(:,1)))/var(mat(:,1)));
+    end
 
+    % model fit (for additive change)
+    resid = abs(mat(:,1) - mout);
+    for i = 1:3
+        % fitting
+        mdl = fitglm(mat(:,3:2+i), resid, ...
+            'Distribution','normal', 'link', 'identity', 'Intercept', false);
+        b2 = mdl.Coefficients.Estimate';
+        b = nan(1, 6);
+        b(4:3+length(b2)) = b2;
+        exinfo.psglm.b = [exinfo.psglm.b; b];
+        
+        % variance explained
+        mout_add = predict(mdl, mat(:,3:2+i));
+        exinfo.psglm.perf(i+4) = 1 - (var(abs(mout + mout_add - mat(:,1)))/var(mat(:,1)));
+    end
+    
+end
 
 end
 
@@ -204,6 +368,32 @@ title(sprintf('contrast: gain %1.2f, offset: %1.2f, r2 %1.3f', ...
 savefig(h, exinfo.fig_phase);
 close(h)
 end
+
+% model fit for GLM with pupil size =====================
+function mout = mymodel(x, mat, incl)
+% fr(t) = fr(s)*exp(sum of weighted predictors)
+switch incl
+    case 1
+        mout = mat(:,2).*exp(x(1)*mat(:,3));
+    case 2
+        mout = mat(:,2).*exp(x(1)*mat(:,3) + x(2)*mat(:,4));
+    case 3
+        mout = mat(:,2).*exp(x(1)*mat(:,3) + x(2)*mat(:,4) + x(3)*mat(:,5));
+end
+end
+
+function f = cost(x, mat, incl)
+mout = mymodel(x, mat, incl);
+f = 0;
+for i = 1:size(mat,1)
+    if mout(i) > 0
+        f = f - (mat(i,1)*log(mout(i)) - mout(i));
+    end
+%     f = f + sqrt((mat(i,1) - mout(i))^2);
+end
+end
+
+
 
 
 

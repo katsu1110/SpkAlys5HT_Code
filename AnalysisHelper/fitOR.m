@@ -44,18 +44,6 @@ mn = mn(i_noblank);
 sem = sem(i_noblank);
 
 
-%%% in case of negative mean values, shift them to be >=0, and redo this
-%%% later
-mn_original = mn;
-if any(mn<0)
-    min_mn = min(mn);
-    mn = mn_original - min_mn;
-end
-    
-    
-
-
-
 %%% the gaussian function cannot handle circular data.
 %%% thus, center the data around the highest peak and fit the gaussian 
 %%% function to it.
@@ -67,13 +55,6 @@ pk = or(find(max(mn) == mn, 1, 'first'));
 %%% mean
 [val.or, val.mn, val.sem] = centerData(or, mn, sem, fit_res.mu);
 [fit_res,gof2] = fitHelper(fit_res.mu, val);
-
-
-%%% redo the 'artifical' offset that was done to avoid negative values
-if any(mn_original<0)
-    val.mn = val.mn-min_mn;
-    fit_res.a = fit_res.a-min_mn;
-end
 
 
 %%% assign the fitting parameters to a result structure
@@ -93,12 +74,12 @@ elseif  tcfit.mu < 0
 end
 
 
-
 %%% save the raw and fitted function data, especially helpfull to plot
 %%% the results later
 tcfit.val = val; % raw tuning curve
 tcfit.x = tcfit.mu-100:tcfit.mu+100; % descriptive function, rich of or samples
 tcfit.y = gaussian(tcfit.mu, tcfit.sig, tcfit.a, tcfit.b, tcfit.x) ;
+
 
 %%% bootstrap the fitting results to gain quality estimates of the
 %%% parameters

@@ -3,7 +3,7 @@ function mugui(exinfo)
 
 
 %% add the results of the RC experiment subsampling for noise corrected latency estimates
-exinfo = addLM2Struct(exinfo); 
+% exinfo = addLM2Struct(exinfo); 
 
 
 %% predefine inclusion criteria
@@ -133,7 +133,7 @@ txt5 = uicontrol(fig_h, 'Style','text',...
 
 editPrecov_h = uicontrol(fig_h, 'Style','edit',...
     'Position',[pos(3)*(margins+0.06) pos(4)*0.085 pos(3)*0.04 pos(4)*0.03], ...
-    'String', '<= 2 ');
+    'String', '<= 1 ');
 
 %--------------------------- popup for Data Criteria - Highest dose, etc.
 popC_h = uicontrol(fig_h, ....
@@ -168,30 +168,9 @@ r3 = uicontrol(bg,'Style','radiobutton',...
 %---------------------------- plot button
 uicontrol(fig_h,...
     'Style', 'pushbutton',...
-    'Position', [pos(3)*0.2 pos(4)*margins pos(3)*0.08 pos(4)*0.05],...
+    'Position', [pos(3)*0.4 pos(4)*margins pos(3)*0.08 pos(4)*0.05],...
     'String',   'plot', ...
     'Callback', @createPlot);
-
-%---------------------------- plot control figures for revision #1
-uicontrol(fig_h,...
-    'Style', 'pushbutton',...
-    'Position', [pos(3)*0.3 pos(4)*margins pos(3)*0.05 pos(4)*0.05],...
-    'String',   'plot SFig1', ...
-    'Callback', @plotSFig1);
-
-%---------------------------- plot control figures for revision #1
-uicontrol(fig_h,...
-    'Style', 'pushbutton',...
-    'Position', [pos(3)*0.36 pos(4)*margins pos(3)*0.05 pos(4)*0.05],...
-    'String',   'plot SFig2', ...
-    'Callback', @plotSFig2);
-
-%---------------------------- plot control figures for revision #1
-uicontrol(fig_h,...
-    'Style', 'pushbutton',...
-    'Position', [pos(3)*0.42 pos(4)*margins pos(3)*0.05 pos(4)*0.05],...
-    'String',   'plot Rev1', ...
-    'Callback', @controlFigures);
 
 %---------------------------- plot and save figure 1
 uicontrol(fig_h,...
@@ -204,22 +183,22 @@ uicontrol(fig_h,...
 uicontrol(fig_h,...
     'Style', 'pushbutton',...
     'Position', [pos(3)*0.56 pos(4)*margins pos(3)*0.05 pos(4)*0.05],...
-    'String',   'plot Fig4', ...
-    'Callback', @plotFigure4);
+    'String',   'plot Fig2', ...
+    'Callback', @plotFigure2);
 
 %---------------------------- plot and save figure 3
 uicontrol(fig_h,...
     'Style', 'pushbutton',...
     'Position', [pos(3)*0.62 pos(4)*margins pos(3)*0.05 pos(4)*0.05],...
-    'String',   'plot Fig5', ...
-    'Callback', @plotFigure5);
+    'String',   'plot Fig3', ...
+    'Callback', @plotFigure3);
 
 %---------------------------- plot and save figure 5 
 uicontrol(fig_h,...
     'Style', 'pushbutton',...
     'Position', [pos(3)*0.68 pos(4)*margins pos(3)*0.05 pos(4)*0.05],...
-    'String',   'plot Fig8', ...
-    'Callback', @plotFigure8);
+    'String',   'plot Fig5', ...
+    'Callback', @plotFigure5);
 
 %----------------------- close all button
 uicontrol(fig_h, ...
@@ -334,14 +313,14 @@ fig2plot_check(10) = uicontrol(fig_h, ...
 
 fig2plot_check(11) = uicontrol(fig_h, ...
     'Style', 'checkbox', ...
-    'String', 'Direction Selectivity', ...
+    'String', 'Interaction', ...
     'Position', [pos(3)*0.3 pos(4)*0.35 pos(3)*0.08 pos(4)*0.05], ...
     'Callback', @UpdateFigures);
 
 
 fig2plot_check(12) = uicontrol(fig_h, ...
     'Style', 'checkbox', ...
-    'String', 'pval mod', ...
+    'String', 'eyedata', ...
     'Position', [pos(3)*0.2 pos(4)*0.35 pos(3)*0.08 pos(4)*0.05], ...
     'Callback', @UpdateFigures);
 
@@ -383,7 +362,7 @@ fig2plot_check(12) = uicontrol(fig_h, ...
         createPlot(0, 0, 0); h = exportPlot(0, 0);
         savefig(h, 'raw_figs\Size\MeanFiringRate.fig'); delete(h)
         
-        return
+        
         % plots showing regression plots
         addCross.Value = 1;        addUnity.Value = 0;
         addHistograms.Value = 1;   eqAxes.Value = 0;
@@ -410,7 +389,7 @@ fig2plot_check(12) = uicontrol(fig_h, ...
         
         % example units
         % tuning curves
-        h = openfig(exinfo([exinfo.idi] == 86 & [exinfo.ocul]==-1).fig_tc);
+        h = openfig(exinfo([exinfo.idi] == 91 & [exinfo.ocul]==-1).fig_tc);
         savefig(h, 'raw_figs\Orientation\Tc5HT.fig'); delete(h);
         h = openfig(exinfo([exinfo.idi] == 412 & [exinfo.ocul]==1).fig_tc);
         savefig(h, 'raw_figs\Orientation\TcNaCl.fig'); delete(h);
@@ -450,12 +429,12 @@ fig2plot_check(12) = uicontrol(fig_h, ...
         savefig(h, 'raw_figs\Size\Reg5HT.fig'); delete(h);
         h = openfig(exinfo([exinfo.idi] == 573 & [exinfo.ocul]==1).fig_regl);
         savefig(h, 'raw_figs\Size\RegNaCl.fig'); delete(h);
-        
+        %%
         
     end
 
-    function plotFigure4(~,~,~)
-        % figure 4 - all plots that are necessary to generate Fig. 4
+    function plotFigure2(~,~,~)
+        % figure 2 - all plots that are necessary to generate Fig. 2
         % 5HT effect on tuning curves
     
         % prepare folders
@@ -578,8 +557,8 @@ fig2plot_check(12) = uicontrol(fig_h, ...
         
     end
 
-    function plotFigure5(~,~,~)
-        %figure 5 - all plots necessary to generate Fig. 5
+    function plotFigure3(~,~,~)
+        %figure 3 - all plots necessary to generate Fig. 3
         % 5HT effect on response dynamics
         
         pop_Yspec.Value = 6; pop_Xspec.Value = 6;
@@ -640,8 +619,8 @@ fig2plot_check(12) = uicontrol(fig_h, ...
         
     end
 
-    function plotFigure8(~,~,~)
-        %figure 8 - all plots necessary to generate Fig. 8
+    function plotFigure5(~,~,~)
+        %figure 6 - all plots necessary to generate Fig. 6
         
         % determine which configuration is supposed to be shown, i.e.
         % whether to use the analysis based on the full experiments or the
@@ -653,11 +632,14 @@ fig2plot_check(12) = uicontrol(fig_h, ...
         % for the noise correlation choose whether you want to see the
         % simple or the spike count corrected metric 
         suffix2 = ' corrected'; 
-        fdir = fullfile(cd, 'raw_figs_2ndhalf_5repmin');
         
         % prepare folders
-        if exist(fdir, 'dir') ~= 7
-            mkdir(fullfile(fdir));
+        if exist('raw_figs', 'dir') ~= 7
+            mkdir('raw_figs');
+            mkdir(fullfile('raw_figs\Orientation'));
+            mkdir(fullfile('raw_figs\SpatialF'));
+            mkdir(fullfile('raw_figs\Contrast'));
+            mkdir(fullfile('raw_figs\Size'));
         end
         
         % plots showing variability and co-variability
@@ -672,13 +654,21 @@ fig2plot_check(12) = uicontrol(fig_h, ...
         popX_h.Value= find(strcmp(axisopts, ['fano factor' suffix ' base']))+1;
         popY_h.Value= find(strcmp(axisopts, ['fano factor' suffix ' drug']))+1;
 
-        stimdim = {'or', 'sf', 'co', 'sz'};
-        for kk = 1:length(stimdim)
-            pop_Yspec.Value = kk+1; pop_Xspec.Value = kk+1;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, [fdir '\FanoFactor_' stimdim{kk} '.fig']); 
-            delete(h)
-        end
+        pop_Yspec.Value = 2; pop_Xspec.Value = 2;
+        createPlot(0, 0, 0); h = exportPlot(0, 0);
+        savefig(h, 'raw_figs\Orientation\FanoFactor.fig'); delete(h)
+        
+        pop_Yspec.Value = 3; pop_Xspec.Value = 3;
+        createPlot(0, 0, 0); h = exportPlot(0, 0);
+        savefig(h, 'raw_figs\SpatialF\FanoFactor.fig'); delete(h)
+        
+        pop_Yspec.Value = 4; pop_Xspec.Value = 4;
+        createPlot(0, 0, 0); h = exportPlot(0, 0);
+        savefig(h, 'raw_figs\Contrast\FanoFactor.fig'); delete(h)
+        
+        pop_Yspec.Value = 5; pop_Xspec.Value = 5;
+        createPlot(0, 0, 0); h = exportPlot(0, 0);
+        savefig(h, 'raw_figs\Size\FanoFactor.fig'); delete(h)
         
         
         % fano factor vs relative rate
@@ -686,16 +676,23 @@ fig2plot_check(12) = uicontrol(fig_h, ...
         popY_h.Value= find(strcmp(axisopts, ['fano factor' suffix ' diff']))+1;
         addUnity.Value = 0;  eqAxes.Value = 0;
 
+        pop_Yspec.Value = 2; pop_Xspec.Value = 2;
+        createPlot(0, 0, 0); h = exportPlot(0, 0);
+        savefig(h, 'raw_figs\Orientation\FanoFactor_vs_RelRate.fig'); delete(h)
         
-        for kk = 1:length(stimdim)
-            pop_Yspec.Value = kk+1; pop_Xspec.Value = kk+1;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, [fdir '\FanoFactor_vs_RelRate_' stimdim{kk} '.fig']); 
-            delete(h)
-        end
+        pop_Yspec.Value = 3; pop_Xspec.Value = 3;
+        createPlot(0, 0, 0); h = exportPlot(0, 0);
+        savefig(h, 'raw_figs\SpatialF\FanoFactor_vs_RelRate.fig'); delete(h)
+        
+        pop_Yspec.Value = 4; pop_Xspec.Value = 4;
+        createPlot(0, 0, 0); h = exportPlot(0, 0);
+        savefig(h, 'raw_figs\Contrast\FanoFactor_vs_RelRate.fig'); delete(h)
+        
+        pop_Yspec.Value = 5; pop_Xspec.Value = 5;
+        createPlot(0, 0, 0); h = exportPlot(0, 0);
+        savefig(h, 'raw_figs\Size\FanoFactor_vs_RelRate.fig'); delete(h)
         
         
-        return
         % noise correlation
         popX_h.Value= find(strcmp(axisopts, ['noise correlation' suffix suffix2]))+1;
         popY_h.Value= find(strcmp(axisopts, ['noise correlation drug' suffix suffix2]))+1;
@@ -740,236 +737,8 @@ fig2plot_check(12) = uicontrol(fig_h, ...
         savefig(h, 'raw_figs\Size\NoiseCorr_vs_RelRate.fig'); delete(h)
     end
 
-    function plotSFig1(~, ~)
-        % figures for revision figure #1
-        % - recovered data on mean firing rate and regression plots
-        % - changes in spontaneous activity
-        % - the smallest, driven response under 5HT vs the spontaneous activity
-
-        
-        % prepare the folder
-        if exist(fullfile(cd, 'raw_figs'), 'dir') ~= 7
-            mkdir(fullfile('raw_figs'));
-        end
-        stimdim = {'or', 'sf', 'co', 'sz'};
 
 
-        % ------------------ Fig S1a Modualtion of the spontaneous activty
-        
-        addCross.Value = 0;  addHistograms.Value = 0;
-        addUnity.Value = 1;  eqAxes.Value = 1;
-        addRegress.Value = 0;
-        editlatency_h.String = '>-inf';
-        editr2_h.String = '-inf'; % the regression fit criteria
-
-        
-        popX_h.Value= find(strcmp(axisopts, 'blank base'))+1;
-        popY_h.Value= find(strcmp(axisopts, 'blank drug'))+1;
-               
-        for kk = 2:5
-            pop_Yspec.Value = kk; pop_Xspec.Value = kk;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, ['raw_figs\SpontActivity_', stimdim{kk-1} '.fig']); delete(h)
-        end
-        
-%         % check if the supression went below spontaneous activity        
-%         popX_h.Value= find(strcmp(axisopts, 'blank base'))+1;
-%         popY_h.Value= find(strcmp(axisopts, 'smallest response drug'))+1;
-%                
-%         for kk = 2:5
-%             pop_Yspec.Value = kk; pop_Xspec.Value = kk;
-%             createPlot(0, 0, 0); h = exportPlot(0, 0);
-%             savefig(h, ['raw_figs\SpontActBase_vs_SmallestRespDrug_', stimdim{kk-1} '.fig']); delete(h)
-%         end
-return
-
-        %------------------------------------ Fig S1b for recovered data only
-     
-        % set the confidence interval in the resampled tuning curve
-        % this identifies the bounderies the baseline response has to be in 
-        % in order to be classified as recovered or not
-                 
-        % responses in baseline vs drug conditions
-        popX_h.Value= find(strcmp(axisopts, 'meanfr base (w recovery)'))+1;
-        popY_h.Value= find(strcmp(axisopts, 'meanfr drug (w recovery)'))+1;
-               
-        for kk = 2:5
-            pop_Yspec.Value = kk; pop_Xspec.Value = kk;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, ['raw_figs\MeanFRrecov_', stimdim{kk-1} '.fig']); delete(h)
-        end
-
-         % responses in baseline vs drug conditions
-        popX_h.Value= find(strcmp(axisopts, 'meanfr base (w recovery)'))+1;
-        popY_h.Value= find(strcmp(axisopts, 'meanfr recovery'))+1;
-               
-        for kk = 2:5
-            pop_Yspec.Value = kk; pop_Xspec.Value = kk;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, ['raw_figs\MeanFRrecov2_', stimdim{kk-1} '.fig']); delete(h)
-        end
-
-        
-        %-------------------------------- Fig S1c restricted regression data 
-        
-        % results of the type-II regression fit
-        addCross.Value = 1;  addHistograms.Value = 1;
-        addUnity.Value = 0;  eqAxes.Value = 0;
-        addRegress.Value = 0;
-        editlatency_h.String = '>-inf';
-        editr2_h.String = '>0.7'; % the regression fit criteria
-        
-        
-        popX_h.Value= find(strcmp(axisopts, 'gain change (rel & w\o zeros)'))+1;
-        popY_h.Value= find(strcmp(axisopts, 'additive change (rel & w\o zeros)'))+1;
-        
-        
-        for kk = 2:5
-            pop_Yspec.Value = kk; pop_Xspec.Value = kk;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, ['raw_figs\Regression_', stimdim{kk-1} '.fig']); delete(h)
-        end
-        
-    end
-
-
-    function plotSFig2(~ ,~)
-        %
-        
-        
-        %%%============================== Layer identification/Correlations
-        if exist(fullfile(cd, 'raw_figs'), 'dir') ~= 7
-            mkdir(fullfile('raw_figs'));
-        end
-        stimdim = {'all_dg', 'or', 'sf', 'co', 'sz', 'RC'};
-
-        addCross.Value = 1;        addUnity.Value = 0;
-        addHistograms.Value = 0;   eqAxes.Value = 0;
-        editr2_h.String = '>-inf'; % the regression fit criteria
-        editPrecov_h.String = '>-inf';
-
-        popX_h.Value= find(strcmp(axisopts, 'nonparam area ratio'))+1;
-        
-        
-        %%% F1/F0
-        popY_h.Value= find(strcmp(axisopts, 'phase selectivity'))+1;
-        for kk = 1 %2:5
-            pop_Yspec.Value = kk; pop_Xspec.Value = kk;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, ['raw_figs\f1f0_', stimdim{kk} '.fig']); delete(h)
-        end
-        
-
-        %%% spike waveform
-        popY_h.Value= find(strcmp(axisopts, 'wave width'))+1;
-        
-        for kk = 1 %2:5
-            pop_Yspec.Value = kk; pop_Xspec.Value = kk;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, ['raw_figs\spikewave_', stimdim{kk} '.fig']); delete(h)
-        end
-        
-        
-        %%% receptive field size (equivalent width)
-        popY_h.Value= find(strcmp(axisopts, 'RF width mean'))+1;
-        for kk = 1 %2:5
-            pop_Yspec.Value = kk; pop_Xspec.Value = kk;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, ['raw_figs\RFsz_', stimdim{kk} '.fig']); delete(h)
-        end
-        
-        
-        %%% eccentricity/stimulus distance to fixation point
-        popY_h.Value= find(strcmp(axisopts, 'eccentricity'))+1;
-        for kk = 1 %2:5
-            pop_Yspec.Value = kk; pop_Xspec.Value = kk;
-            createPlot(0, 0, 0); h = exportPlot(0, 0);
-            savefig(h, ['raw_figs\Eccentricity_', stimdim{kk} '.fig']); delete(h)
-        end
-        
-        
-        %%% direction selectivity
-        popY_h.Value = find(strcmp(axisopts, 'direction selectivity'))+1;
-        
-        pop_Yspec.Value = 2; pop_Xspec.Value = 2; 
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'raw_figs\DIRsel.fig'); delete(h)
-        
-        
-        %%% orientation selectivity
-        popY_h.Value= find(strcmp(axisopts, 'circular variance'))+1;
-        
-        pop_Yspec.Value = 2; pop_Xspec.Value = 2; 
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'raw_figs\ORsel.fig'); delete(h)
-    end
-
-
-
-    function controlFigures(~, ~)
-        % figures for control / revision  #1
-        % 
-        %       - FF of spont activity baseline vs drug
-        %       - FF of peak activity baseline vs drug
-
-        
-        addCross.Value = 0;             addUnity.Value = 1;
-        addHistograms.Value = 0;        eqAxes.Value = 1;
-        
-        %%%====================================================Fano Factors
-        % prepare folders
-        if exist(fullfile(cd, 'Figures\FanoFactor'), 'dir') ~= 7
-            mkdir(fullfile('Figures\FanoFactor'));
-            mkdir(fullfile('Figures\FanoFactor\raw_figs'));
-        end
-        
-        
-        % ff of the spontaneous activity
-        popX_h.Value= find(strcmp(axisopts, 'ff 2nd half blank base'))+1;
-        popY_h.Value= find(strcmp(axisopts, 'ff 2nd half blank drug'))+1;
-               
-        pop_Yspec.Value = 2; pop_Xspec.Value = 2;  % Orientation
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'Figures\FanoFactor\raw_figs\FFblank_or.fig'); delete(h)
-                
-        pop_Yspec.Value = 3; pop_Xspec.Value = 3; % Spatial Frequency
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'Figures\FanoFactor\raw_figs\FFblank_sf.fig'); delete(h)
-                
-        pop_Yspec.Value = 4; pop_Xspec.Value = 4; % Contrast
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'Figures\FanoFactor\raw_figs\FFblank_co.fig'); delete(h)
-              
-        pop_Yspec.Value = 5; pop_Xspec.Value = 5; % Size
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'Figures\FanoFactor\FFblank_sz.fig'); delete(h)
-        
-        
-        % ff of the peak response
-        popX_h.Value= find(strcmp(axisopts, 'ff 2nd half peak resp base'))+1;
-        popY_h.Value= find(strcmp(axisopts, 'ff 2nd half peak resp drug'))+1;
-               
-        pop_Yspec.Value = 2; pop_Xspec.Value = 2;  % Orientation
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'Figures\FanoFactor\raw_figs\FFpeak_or.fig'); delete(h)
-                
-        pop_Yspec.Value = 3; pop_Xspec.Value = 3; % Spatial Frequency
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'Figures\FanoFactor\raw_figs\FFpeak_sf.fig'); delete(h)
-                
-        pop_Yspec.Value = 4; pop_Xspec.Value = 4; % Contrast
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'Figures\FanoFactor\raw_figs\FFpeak_co.fig'); delete(h)
-              
-        pop_Yspec.Value = 5; pop_Xspec.Value = 5; % Size
-        createPlot(0, 0, 0); h = exportPlot(0, 0);
-        savefig(h, 'Figures\FanoFactor\raw_figs\FFpeak_sz.fig'); delete(h)
-
-
-
-        
-        
-    end
 %% nested functions
     
     function exportBar(~, ~)
@@ -1140,10 +909,6 @@ return
         stimy = pop_Yspec.String{pop_Yspec.Value};
         stimx = pop_Xspec.String{pop_Xspec.Value};
         
-        % x and y functions
-        fctX = axisopts{get(popX_h, 'Value')-1};
-        fctY = axisopts{get(popY_h, 'Value')-1};
-        
         % which stimuli condition should be shown
         UpdateInclusionHelper( ...
             strcmp(stimy, stimx) & ~strcmp(stimy, 'RC') & ~strcmp(stimy, 'all stimuli cond'), ...
@@ -1188,24 +953,16 @@ return
         
         
         % what is the regression fit threshold
-        if strcmp(fctY, 'gain change (rel & w\o zeros)') ||...
-                strcmp(fctY, 'additive change (rel & w\o zeros)') || ...
-                strcmp(fctX, 'gain change (rel & w\o zeros)') ||...
-                strcmp(fctX, 'additive change (rel & w\o zeros)') 
-            UpdateInclusionHelper(1, ['[exinfo.r2reg_rel_wo_null] ' get(editr2_h, 'String')]);
-        else
-            
-            UpdateInclusionHelper(1, ['[exinfo.r2reg] ' get(editr2_h, 'String')]);
-        end
+        UpdateInclusionHelper(1, ['[exinfo.r2reg] ' get(editr2_h, 'String')]);
+        
         
         % what is the latency threshold
-        if strcmp(stimulicond(get(pop_Xspec, 'Value')), 'RC')
-            datalatency = evalMU('latency base', 'latency drug', exinfo);
-
-            cond =  eval(['datalatency.x'  get(editlatency_h, 'String') ' & ' ...
-                'datalatency.y'  get(editlatency_h, 'String') ]);
-            incl_i = intersect( incl_i, find(cond));
-        end
+%         datalatency = evalMU('latency base', 'latency drug', exinfo);
+%         if strcmp(stimulicond(get(pop_Xspec, 'Value')), 'RC')
+%             cond =  ['datalatency.x'  get(editlatency_h, 'String') ' & ' ...
+%                 'datalatency.y'  get(editlatency_h, 'String') ];
+%             UpdateInclusionHelper(true, cond)
+%         end
         
         % what is the tuning fit threshold
         UpdateInclusionHelper(1,...
@@ -1214,13 +971,13 @@ return
         
         % what is the anova alpha level
         UpdateInclusionHelper(1,...
-            ['[exinfo.p_anova] ' get(editPanova_h, 'String') ...
-            ' & [exinfo.p_anova_drug] ' get(editPanova_h, 'String')])
+            ['cellfun(@(x) x(1), {exinfo.p_anova}) ' get(editPanova_h, 'String') ...
+            ' & cellfun(@(x) x(1), {exinfo.p_anova_drug})' get(editPanova_h, 'String')])
         
         % what is the isolation quality criteria
-        UpdateInclusionHelper(1,...
-            ['[exinfo.spkqual_base] ' get(editSpkSortQualtiy_h, 'String') ...
-            ' & [exinfo.spkqual_drug] ' get(editSpkSortQualtiy_h, 'String')])
+%         UpdateInclusionHelper(1,...
+%             ['[exinfo.spkqual_base] ' get(editSpkSortQualtiy_h, 'String') ...
+%             ' & [exinfo.spkqual_drug] ' get(editSpkSortQualtiy_h, 'String')])
 
         
         % which one of the experiments in one unit recording should be shown
@@ -1241,7 +998,8 @@ return
         % excluded because they show some adaptation in the beginning of
         % each individual experiment that artificially increases the
         % variability metrices
-
+        fctX = axisopts{get(popX_h, 'Value')-1};
+        fctY = axisopts{get(popY_h, 'Value')-1};
         if ( contains(fctX, 'fano factor') || contains(fctY, 'fano factor') || ...
             contains(fctX, 'noise correlation') || contains(fctY, 'noise correlation') ) ...
             && (contains(fctX, '2nd half') || contains(fctY, '2nd half'))
@@ -1251,8 +1009,8 @@ return
         end
         
         
-        % what is the threshold for the recovery (p on the bootstrapped sample)
-        UpdateInclusionHelper(1, ['cellfun(@(x) x(1), {exinfo.ret2base} ) ' get(editPrecov_h, 'String')]);
+        % what is the threshold for the recovery p-value
+%         UpdateInclusionHelper(1, ['[exinfo.ret2base] ' get(editPrecov_h, 'String')]);
         
     end
 

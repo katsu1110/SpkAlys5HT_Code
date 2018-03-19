@@ -34,11 +34,8 @@ function s = getIDX(fnames)
 
 for i = 1:length(fnames)
 
-    try
-        s{i} = fnames{i}(1:7);  % monkey and session number
-    catch
-        disp('');
-    end
+    s{i} = fnames{i}(1:7);  % monkey and session number
+
 end
 
 

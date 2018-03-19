@@ -159,7 +159,7 @@ end
 function plotRateHelper(ex, ff, ratepar)
 
 x = 1.5;
-y = [ex.Trials.spkCount];
+y = [ex.Trials.spkRate];
 
 % plot each stimulus response individually with stimulus specific color
 % plot trials with equal stimulus in the same color

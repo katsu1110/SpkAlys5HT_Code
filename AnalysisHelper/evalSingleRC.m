@@ -13,6 +13,7 @@ function [ex, argout] = evalSingleRC( exinfo, fname, varargin )
 % @CL
 
 %% define variables and parse input
+argout = [];
 j=1; 
 lat_flag = true;
 p_flag = false;
@@ -35,66 +36,102 @@ end
 % ignore the lfp for now
 ex = loadCluster( fname, 'loadlfp', false ); 
 
+% add pupil info
+[ex_orig] = znormex(ex, exinfo, 1);
 
-%% Mean and Variance
-[ res, spkstats, fitparam ] = RCsubspace(ex, varargin{:} );
-
-
-if lat_flag && p_flag
-    % name and save the figure of the ML response latency estimate
-    if contains(fname, '5HT') && contains(fname, 'NaCl')
-        set(gcf, 'Name', [exinfo.figname '_' exinfo.drugname]);
-        savefig(gcf, [exinfo.fig_sdfs(1:end-4) '_mlfit_drug.fig'])
-        close(gcf)
-    else
-        set(gcf, 'Name', [exinfo.figname '_base']);
-        savefig(gcf, [exinfo.fig_sdfs(1:end-4) '_mlfit_base.fig'])
-        close(gcf)
-    end
-end
-
-% res = getLat2D(res, exinfo);% only if there are two stimulus dimensions evaluated
-
-nrep = res.sdfs.n;
-if ~isempty(res.netSpikesPerFrameBlank)
-    nrep = [nrep; res.sdfs.extras{1}.n];
-end
-
-%% tc height diff
-minspk = min(spkstats.mn);
-maxspk = max(spkstats.mn);
-tcdiff = (maxspk - minspk) ./ mean([maxspk, minspk]);
-
-
-%% Anova
-idx = find(spkstats.(exinfo.param1)<1000);
-p_anova = nan(length(idx),length(idx));
-for i = 1:length(idx)
-    for j = i:length(idx)
+for ps = 1:3
+    ex = ex_orig;
+        switch ps                
+                case 1
+                        suffix = '_1';
+                        ex.Trials = ex.Trials(ex.pupil_split(1).idx);
+                case 2
+                        suffix = '_2';
+                        ex.Trials = ex.Trials(ex.pupil_split(2).idx);
+                case 3
+                        suffix = '';
+        end
         
-%         mu = spkstats.mn(j);
-%         ct = prctile(squeeze(spkstats.bootstrap(i,1,:)), [5 95]);
-%         p_anova(i, j) = mu>ct(1) && mu<ct(2);
-            
-        A = squeeze(spkstats.bootstrap(i,1,:));
-        B = squeeze(spkstats.bootstrap(j,1,:));
-        
-        p_anova(i, j) = min([sum(A<B)/1000, sum(A>=B)/1000]);
+    % Mean and Variance
+    [ res, spkstats, fitparam ] = RCsubspace(ex, varargin{:} );
+
+    if lat_flag && p_flag && ps==3
+        % name and save the figure of the ML response latency estimate
+        if contains(fname, '5HT') && contains(fname, 'NaCl')
+            set(gcf, 'Name', [exinfo.figname '_' exinfo.drugname]);
+            savefig(gcf, [exinfo.fig_sdfs(1:end-4) '_mlfit_drug.fig'])
+            close(gcf)
+        else
+            set(gcf, 'Name', [exinfo.figname '_base']);
+            savefig(gcf, [exinfo.fig_sdfs(1:end-4) '_mlfit_base.fig'])
+            close(gcf)
+        end
     end
+
+    % res = getLat2D(res, exinfo);% only if there are two stimulus dimensions evaluated
+
+    nrep = res.sdfs.n;
+    if ~isempty(res.netSpikesPerFrameBlank)
+        nrep = [nrep; res.sdfs.extras{1}.n];
+    end
+
+    %% tc height diff
+    minspk = min(spkstats.mn);
+    maxspk = max(spkstats.mn);
+    tcdiff = (maxspk - minspk) ./ mean([maxspk, minspk]);
+
+
+    %% Anova
+    idx = find(spkstats.(exinfo.param1)<1000);
+    p_anova = nan(length(idx),length(idx));
+    for i = 1:length(idx)
+        for j = i:length(idx)
+
+    %         mu = spkstats.mn(j);
+    %         ct = prctile(squeeze(spkstats.bootstrap(i,1,:)), [5 95]);
+    %         p_anova(i, j) = mu>ct(1) && mu<ct(2);
+
+            A = squeeze(spkstats.bootstrap(i,1,:));
+            B = squeeze(spkstats.bootstrap(j,1,:));
+
+            p_anova(i, j) = min([sum(A<B)/1000, sum(B>A)/1000]);
+        end
+    end
+
+    % p_anova = max(max(p_anova))
+
+    %% fixation precision & microsaccade
+    fixspan = fixationSpan(ex, 0);
+    amp = [];
+    peakv = [];
+    duration = [];
+    angle = [];
+    for i = 1:length(fixspan.trial)
+        amp = [amp fixspan.trial(i).microsaccade.amp];
+        peakv = [peakv fixspan.trial(i).microsaccade.peakv];
+        duration = [duration fixspan.trial(i).microsaccade.duration];
+        angle = [angle fixspan.trial(i).microsaccade.angle];
+    end
+    argout = [argout {['fixationspan' suffix],  [fixspan.accuracy, fixspan.theta, fixspan.SI]', ...
+            ['variance_eye' suffix], [fixspan.variance]',...
+            ['recentering_win' suffix],  [fixspan.recentering.window_offsetX; fixspan.recentering.window_offsetY]', ...
+            ['recentering_eye' suffix], [fixspan.recentering.eye_offsetX; fixspan.recentering.eye_offsetY]', ...
+            ['microsac_amplitude' suffix], amp, ...
+            ['microsac_peakv' suffix], peakv, ...
+            ['microsac_duration' suffix], duration, ...
+            ['microsac_angle' suffix], angle, ...
+            ['microsac_counts' suffix], arrayfun(@(x) x.microsaccade.counts, fixspan.trial)}];
+
+    %% assign output arguments
+
+    argout =  [argout {['fitparam' suffix], fitparam, ...
+        ['rateMN' suffix], spkstats.mn, ['ratePAR' suffix], spkstats.or, ['rateSME' suffix], spkstats.sem, ...
+        ['tcdiff' suffix], tcdiff, ['sdfs' suffix], res.sdfs,...
+        ['times' suffix], res.times, ...
+        ['resdur' suffix], res.dur, ['resvars' suffix], res.vars2,...
+        ['lat' suffix], res.latFP, ['lat2Hmax' suffix], res.lat,...
+        ['p_anova' suffix], p_anova, ['nrep' suffix], nrep}];
 end
-
-p_anova = max(max(p_anova));
-
-
-%% assign output arguments
-
-argout =  {'fitparam', fitparam, ...
-    'rateMN', spkstats.mn, 'ratePAR', spkstats.or, 'rateSME', spkstats.sem, ...
-    'tcdiff', tcdiff, 'sdfs', res.sdfs,...
-    'times', res.times, ...
-    'resdur', res.dur, 'resvars', res.vars2,...
-    'lat', res.latFP, 'lat2Hmax', res.lat,...
-    'p_anova', p_anova, 'nrep', nrep};
 
 end
 

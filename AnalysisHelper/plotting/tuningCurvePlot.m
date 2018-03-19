@@ -57,11 +57,8 @@ plotSpontResp(exinfo, c);
 % plot( ones(2,1)*exinfo.fitparam.mu, get(gca, 'YLim'), 'k');
 % plot( ones(2,1)*exinfo.fitparam_drug.mu, get(gca, 'YLim'), 'k--');
 
-set(gca, 'XScale', 'log', 'XTick', val.sz, ...
-    'XTickLabel', cellfun(@(x) sprintf('%1.1f', x),num2cell(val.sz), 'UniformOutput', 0) );
 ylim_ = get(gca, 'YLim');
 ylim([0 ylim_(2)]);
-xlim([min(val.sz)-0.01 max(val.sz)+1]);
 
 title(sprintf(['Base: pref sz : %1.3f, SI= %1.3f, r2=%1.3f\n' exinfo.drugname ...
     'pref sz: %1.3f, SI=%1.3f, r2=%1.3f'],...
@@ -142,8 +139,8 @@ ft_drug = exinfo.fitparam_drug;% fit parameters for the drug experiment
 args_base = {'o', 'Color', c, 'MarkerSize', 5, 'MarkerFaceColor', c};
 args_drug = args_base; args_drug{end} = 'w';
 
-fittedTC_or_Helper(ft, exinfo.nrep, args_base, {c}); ho;
-fittedTC_or_Helper(ft_drug, exinfo.nrep_drug, args_drug, {c, 'LineStyle', '--'});
+fittedTC_or_Helper(ft, args_base, {c}); ho;
+fittedTC_or_Helper(ft_drug,  args_drug, {c, 'LineStyle', '--'});
 
 plotSpontResp(exinfo, c)% plot spontaneous response as dotted line
 
@@ -168,12 +165,9 @@ title( sprintf( ['B: pf=%1.0f, bw=%1.0f, amp=%1.1f, off=%1.1f, r2=%1.1f \n' ...
     ft_drug.mu, ft_drug.sig, ft_drug.a, ft_drug.b, ft_drug.r2), 'FontSize', 8);
 end
 
-function fittedTC_or_Helper(ft, nrep, errArgs, lineArgs)
+function fittedTC_or_Helper(ft, errArgs, lineArgs)
     errorbar(ft.val.or, ft.val.mn, ft.val.sem, errArgs{:}); ho
     plot(ft.x, ft.y, lineArgs{:}); ho
-
-    text(ft.val.or, ft.val.mn, num2str(nrep(1:length(ft.val.or))), 'FontSize', 8);
-
 end
 
 %% spatial frequency data

@@ -5,7 +5,7 @@ function A = readSpikingTable( fname )
 %
 % @CL 22.11.2016
 
-if contains(fname, 'Kaki')
+if ~isempty(strfind(fname, 'Kaki'))
     A = importfile(fname);
 else
     A = importfile2(fname);
@@ -14,12 +14,12 @@ end
 for kk = 1:length(A)
     
     q= A(kk).isolationquality;
-    if ~contains(q,'c2') && ~contains(q,'c1')
+    if isempty(strfind(q,'c2')) && isempty(strfind(q,'c1'))
         A(kk).isoQc1 = str2double(q);
         A(kk).isoQc2 = 6;
 
             
-    elseif ~contains(q,'c2') && contains(q,'c1')
+    elseif isempty(strfind(q,'c2')) && ~isempty(strfind(q,'c1'))
         
         [~,si] = regexp(q,'=', 'match');
         
@@ -33,7 +33,7 @@ for kk = 1:length(A)
         
         A(kk).isoQc1 = str2double(q(si(1)+1:ei-1));
         
-        if ~contains(q,'c2')
+        if isempty(strfind(q,'c2'))
             A(kk).isoQc2 = 6;
         else
             A(kk).isoQc2 = str2double(q(si(2)+1:end));
