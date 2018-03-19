@@ -4,13 +4,12 @@ function [para] = LFPanalyzer(exinfo, varargin)
 %
 % OUTPUT: lfpdata ... structure containing analized data
 % 
-% written by Katsuhisa (27.09.17)
+% written by Katsuhisa (19.03.18)
 % +++++++++++++++++++++++++++++++++++++++
 
 % deal with input arguments
 plot_flag = 0;
 save_flag = 0;
-pupil_flag = 0;
 j = 1;
 while j <= nargin - 1
     switch varargin{j}
@@ -19,9 +18,6 @@ while j <= nargin - 1
             j = j + 1;
         case 'save'
             save_flag = 1;
-            j = j + 1;
-        case 'pupil'
-            pupil_flag = 1;
             j = j + 1;
     end
 end
@@ -34,34 +30,22 @@ drugname = exinfo.drugname;
 ex0 = loadCluster(exinfo.fname, 'loadlfp',1);
 ex2 = loadCluster(exinfo.fname_drug, 'loadlfp',1);
 
-if pupil_flag==0       
-    
-    % LFP analysis
-    [para] = LFPanalyzerWrapper(ex0, ex2);
+% median split of the pupil size
+[ex0_sps, ex0_lps, ex0] = pupilSplit(ex0);
+[ex2_sps, ex2_lps, ex2] = pupilSplit(ex2);
 
-    % visualization
-    if plot_flag==1
-        close all;
-        visualizer(para, 'base', drugname, exinfo.figname, save_flag)
-    end
-else
-    % median split of the pupil size
-    [ex0_sps, ex0_lps] = pupilSplit(ex0);
-    [ex2_sps, ex2_lps] = pupilSplit(ex2);
-    
-    % LFP analysis
-    [para.ps_base] = LFPanalyzerWrapper(ex0_sps, ex0_lps);
-    [para.ps_drug] = LFPanalyzerWrapper(ex2_sps, ex2_lps);    
-    [para.inter_table] = lookInteraction(para.ps_base, para.ps_drug);
+% LFP analysis
+[para.drug] = LFPanalyzerWrapper(ex0, ex2);
+[para.ps_base] = LFPanalyzerWrapper(ex0_sps, ex0_lps);
+[para.ps_drug] = LFPanalyzerWrapper(ex2_sps, ex2_lps); 
 
-    % visualization
-    if plot_flag==1
-        close all;
-        visualizer(para.ps_base, 'S-ps_base', 'L-ps_base', exinfo.figname, save_flag)
-%         close all;
-        visualizer(para.ps_drug, ['S-ps_' drugname], ['L-ps_' drugname], exinfo.figname, save_flag)
-    end
-end    
+% visualization
+if plot_flag==1
+    close all;
+    visualizer(para.drug, 'base', drugname, exinfo.figname, save_flag)
+    visualizer(para.ps_base, 'S-ps_base', 'L-ps_base', exinfo.figname, save_flag)
+    visualizer(para.ps_drug, ['S-ps_' drugname], ['L-ps_' drugname], exinfo.figname, save_flag)
+end
 
 
 %% subfunctions
@@ -574,65 +558,3 @@ set(h, 'Name', figname,'NumberTitle','off')
 if save_flag==1
     savefig(h, strcat(savedir, figname, '.fig'))
 end
-
-% interaction between drug and pupil size in LFP
-function [table] = lookInteraction(para1, para2)
-% look for any interaction with respect to 
-% 'stLFP', 'stLFP power', 'stimulus-driven LFP's power',
-% 'stimulus-driven stLFP's power', 'coherence'
-
-% interaction table
-%%% base %%% drug %%%
-% sPS %%%%%%%%%%%%
-% lPS %%%%%%%%%%%%
-
-% stLFP
-table.stlfp.vals = zeros(2,2);
-table.stlfp.vals(1,1) = nanmean(para1.cond(1).stlfp.mean);
-table.stlfp.vals(2,1) = nanmean(para1.cond(2).stlfp.mean);
-table.stlfp.vals(1,2) = nanmean(para2.cond(1).stlfp.mean);
-table.stlfp.vals(2,2) = nanmean(para2.cond(2).stlfp.mean);
-table.stlfp.vals = table.stlfp.vals/nanmean(nanmean(table.stlfp.vals));
-
-% stLFP power
-table.stlfp.power = zeros(2,2);
-table.stlfp.power(1,1) = nanmean(para1.cond(1).stlfp.pow);
-table.stlfp.power(2,1) = nanmean(para1.cond(2).stlfp.pow);
-table.stlfp.power(1,2) = nanmean(para2.cond(1).stlfp.pow);
-table.stlfp.power(2,2) = nanmean(para2.cond(2).stlfp.pow);
-table.stlfp.power = table.stlfp.power/nanmean(nanmean(table.stlfp.power));
-
-stmidx = para1.cond(1).lfpstm.stm.vals(para1.cond(1).lfpstm.stm.vals < 1000);
-
-% stimulus-driven LFP's power
-table.lfpstm.power = zeros(2,2);
-% stmidx
-% a = para1.cond(1).lfpstm.pow_stm.mean(stmidx, :)
-table.lfpstm.power(1,1) = nanmean(nanmean(para1.cond(1).lfpstm.pow_stm.mean(stmidx, :)));
-table.lfpstm.power(2,1) = nanmean(nanmean(para1.cond(2).lfpstm.pow_stm.mean(stmidx, :)));
-table.lfpstm.power(1,2) = nanmean(nanmean(para2.cond(1).lfpstm.pow_stm.mean(stmidx, :)));
-table.lfpstm.power(2,2) = nanmean(nanmean(para2.cond(2).lfpstm.pow_stm.mean(stmidx, :)));
-table.lfpstm.power = table.lfpstm.power/nanmean(nanmean(table.lfpstm.power));
-
-% stimulus-driven stLFP's power
-table.lfpstm_stlfp.power = zeros(2,2);
-table.lfpstm_stlfp.power(1,1) = nanmean(nanmean(para1.cond(1).lfpstm.stlfp.pow(stmidx, :)));
-table.lfpstm_stlfp.power(2,1) = nanmean(nanmean(para1.cond(2).lfpstm.stlfp.pow(stmidx, :)));
-table.lfpstm_stlfp.power(1,2) = nanmean(nanmean(para2.cond(1).lfpstm.stlfp.pow(stmidx, :)));
-table.lfpstm_stlfp.power(2,2) = nanmean(nanmean(para2.cond(2).lfpstm.stlfp.pow(stmidx, :)));
-table.lfpstm_stlfp.power = table.lfpstm_stlfp.power/nanmean(nanmean(table.lfpstm_stlfp.power));
-
-% coherence
-idx = find(stmidx);
-table.coherence.power = zeros(2,2);
-for i = 1:length(idx)
-    table.coherence.power(1,1) = table.coherence.power(1,1) + ...
-        nanmean(para1.cond(1).lfpstm.coherence.C{idx(i)});
-    table.coherence.power(2,1) = table.coherence.power(2,1) + ...
-        nanmean(para1.cond(2).lfpstm.coherence.C{idx(i)});
-    table.coherence.power(1,2) = table.coherence.power(1,2) + ...
-        nanmean(para2.cond(1).lfpstm.coherence.C{idx(i)});
-    table.coherence.power(2,2) = table.coherence.power(2,2) + ...
-        nanmean(para2.cond(2).lfpstm.coherence.C{idx(i)});
-end
-table.coherence.power = table.coherence.power/nanmean(nanmean(table.coherence.power));

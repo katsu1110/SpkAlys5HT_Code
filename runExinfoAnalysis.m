@@ -212,7 +212,7 @@ end
 % save the result structure in a superordinate folder named Data
 if save_flag
 %     save('D:\Users\kk\interaction_project\dataset\Data\exinfo.mat', 'exinfo', '-v7.3'); 
-    save('Z:\Katsuhisa\interaction_project\dataset\Data\exinfo.mat', 'exinfo', '-v7.3'); 
+    save('Z:\Katsuhisa\serotonin_project\dataset\Data\exinfo.mat', 'exinfo', '-v7.3'); 
 end
 
 % % store figures for fixation precision

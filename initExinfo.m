@@ -46,8 +46,8 @@ function exinfo = initExinfo(varargin)
 
 %% add all subfolders to the path
 addpath(genpath(pwd)); 
-addpath(genpath('C:\Users\katsuhisa\Documents\code\analysis\integrated\interaction_project\GenAlyz_Code'));
-addpath(genpath('C:\Users\katsuhisa\Documents\code\analysis\integrated\corinnas\HNetc'));
+addpath(genpath('Z:\Katsuhisa\serotonin_project\GenAlyz_Code'));
+addpath(genpath('Z:\Corinna\SharedCode\File Exchange Code'));
 
 %% initiate variables
 kk = 0;
@@ -55,7 +55,7 @@ idi = 1;
 fname = 'Z:\Corinna\filenames\SU_CL_all.txt'; % txt file containing the experiment filenames
 
 % mypath = 'D:\Users\kk\interaction_project\dataset\';
-mypath = 'Z:\Katsuhisa\interaction_project\dataset\';
+mypath = 'Z:\Katsuhisa\serotonin_project\dataset\';
 figdir.pre = fullfile(mypath, 'Figures\'); %folder destination for all figures
 figdir.Data = fullfile(mypath, 'Data\');%folder destination for data
 
