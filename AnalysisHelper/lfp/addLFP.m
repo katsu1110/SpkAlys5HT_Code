@@ -7,7 +7,7 @@ function [LFPinfo] = addLFP(exinfo)
 
 LFPinfo = struct('session', []);
 for i = 1:length(exinfo)
-    if strcmp(exinfo(i).params(1), 'co') || exinfo(i).isRC==1
+    if strcmp(exinfo(i).param1(1), 'co') || exinfo(i).isRC==1
         try
             [para] = LFPanalyzer(exinfo(i),'plot','save');
             LFPinfo.session(i).exist = 1;
