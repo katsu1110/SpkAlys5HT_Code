@@ -558,3 +558,18 @@ set(h, 'Name', figname,'NumberTitle','off')
 if save_flag==1
     savefig(h, strcat(savedir, figname, '.fig'))
 end
+
+ % Spike-LFP phase ===================== 
+h = figure;
+subplot(1, 2, 1)
+polarhistogram(para.cond(1).lfpstm.coherence.phi{:}, 'FaceColor','red','FaceAlpha',.3);
+title(name{1})
+subplot(1, 2, 2)
+polarhistogram(para.cond(2).lfpstm.coherence.phi{:}, 'FaceColor','red','FaceAlpha',.3);
+title(name{2})
+
+figname = [name{1}, 'VS', name{2}, '_' 'LfpPhaseOfSpikes_' prefix];
+set(h, 'Name', figname,'NumberTitle','off')
+if save_flag==1
+    savefig(h, strcat(savedir, figname, '.fig'))
+end

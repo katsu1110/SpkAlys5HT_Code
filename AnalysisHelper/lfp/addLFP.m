@@ -1,7 +1,7 @@
 function [LFPinfo] = addLFP(exinfo)
 %% run 'LFPanalyzer.m' in batch using exinfo
 %
-% load('Z:\Katsuhisa\serotonin_project\LFP_project\Data\dataset\Data\exinfo.mat')
+% load('Z:\Katsuhisa\serotonin_project\dataset\Data\exinfo.mat')
 % written by Katsuhisa (29.09.17)
 % ++++++++++++++++++++++++++++++++
 
@@ -25,5 +25,5 @@ for i = 1:length(exinfo)
     end
 end
     
-save('Z:\Katsuhisa\LFP_project\Data\LFPinfo.mat', 'LFPinfo', '-v7.3')
+save('Z:\Katsuhisa\serotonin_project\LFP_project\Data\LFPinfo.mat', 'LFPinfo', '-v7.3')
 disp('LFPinfo was saved!')
