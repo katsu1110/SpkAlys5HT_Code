@@ -22,8 +22,10 @@ while j <= nargin - 1
     end
 end
     
-% drugname
-drugname = exinfo.drugname;
+% stimulus & drugname
+para.stimulus = exinfo.param1;
+para.isRC = exinfo.isRC;
+para.drugname = exinfo.drugname;
 
 % load lfp data and preprocessing 
 % (POW, FREQ, LFP_prepro, LFP_prepro_time)
@@ -42,9 +44,9 @@ ex2 = loadCluster(exinfo.fname_drug, 'loadlfp',1);
 % visualization
 if plot_flag==1
     close all;
-    visualizer(para.drug, 'base', drugname, exinfo.figname, save_flag)
+    visualizer(para.drug, 'base', para.drugname, exinfo.figname, save_flag)
     visualizer(para.ps_base, 'S-ps_base', 'L-ps_base', exinfo.figname, save_flag)
-    visualizer(para.ps_drug, ['S-ps_' drugname], ['L-ps_' drugname], exinfo.figname, save_flag)
+    visualizer(para.ps_drug, ['S-ps_' para.drugname], ['L-ps_' para.drugname], exinfo.figname, save_flag)
 end
 
 

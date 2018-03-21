@@ -1,8 +1,8 @@
-function plotLFP(LFPinfo, exinfo, stmtype)
+function plotLFP(LFPinfo, stmtype)
 %% plot LFP data across sessions
 %
-% load('Z:\Katsuhisa\LFP_project\Data\LFPinfo.mat')
-% load('Z:\Katsuhisa\serotonin_project\LFP_project\Data\dataset\Data\exinfo.mat')
+% load('Z:\Katsuhisa\serotonin_project\LFP_project\Data\LFPinfo.mat')
+% load('Z:\Katsuhisa\serotonin_project\dataset\Data\exinfo.mat')
 %
 % written by Katsuhisa (19.03.18)
 % ++++++++++++++++++++++++++++++++
@@ -13,24 +13,12 @@ close all;
 % stimulus type
 row = [];
 is5ht = [];
-if strcmp(stmtype, 'rc')
-    load('Z:\Corinna\SharedCode\Katsu\list_RC.mat')
-    for i = 1:length(list_RC)
-        if LFPinfo.session(list_RC(i)).exist==1
-            row = [row, list_RC(i)];
-            if strcmp(exinfo(list_RC(i)).drugname, '5HT')
-                is5ht = [is5ht, 1];
-            else
-                is5ht = [is5ht, 0];
-            end
-        end
-    end
-elseif strcmp(stmtype, 'co')
-    load('Z:\Corinna\SharedCode\Katsu\incl_i_all_stim_cond_2007.mat')
-    for i = 1:length(incl_i)
-        if strcmp(exinfo(incl_i(i)).param1, stmtype)
-            row = [row, incl_i(i)];
-            if strcmp(exinfo(incl_i(i)).drugname, '5HT')
+for i = 1:length(LFPinfo.session)
+    if LFPinfo.session(i).exist==1 && LFPinfo.session(i).goodunit==1
+        if (LFPinfo.session(i).results.isRC==1 && strcmp(stmtype, 'rc')) || ...
+                (LFPinfo.session(i).results.isRC==0 && strcmp(stmtype, LFPinfo.session(i).results.stimulus))
+            row = [row, i];        
+            if strcmp(LFPinfo.session(i).results.drugname, '5HT')
                 is5ht = [is5ht, 1];
             else
                 is5ht = [is5ht, 0];
@@ -40,6 +28,9 @@ elseif strcmp(stmtype, 'co')
 end
 
 lenr = length(row);
+disp(['Analized pairs of sessions: ' num2str(lenr)])
+disp(['5HT sessions: ' num2str(sum(is5ht==1))])
+disp(['NaCl sessions: ' num2str(sum(is5ht==0))])
     
 for f = 1:3
     switch f
@@ -513,10 +504,10 @@ for f = 1:3
     h = figure;
     phi0 = []; phi1 = []; phi2 = []; phi3 = [];
     for i = 1:lenr         
-         if is5HT(i)==1
+         if is5ht(i)==1
             phi0 = [phi0; LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}];
             phi2 = [phi2; LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}];
-         elseif is5HT(i)==0
+         elseif is5ht(i)==0
              phi1 = [phi1; LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}];
              phi3 = [phi3; LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}];
          end
@@ -535,7 +526,7 @@ for f = 1:3
         subplot(2,2,1+2*(l-1))
         polarhistogram(phi_c1, 'FaceColor','red','FaceAlpha',.3);
         title('baseline')
-        subplot(2,2,1+2*(l-1))
+        subplot(2,2,2+2*(l-1))
         polarhistogram(phi_c2, 'FaceColor','red','FaceAlpha',.3);
         title(drugname)
     end
