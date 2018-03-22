@@ -31,6 +31,7 @@ for i = 1:length(exinfo)
             disp(['Session ' num2str(i) ' had an error.'])
         end
     else
+        LFPinfo.session(i).exist = 0;
         disp(['Session ' num2str(i) ' is neither CO nor RC experiment. Skipped...'])
     end
 end

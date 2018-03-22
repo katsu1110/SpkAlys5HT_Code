@@ -24,7 +24,9 @@ end
     
 % stimulus & drugname
 para.stimulus = exinfo.param1;
-para.isRC = exinfo.isRC;
+if exinfo.isRC
+    para.stimulus = 'rc';
+end
 para.drugname = exinfo.drugname;
 
 % load lfp data and preprocessing 
@@ -563,12 +565,22 @@ end
 
  % Spike-LFP phase ===================== 
 h = figure;
-subplot(1, 2, 1)
-polarhistogram(para.cond(1).lfpstm.coherence.phi{:}, 'FaceColor','red','FaceAlpha',.3);
-title(name{1})
-subplot(1, 2, 2)
-polarhistogram(para.cond(2).lfpstm.coherence.phi{:}, 'FaceColor','red','FaceAlpha',.3);
-title(name{2})
+for i = 1:lenv
+    try
+        subplot(2, lenv, i)
+        polarhistogram(para.cond(1).lfpstm.coherence.phi{i}, 'FaceColor','red','FaceAlpha',.3);
+        title([para.cond(1).lfpstm.stm.param, ' = ' ...
+               num2str(para.cond(1).lfpstm.stm.vals(i))])
+    catch
+        disp(['stimulus index ' num2str(i) ' error'])
+    end
+    try
+        subplot(2, lenv, i+lenv)
+        polarhistogram(para.cond(2).lfpstm.coherence.phi{i}, 'FaceColor','red','FaceAlpha',.3);
+    catch
+        disp(['stimulus index ' num2str(i) ' error'])
+    end
+end
 
 figname = [name{1}, 'VS', name{2}, '_' 'LfpPhaseOfSpikes_' prefix];
 set(h, 'Name', figname,'NumberTitle','off')

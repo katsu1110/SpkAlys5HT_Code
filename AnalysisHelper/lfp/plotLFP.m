@@ -13,17 +13,15 @@ close all;
 % stimulus type
 row = [];
 is5ht = [];
-for i = 1:length(LFPinfo.session)
-    if LFPinfo.session(i).exist==1 && LFPinfo.session(i).goodunit==1
-        if (LFPinfo.session(i).results.isRC==1 && strcmp(stmtype, 'rc')) || ...
-                (LFPinfo.session(i).results.isRC==0 && strcmp(stmtype, LFPinfo.session(i).results.stimulus))
+for i = 1:length(LFPinfo.session)    
+    if LFPinfo.session(i).exist==1 && LFPinfo.session(i).goodunit==1 ...
+            && strcmp(stmtype, LFPinfo.session(i).results.stimulus)  
             row = [row, i];        
             if strcmp(LFPinfo.session(i).results.drugname, '5HT')
                 is5ht = [is5ht, 1];
             else
                 is5ht = [is5ht, 0];
             end
-        end
     end
 end
 
@@ -36,10 +34,16 @@ for f = 1:3
     switch f
         case 1
             fieldname = 'drug';
+            xname = 'baseline';
+            yname = 'drug';
         case 2
             fieldname = 'ps_base';
+            xname = 'S-ps';
+            yname = 'L-ps';
         case 3
             fieldname = 'ps_drug';
+            xname = 'S-ps';
+            yname = 'L-ps';
     end
     
     % stLFP ==========================
@@ -120,10 +124,14 @@ for f = 1:3
 
         % stLFP scatter
         subplot(2,3,3)
-        unity_plot(para.cond(1).stlfp.zeroval, para.cond(2).stlfp.zeroval, is5ht)
+        if f==1
+            unity_plot(para.cond(1).stlfp.zeroval, para.cond(2).stlfp.zeroval, is5ht)
+        else
+            unity_plot(para.cond(1).stlfp.zeroval, para.cond(2).stlfp.zeroval)
+        end
         title('stLFP')
-        xlabel('baseline')
-        ylabel('drug')
+        xlabel(xname)
+        ylabel(yname)
     end
     set(h, 'Name', [fieldname ': stLFP'], 'NumberTitle','off')
 
@@ -161,8 +169,13 @@ for f = 1:3
                 band = 'gamma';
         end
         subplot(2,3,b)
-        unity_plot(para.cond(1).stlfp.(['power_' band]),...
-            para.cond(2).stlfp.(['power_' band]), is5ht)
+        if f==1
+            unity_plot(para.cond(1).stlfp.(['power_' band]),...
+                para.cond(2).stlfp.(['power_' band]), is5ht)
+        else
+            unity_plot(para.cond(1).stlfp.(['power_' band]),...
+                para.cond(2).stlfp.(['power_' band]))
+        end
         title(band)
     end
     set(h, 'Name', [fieldname ': stLFP power bands'], 'NumberTitle','off')
@@ -255,12 +268,17 @@ for f = 1:3
         end
         % effect size of 5HT on tuning
         subplot(2,5,b)
-        unity_plot(para.cond(1).lfpstm.power.(band),...
-            para.cond(2).lfpstm.power.(band), is5ht)
+        if f==1
+            unity_plot(para.cond(1).lfpstm.power.(band),...
+                para.cond(2).lfpstm.power.(band), is5ht)
+        else
+            unity_plot(para.cond(1).lfpstm.power.(band),...
+                para.cond(2).lfpstm.power.(band))
+        end
         title(band)
         if b==1
-            xlabel('baseline')
-            ylabel('drug')
+            xlabel(xname)
+            ylabel(yname)
         end
 
         % tuning curve
@@ -382,12 +400,17 @@ for f = 1:3
 
         % effect size of 5HT on tuning
         subplot(2,5,b)
-        unity_plot(para.cond(1).lfpstm.stlfppower.(band),...
-            para.cond(2).lfpstm.stlfppower.(band), is5ht)
+        if f==1
+            unity_plot(para.cond(1).lfpstm.stlfppower.(band),...
+                para.cond(2).lfpstm.stlfppower.(band), is5ht)
+        else
+            unity_plot(para.cond(1).lfpstm.stlfppower.(band),...
+                para.cond(2).lfpstm.stlfppower.(band))
+        end
         title(band)
         if b==1
-            xlabel('baseline')
-            ylabel('drug')
+            xlabel(xname)
+            ylabel(yname)
         end
 
         % tuning curve
@@ -448,87 +471,140 @@ for f = 1:3
         end
     end
 
-    for l = 1:2
-        switch l
-            case 1
-                drugname = 'NaCl';
-            case 2
-                drugname = '5HT';
+    if f==1
+        for l = 1:2
+            switch l
+                case 1
+                    drugname = 'NaCl';
+                case 2
+                    drugname = '5HT';
+            end
+
+            % coherence vs frequency
+            subplot(2,2,1+2*(l-1))
+            freq = LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.coherence.f{1};
+            me = nanmean(para.cond(1).lfpstm.coherence_freq(is5ht==l-1,:),1);
+            sem = nanstd(para.cond(1).lfpstm.coherence_freq(is5ht==l-1,:), [], 1)...
+                /sqrt(lenr);
+            fill_between(freq, me - sem, me + sem, [0 0 0])
+            hold on;
+            plot(freq, me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.coherence_freq(is5ht==l-1,:),1);
+            sem = nanstd(para.cond(2).lfpstm.coherence_freq(is5ht==l-1,:), [], 1)...
+                /sqrt(lenr);
+            fill_between(freq, me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(freq, me, '-r')
+            hold on;
+            xlabel('frequency (Hz)')
+            ylabel('coherence')
+            title(drugname)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+
+            % tuning curve
+            switch l
+                case 1
+                    col = [0 0 0];
+                case 2
+                    col = [1 0 0];
+            end
+
+            subplot(2,2,2+2*(l-1))
+            me = nanmean(para.cond(1).lfpstm.coherence_stmval(is5ht==l-1,:),1);
+            sem = nanstd(para.cond(1).lfpstm.coherence_stmval(is5ht==l-1,:), [], 1)/sqrt(lenr);        
+            errorbar(stm, me, sem, 'color', col, 'linestyle','-', 'CapSize', 0)
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.coherence_stmval(is5ht==l-1,:),1);
+            sem = nanstd(para.cond(2).lfpstm.coherence_stmval(is5ht==l-1,:), [], 1)/sqrt(lenr);
+            errorbar(stm, me, sem, 'color', col, 'linestyle','--', 'CapSize', 0)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+            xlabel(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stm.param)
         end
+    else        
+            % coherence vs frequency
+            subplot(1,2,1)
+            freq = LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.coherence.f{1};
+            me = nanmean(para.cond(1).lfpstm.coherence_freq,1);
+            sem = nanstd(para.cond(1).lfpstm.coherence_freq, [], 1)...
+                /sqrt(lenr);
+            fill_between(freq, me - sem, me + sem, [0 0 0])
+            hold on;
+            plot(freq, me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.coherence_freq,1);
+            sem = nanstd(para.cond(2).lfpstm.coherence_freq, [], 1)...
+                /sqrt(lenr);
+            fill_between(freq, me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(freq, me, '-r')
+            hold on;
+            xlabel('frequency (Hz)')
+            ylabel('coherence')
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
 
-        % coherence vs frequency
-        subplot(2,2,1+2*(l-1))
-        freq = LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.coherence.f{1};
-        me = nanmean(para.cond(1).lfpstm.coherence_freq(is5ht==l-1,:),1);
-        sem = nanstd(para.cond(1).lfpstm.coherence_freq(is5ht==l-1,:), [], 1)...
-            /sqrt(lenr);
-        fill_between(freq, me - sem, me + sem, [0 0 0])
-        hold on;
-        plot(freq, me, '-k')
-        hold on;
-        me = nanmean(para.cond(2).lfpstm.coherence_freq(is5ht==l-1,:),1);
-        sem = nanstd(para.cond(2).lfpstm.coherence_freq(is5ht==l-1,:), [], 1)...
-            /sqrt(lenr);
-        fill_between(freq, me - sem, me + sem, [1 0 0])
-        hold on;
-        plot(freq, me, '-r')
-        hold on;
-        xlabel('frequency (Hz)')
-        ylabel('coherence')
-        title(drugname)
-        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+            % tuning curve
+            subplot(1,2,2)
+            me = nanmean(para.cond(1).lfpstm.coherence_stmval,1);
+            sem = nanstd(para.cond(1).lfpstm.coherence_stmval, [], 1)/sqrt(lenr);        
+            errorbar(stm, me, sem, 'color', 'k', 'linestyle','-', 'CapSize', 0)
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.coherence_stmval,1);
+            sem = nanstd(para.cond(2).lfpstm.coherence_stmval, [], 1)/sqrt(lenr);
+            errorbar(stm, me, sem, 'color', 'r', 'linestyle','--', 'CapSize', 0)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+            xlabel(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stm.param)
+     end
 
-        % tuning curve
-        switch l
-            case 1
-                col = [0 0 0];
-            case 2
-                col = [1 0 0];
-        end
-
-        subplot(2,2,2+2*(l-1))
-        me = nanmean(para.cond(1).lfpstm.coherence_stmval(is5ht==l-1,:),1);
-        sem = nanstd(para.cond(1).lfpstm.coherence_stmval(is5ht==l-1,:), [], 1)/sqrt(lenr);        
-        errorbar(stm, me, sem, 'color', col, 'linestyle','-', 'CapSize', 0)
-        hold on;
-        me = nanmean(para.cond(2).lfpstm.coherence_stmval(is5ht==l-1,:),1);
-        sem = nanstd(para.cond(2).lfpstm.coherence_stmval(is5ht==l-1,:), [], 1)/sqrt(lenr);
-        errorbar(stm, me, sem, 'color', col, 'linestyle','--', 'CapSize', 0)
-        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
-        xlabel(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stm.param)
-    end
 
     set(h, 'Name', [fieldname ': spike-LFP coherence'], 'NumberTitle','off')
     
     % spike-LFP phase ==================
     h = figure;
-    phi0 = []; phi1 = []; phi2 = []; phi3 = [];
-    for i = 1:lenr         
-         if is5ht(i)==1
-            phi0 = [phi0; LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}];
-            phi2 = [phi2; LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}];
-         elseif is5ht(i)==0
-             phi1 = [phi1; LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}];
-             phi3 = [phi3; LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}];
-         end
-    end
-    for l = 1:2
-        switch l
-            case 1
-                drugname = 'NaCl';
-                phi_c1 = phi1; phi_c2 = phi3;
-            case 2
-                drugname = '5HT';
-                phi_c1 = phi0; phi_c2 = phi2;
+    if f==1
+        phi0 = []; phi1 = []; phi2 = []; phi3 = [];
+        for i = 1:lenr         
+             if is5ht(i)==1
+                phi0 = [phi0; [LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}]];
+                phi2 = [phi2; [LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}]];
+             elseif is5ht(i)==0
+                 phi1 = [phi1; [LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}]];
+                 phi3 = [phi3; [LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}]];
+             end
         end
+        for l = 1:2
+            switch l
+                case 1
+                    drugname = 'NaCl';
+                    phi_c1 = phi1(:); phi_c2 = phi3(:);
+                case 2
+                    drugname = '5HT';
+                    phi_c1 = phi0(:); phi_c2 = phi2(:);
+            end
 
+            % LFP phase of spikes
+            subplot(2,2,1+2*(l-1))
+            polarhistogram(phi_c1, 'FaceColor','red','FaceAlpha',.3);
+            title('baseline')
+            subplot(2,2,2+2*(l-1))
+            polarhistogram(phi_c2, 'FaceColor','red','FaceAlpha',.3);
+            title(drugname)
+        end
+    else
+        phi_c1 = []; phi_c2 = []; 
+        for i = 1:lenr         
+             if is5ht(i)==1
+                phi_c1 = [phi_c1; [LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}]];
+                phi_c2 = [phi_c2; [LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}]];
+             end
+        end
         % LFP phase of spikes
-        subplot(2,2,1+2*(l-1))
-        polarhistogram(phi_c1, 'FaceColor','red','FaceAlpha',.3);
-        title('baseline')
-        subplot(2,2,2+2*(l-1))
-        polarhistogram(phi_c2, 'FaceColor','red','FaceAlpha',.3);
-        title(drugname)
+        subplot(1,2,1)
+        polarhistogram(phi_c1(:), 'FaceColor','red','FaceAlpha',.3);
+        title('S-ps')
+        subplot(1,2,2)
+        polarhistogram(phi_c2(:), 'FaceColor','red','FaceAlpha',.3);
+        title('L-ps')
     end
 
     set(h, 'Name', [fieldname ': spike-LFP phase'], 'NumberTitle','off')
