@@ -2,7 +2,6 @@ function plotLFP(LFPinfo, stmtype)
 %% plot LFP data across sessions
 %
 % load('Z:\Katsuhisa\serotonin_project\LFP_project\Data\LFPinfo.mat')
-% load('Z:\Katsuhisa\serotonin_project\dataset\Data\exinfo.mat')
 %
 % written by Katsuhisa (19.03.18)
 % ++++++++++++++++++++++++++++++++

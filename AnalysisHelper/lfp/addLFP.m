@@ -17,7 +17,7 @@ for i = 1:length(exinfo)
         LFPinfo.session(i).goodunit = 0;
     end
     % LFP analysis if the session's stimulus is either 'co' or 'RC'
-    if strcmp(exinfo(i).param1(1), 'co') || exinfo(i).isRC==1
+    if strcmp(exinfo(i).param1, 'co') || exinfo(i).isRC==1
         try
             [para] = LFPanalyzer(exinfo(i),'plot','save');
             LFPinfo.session(i).exist = 1;
