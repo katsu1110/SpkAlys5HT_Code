@@ -558,55 +558,55 @@ for f = 1:3
 
     set(h, 'Name', [fieldname ': spike-LFP coherence'], 'NumberTitle','off')
     
-    % spike-LFP phase ==================
-    h = figure;
-    if f==1
-        phi0 = []; phi1 = []; phi2 = []; phi3 = [];
-        for i = 1:lenr         
-             if is5ht(i)==1
-                phi0 = [phi0; [LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}]];
-                phi2 = [phi2; [LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}]];
-             elseif is5ht(i)==0
-                 phi1 = [phi1; [LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}]];
-                 phi3 = [phi3; [LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}]];
-             end
-        end
-        for l = 1:2
-            switch l
-                case 1
-                    drugname = 'NaCl';
-                    phi_c1 = phi1(:); phi_c2 = phi3(:);
-                case 2
-                    drugname = '5HT';
-                    phi_c1 = phi0(:); phi_c2 = phi2(:);
-            end
-
-            % LFP phase of spikes
-            subplot(2,2,1+2*(l-1))
-            polarhistogram(phi_c1, 'FaceColor','red','FaceAlpha',.3);
-            title('baseline')
-            subplot(2,2,2+2*(l-1))
-            polarhistogram(phi_c2, 'FaceColor','red','FaceAlpha',.3);
-            title(drugname)
-        end
-    else
-        phi_c1 = []; phi_c2 = []; 
-        for i = 1:lenr         
-             if is5ht(i)==1
-                phi_c1 = [phi_c1; [LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}]];
-                phi_c2 = [phi_c2; [LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}]];
-             end
-        end
-        % LFP phase of spikes
-        subplot(1,2,1)
-        polarhistogram(phi_c1(:), 'FaceColor','red','FaceAlpha',.3);
-        title('S-ps')
-        subplot(1,2,2)
-        polarhistogram(phi_c2(:), 'FaceColor','red','FaceAlpha',.3);
-        title('L-ps')
-    end
-
-    set(h, 'Name', [fieldname ': spike-LFP phase'], 'NumberTitle','off')
+%     % spike-LFP phase ==================
+%     h = figure;
+%     if f==1
+%         phi0 = []; phi1 = []; phi2 = []; phi3 = [];
+%         for i = 1:lenr         
+%              if is5ht(i)==1
+%                 phi0 = [phi0; [LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}]];
+%                 phi2 = [phi2; [LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}]];
+%              elseif is5ht(i)==0
+%                  phi1 = [phi1; [LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}]];
+%                  phi3 = [phi3; [LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}]];
+%              end
+%         end
+%         for l = 1:2
+%             switch l
+%                 case 1
+%                     drugname = 'NaCl';
+%                     phi_c1 = phi1(:); phi_c2 = phi3(:);
+%                 case 2
+%                     drugname = '5HT';
+%                     phi_c1 = phi0(:); phi_c2 = phi2(:);
+%             end
+% 
+%             % LFP phase of spikes
+%             subplot(2,2,1+2*(l-1))
+%             polarhistogram(phi_c1, 'FaceColor','red','FaceAlpha',.3);
+%             title('baseline')
+%             subplot(2,2,2+2*(l-1))
+%             polarhistogram(phi_c2, 'FaceColor','red','FaceAlpha',.3);
+%             title(drugname)
+%         end
+%     else
+%         phi_c1 = []; phi_c2 = []; 
+%         for i = 1:lenr         
+%              if is5ht(i)==1
+%                 phi_c1 = [phi_c1; [LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.coherence.phi{:}]];
+%                 phi_c2 = [phi_c2; [LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.coherence.phi{:}]];
+%              end
+%         end
+%         % LFP phase of spikes
+%         subplot(1,2,1)
+%         polarhistogram(phi_c1(:), 'FaceColor','red','FaceAlpha',.3);
+%         title('S-ps')
+%         subplot(1,2,2)
+%         polarhistogram(phi_c2(:), 'FaceColor','red','FaceAlpha',.3);
+%         title('L-ps')
+%     end
+% 
+%     set(h, 'Name', [fieldname ': spike-LFP phase'], 'NumberTitle','off')
 end
 
 

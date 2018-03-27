@@ -10,7 +10,7 @@
 close all
 clc
 %% folder specifications
-prefix = 'Z:\Katsuhisa\LFP_project\MagstLFP_vs_contrast\';
+prefix = 'Z:\Katsuhisa\serotonin_project\LFP_project\MagstLFP_vs_contrast\';
 dat_dir = strcat(prefix, 'Data');     %<- directory for data
 fig_dir = strcat(prefix, 'Figures');   %<- directory for figures
 txt_fname = strcat(prefix, 'exlist.txt');   %<- file name containin the list of ex files 

@@ -20,30 +20,30 @@ for i = 1:len_exp
     % nonparam_ratio
     datamat(i,1) = exinfo(i).nonparam_ratio;
     
-    try
-%         if isempty(strfind(exinfo(i).fname, 'all.grating')) && ...
-%                                 isempty(strfind(exinfo(i).fname_drug, 'all.grating'))
-            % fano factor
-            ff_base = exinfo(i).ff_re(1, 1:end-1);
-            ff_drug = exinfo(i).ff_re_drug(1, 1:end-1);
-            idx = intersect(find(~isnan(ff_base)), find(~isnan(ff_drug)));
-            datamat(i,2) = mean(ff_base(idx)) - mean(ff_drug(idx));
-
-            % noise correlation
-            datamat(i,3) = (exinfo(i).nc_re(1,1) - 0.0062698*[exinfo(i).c0geomn]) - ...
-                (exinfo(i).nc_re_drug(1,1) - 0.0062698*[exinfo(i).c0geomn_drug]);
-
-            % signal correlation
-            datamat(i,4) = exinfo(i).rsig - exinfo(i).rsig_drug;
-            
-            expmat(i,4) = 0;
-%         else
-%             expmat(i,4) = 1;
-%         end
-    catch
-        expmat(i,4) = 1;
-        continue
-    end
+%     try
+% %         if isempty(strfind(exinfo(i).fname, 'all.grating')) && ...
+% %                                 isempty(strfind(exinfo(i).fname_drug, 'all.grating'))
+%             % fano factor
+%             ff_base = exinfo(i).ff_re(1, 1:end-1);
+%             ff_drug = exinfo(i).ff_re_drug(1, 1:end-1);
+%             idx = intersect(find(~isnan(ff_base)), find(~isnan(ff_drug)));
+%             datamat(i,2) = mean(ff_base(idx)) - mean(ff_drug(idx));
+% 
+%             % noise correlation
+%             datamat(i,3) = (exinfo(i).nc_re(1,1) - 0.0062698*[exinfo(i).c0geomn]) - ...
+%                 (exinfo(i).nc_re_drug(1,1) - 0.0062698*[exinfo(i).c0geomn_drug]);
+% 
+%             % signal correlation
+%             datamat(i,4) = exinfo(i).rsig - exinfo(i).rsig_drug;
+%             
+%             expmat(i,4) = 0;
+% %         else
+% %             expmat(i,4) = 1;
+% %         end
+%     catch
+%         expmat(i,4) = 1;
+%         continue
+%     end
 
     % phase selectivity
     datamat(i,5) = mean([exinfo(i).phasesel,exinfo(i).phasesel_drug]);
@@ -76,16 +76,17 @@ for i = 1:len_exp
             expmat(i,3) = 4;
     end
     
-    % contain nans?
-    if ismember(1, isnan(datamat(i,:)))
-        expmat(i,4) = 1;
-    end
+%     % contain nans?
+%     if ismember(1, isnan(datamat(i,:)))
+        expmat(i,4) = 0;
+%     end
 end
 
 % visualize via tsne and PCA
 figure;
 sz = 20;
 
+datamat = datamat(:, ~isnan(datamat(1,:)));
 datamat(expmat(:,4)==1,:) = [];
 expmat(expmat(:,4)==1,:) = [];
 
@@ -163,7 +164,7 @@ for v = 1:2
     idx = [];
     scand = 0;
     disp([label ' ---------------'])
-    for k = 2:7
+    for k = 2:4
         cidx = kmeans(Y,k,'distance','cityblock','MaxIter',1000);
         silh = mean(silhouette(Y,cidx,'cityblock'));
         disp(['k = ' num2str(k) ', silh = ' num2str(silh)])

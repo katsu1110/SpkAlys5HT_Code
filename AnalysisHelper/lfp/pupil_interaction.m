@@ -70,10 +70,10 @@ if exinfo.isRC==1
     bfr = mean([ex0.Trials.spkRate]);
 end
 
-% use only the last stimulus in the DG experiments
+% use only the first stimulus in the DG experiments
 if ~exinfo.isRC
-    ex0.Trials = ex0.Trials(psmat0(:,2)==4);
-    ex2.Trials = ex2.Trials(psmat2(:,2)==4);
+    ex0.Trials = ex0.Trials(psmat0(:,2)==1);
+    ex2.Trials = ex2.Trials(psmat2(:,2)==1);
     len_tr0 = sum(psmat0(:,2)==4);
     len_tr2 = sum(psmat2(:,2)==4);
 end
@@ -103,11 +103,7 @@ for i = 1:len_tr0
     mat0(i,3) = 0;
 
     % pupil size
-    if exinfo.isRC
-        mat0(i,4) = ex0.Trials(i).pupil_val;
-    else
-        mat0(i,4) = mean(ex0.Trials(i).pupil_raw);
-    end
+    mat0(i,4) = ex0.Trials(i).pupil_val;
 
     % interaction ... mat0(i,5) = 0
 end
@@ -133,11 +129,7 @@ for i = 1:len_tr2
     mat2(i,3) = 1;
 
     % pupil size
-    if exinfo.isRC
-        mat2(i,4) = ex2.Trials(i).pupil_val;
-    else
-        mat2(i,4) = mean(ex2.Trials(i).pupil_raw);
-    end
+    mat2(i,4) = ex2.Trials(i).pupil_val;
 
     % interaction
     mat2(i,5) = mat2(i,4);

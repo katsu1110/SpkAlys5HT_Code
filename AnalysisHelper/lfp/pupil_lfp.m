@@ -66,7 +66,7 @@ if ~exinfo.isRC
 end
 
 % make matrices for GLM ----------------------------------
-l = 13;
+l = 14;
 mat0 = zeros(len_tr0, l);
 mat2 = ones(len_tr2, l);
 
@@ -88,6 +88,9 @@ for i = 1:len_tr0
     
     % average lfp
     mat0(i,12) = nanmean(ex0.Trials(i).LFP_prepro(ex0.Trials(i).LFP_prepro_time > 0));
+    
+    % stLFP amplitude (t=0)
+    mat0(i, 13) = nanmin(ex0.Trials(i).mean_stLFP);
 
     % pupil size
     if exinfo.isRC
@@ -115,6 +118,9 @@ for i = 1:len_tr2
     
     % average lfp
     mat2(i,12) = nanmean(ex2.Trials(i).LFP_prepro(ex2.Trials(i).LFP_prepro_time > 0));
+    
+    % stLFP amplitude (t=0)
+    mat2(i, 13) = nanmin(ex2.Trials(i).mean_stLFP);
     
     % pupil size
     if exinfo.isRC
