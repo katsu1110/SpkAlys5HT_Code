@@ -29,6 +29,7 @@ end
 % raw pupil size
 len_tr = length(ex.Trials);
 psme = [];
+stpos = [];
 for i = 1:len_tr
     % n-th stimulus
     ex.Trials(i).n_stm = label_seq(i);
@@ -45,20 +46,21 @@ for i = 1:len_tr
         end
 
         % get the timing of start and end of stimulus
-        [~,stpos] = min(abs(t-st(1)));
-        [~,enpos] = min(abs(t-st(end)));         
+        [~,stpos_temp] = min(abs(t-st(1)));
+        [~,enpos] = min(abs(t-st(end)));        
+        stpos = [stpos, stpos_temp];
 
         % pupil data
         temp = nanmedian([ex.Trials(i).Eye.v(3,:); ex.Trials(i).Eye.v(6,:)],1);
         temp = temp(~isnan(temp) & ~isinf(temp));    
-        ex.Trials(i).pupil_raw = temp(stpos:enpos);    
-        psme = [psme, nanmean(ex.Trials(i).pupil_raw)];
+        ex.Trials(i).pupil_raw = temp(1:enpos);    
+        psme = [psme, nanmean(temp(stpos_temp:enpos))];
     end
 end
 
 % filter the pupil size
 ps = [];
-[mseq] = HiPaFi(psme);      % prepare high-pass filter (my function)
+[mseq] = HiPaFi(psme, 5);      % prepare high-pass filter (my function)
 c = 1;
 for i = 1:len_tr
     ex.Trials(i).pupil_filt = nan;
@@ -66,6 +68,7 @@ for i = 1:len_tr
         % band-pass filtering
         ex.Trials(i).pupil_filt = ex.Trials(i).pupil_raw - mseq(c);                    % high-pass filtering
         ex.Trials(i).pupil_filt = LoPaFi(ex.Trials(i).pupil_filt, 1);      % low-pass filtering (my function) 
+        ex.Trials(i).pupil_filt = ex.Trials(i).pupil_filt(stpos(c):end);
         ps = [ps ex.Trials(i).pupil_filt];
         c = c + 1;
     end
@@ -116,3 +119,11 @@ ex_sps.Trials = ex.Trials(sps_tr);
 ex_lps = ex;
 ex_lps.Trials = ex.Trials(lps_tr);
     
+% function ps = fill_linenoise(ps)
+% % linearly interpolate values replacing the line noise
+% [maxv, maxi] = max(ps);
+% [minv, mini] = min(ps);
+% slope = (maxv - minv)/(maxi - mini);
+% for i = 1:maxi+1
+%     ps(i) = slope*(i - mini) + minv;
+% end

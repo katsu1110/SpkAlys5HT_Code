@@ -42,25 +42,25 @@ len_tr2 = length(ex2.Trials);
 % -- drug -- label_tr -- TC ---
 nmin = 1000;
 for i = 1:len_tr0
-    if length(ex0.Trials(i).pupil_raw) < nmin
-        nmin = length(ex0.Trials(i).pupil_raw);
+    if length(ex0.Trials(i).pupil_z) < nmin
+        nmin = length(ex0.Trials(i).pupil_z);
     end
 end
 for i = 1:len_tr2
-    if length(ex2.Trials(i).pupil_raw) < nmin
-        nmin = length(ex2.Trials(i).pupil_raw);
+    if length(ex2.Trials(i).pupil_z) < nmin
+        nmin = length(ex2.Trials(i).pupil_z);
     end
 end
 
 psmat0 = zeros(len_tr0 , 2 + nmin);
 for i = 1:len_tr0
     psmat0(i,2) = ex0.Trials(i).n_stm;
-    psmat0(i,3:end) = ex0.Trials(i).pupil_raw(1:nmin);
+    psmat0(i,3:end) = ex0.Trials(i).pupil_z(1:nmin);
 end
 psmat2 = ones(len_tr2 , 2 + nmin);
 for i = 1:len_tr2
     psmat2(i,2) = ex2.Trials(i).n_stm;
-    psmat2(i,3:end) = ex2.Trials(i).pupil_raw(1:nmin);
+    psmat2(i,3:end) = ex2.Trials(i).pupil_z(1:nmin);
 end
 psintr.pupil_timecourse_cntr = psmat0;
 psintr.pupil_timecourse_drug = psmat2;

@@ -34,25 +34,25 @@ len_tr2 = length(ex2.Trials);
 % -- drug -- label_tr -- TC ---
 nmin = 1000;
 for i = 1:len_tr0
-    if length(ex0.Trials(i).pupil_raw) < nmin
-        nmin = length(ex0.Trials(i).pupil_raw);
+    if length(ex0.Trials(i).pupil_z) < nmin
+        nmin = length(ex0.Trials(i).pupil_z);
     end
 end
 for i = 1:len_tr2
-    if length(ex2.Trials(i).pupil_raw) < nmin
-        nmin = length(ex2.Trials(i).pupil_raw);
+    if length(ex2.Trials(i).pupil_z) < nmin
+        nmin = length(ex2.Trials(i).pupil_z);
     end
 end
 
 psmat0 = zeros(len_tr0 , 2 + nmin);
 for i = 1:len_tr0
     psmat0(i,2) = ex0.Trials(i).n_stm;
-    psmat0(i,3:end) = ex0.Trials(i).pupil_raw(1:nmin);
+    psmat0(i,3:end) = ex0.Trials(i).pupil_z(1:nmin);
 end
 psmat2 = ones(len_tr2 , 2 + nmin);
 for i = 1:len_tr2
     psmat2(i,2) = ex2.Trials(i).n_stm;
-    psmat2(i,3:end) = ex2.Trials(i).pupil_raw(1:nmin);
+    psmat2(i,3:end) = ex2.Trials(i).pupil_z(1:nmin);
 end
 
 pslfp.pupil_timecourse = [psmat0; psmat2];
@@ -93,11 +93,7 @@ for i = 1:len_tr0
     mat0(i, 13) = nanmin(ex0.Trials(i).mean_stLFP);
 
     % pupil size
-    if exinfo.isRC
-        mat0(i, l) = ex0.Trials(i).pupil_val;
-    else
-        mat0(i, l) = mean(ex0.Trials(i).pupil_raw);
-    end
+    mat0(i, l) = ex0.Trials(i).pupil_val;
 end
 
 % drug
@@ -123,11 +119,7 @@ for i = 1:len_tr2
     mat2(i, 13) = nanmin(ex2.Trials(i).mean_stLFP);
     
     % pupil size
-    if exinfo.isRC
-        mat2(i, l) = ex2.Trials(i).pupil_val;
-    else
-        mat2(i, l) = mean(ex2.Trials(i).pupil_raw);
-    end
+    mat2(i, l) = ex2.Trials(i).pupil_val;
 end
 
 % correlation ------------
@@ -140,7 +132,7 @@ for d = 1:2
             mat = mat2;
             fieldname = 'drug';
     end
-    for i = 1:11
+    for i = 1:l-2
         [pslfp.corr.(fieldname).rho(i), pslfp.corr.(fieldname).pval(i)] = corr(mat(:,i+1), mat(:, l), 'type', 'Spearman');
     end
 end
@@ -148,13 +140,14 @@ end
 % interaction table --------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%
 % LFP %% 5HT %%% base %%%
+
 % S-ps      %%%      %%%
 % L-ps      %%%      %%%
 %%%%%%%%%%%%%%%%%%%%%%%%
 
 med0 = median(mat0(:, l));
 med2 = median(mat2(:, l));
-for i = 1:11
+for i = 1:l-2
     pslfp.interaction(i).table(1,1) = nanmean(mat2(mat2(:, l) < med2, i+1));
     pslfp.interaction(i).table(2,1) = nanmean(mat2(mat2(:, l) > med2, i+1));
     pslfp.interaction(i).table(1,2) = nanmean(mat0(mat0(:, l) < med0, i+1));

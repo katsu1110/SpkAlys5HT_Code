@@ -39,6 +39,8 @@ end
 % save data structure
 if mean(ismember('gpfs0', cd))==1
     save(['/gpfs01/nienborg/group/Katsuhisa/serotonin_project/LFP_project/Data/pss.mat'], 'pss','-v7.3') 
+    disp('output structure pss saved')
 else
     save(['Z:\Katsuhisa\serotonin_project\LFP_project\Data\pss.mat'], 'pss','-v7.3') 
+    disp('output structure pss saved')
 end

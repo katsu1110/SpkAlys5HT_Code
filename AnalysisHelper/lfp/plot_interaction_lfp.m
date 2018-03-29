@@ -98,6 +98,7 @@ for w = 1:celltype
             elseif d==2
                 title(['5HT: N = ' num2str(sum(drugtype==d-1))])
             end
+            xlim([5 2000])
             ylabel('pupil size (a.u.)')
             xlabel('time (ms)')
 
@@ -186,7 +187,7 @@ for w = 1:celltype
                 case 11
                     title('LFP')
             end
-            xlabel('control')              
+            xlabel('baseline')              
                 
             % interaction ----------------------------------
             subplot(2,l,c + l)
