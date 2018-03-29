@@ -140,7 +140,7 @@ for w = 1:celltype
 
     %%
     % visualization of results from 'pupil_lfp.m'    
-    l = 11;
+    l = length(pss.session(1).pslfp.interaction);
     para.ps_lfp_corr = nan(lenses, 2*l);
     for s = 1:lenses
         if pss.session(s).pslfp_exist==1
@@ -186,6 +186,8 @@ for w = 1:celltype
                     title('st-gamma')
                 case 11
                     title('LFP')
+                case 12
+                    title('stLFP amp.')
             end
             xlabel('baseline')              
                 
