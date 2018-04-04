@@ -16,7 +16,7 @@ function [avg_stlfp, sem_stlfp, accspk, stlfp_pow, stlfp_freq, band, ex] = spktr
 % warning(['I narrowed the analysis window to the window beginning 600ms after stimulus onset'...
 %     'to 500ms before stimulus end in spktriglfp\getSpks. \n'...
 %     'I do this to avoid dominant slow fluctuations in the beginning and the end for RC data. \n'])
-
+% KK uses now data after 200ms...isn't it enough? 
 
 p_flag = false;
 wnd = 0.30; % window before and after spike event to consider
@@ -102,12 +102,11 @@ end
 function [stlfp, spikes] = getstlfp4trial(trial, wnd)
 % lfp at spk +/- window wnd 
 
-spikes = getSpks(trial, wnd); % spikes within the stimulus presentation time
-stlfp = nan(length(spikes), length(-wnd:1/1000:wnd));
+spikes = getSpks(trial); % spikes within the stimulus presentation time
+stlfp = nan(length(spikes{1}), length(-wnd:1/1000:wnd));
 
-for i = 1:length(spikes)
-    
-    tspk = find(trial.LFP_prepro_time <= spikes(i), 1, 'last');
+for i = 1:length(spikes{1})
+    tspk = find(trial.LFP_prepro_time <= spikes{1}(i), 1, 'last');
     tstrt = tspk-(wnd*1000);
     tend = tstrt+size(stlfp,2)-1;
     
@@ -121,24 +120,6 @@ end
 
 end
 
-
-function spk = getSpks(trials, wnd)
-% spikes within the stimulus presentation time
-
-
-% time offset for spikes 
-awnd_strt = wnd+0.3; %<- 600ms after stimulus onset
-awnd_end = -wnd-0.3; %<- 500ms before stimulus end
-
-
-t_strt = trials.Start - trials.TrialStart;
-t_end = t_strt(end)+mean(diff(t_strt));
-
-spk = trials.Spikes( trials.Spikes >= t_strt(1)+awnd_strt & ...
-    trials.Spikes <= t_end-awnd_end ) - t_strt(1);
-spk = round(spk*1000)/1000;
-
-end
 
 function [delta, theta, alpha, beta, gamma] = pow2band(freq, pow)
 delta = nanmean(pow(freq > 0 & freq < 4));

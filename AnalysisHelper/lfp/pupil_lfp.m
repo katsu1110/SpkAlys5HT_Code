@@ -87,7 +87,7 @@ for i = 1:len_tr0
     mat0(i,11) = ex0.Trials(i).stlfp_gamma;
     
     % average lfp
-    mat0(i,12) = nanmean(ex0.Trials(i).LFP_prepro(ex0.Trials(i).LFP_prepro_time > 0));
+    mat0(i,12) = nanmean(ex0.Trials(i).LFP_prepro(ex0.Trials(i).LFP_prepro_time > 200));
     
     % stLFP amplitude (t=0)
     mat0(i, 13) = nanmin(ex0.Trials(i).mean_stLFP);
@@ -113,7 +113,7 @@ for i = 1:len_tr2
     mat2(i,11) = ex2.Trials(i).stlfp_gamma;
     
     % average lfp
-    mat2(i,12) = nanmean(ex2.Trials(i).LFP_prepro(ex2.Trials(i).LFP_prepro_time > 0));
+    mat2(i,12) = nanmean(ex2.Trials(i).LFP_prepro(ex2.Trials(i).LFP_prepro_time > 200));
     
     % stLFP amplitude (t=0)
     mat2(i, 13) = nanmin(ex2.Trials(i).mean_stLFP);
