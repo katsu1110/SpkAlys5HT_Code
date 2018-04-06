@@ -4,9 +4,9 @@ function spk = getSpks(trials, wnd)
 % INPUT: trials ... ex.Trials
 %              wnd ... [start, end] of analysis window
 
-% time offset for spikes
-if nargin<2; wnd = [0.2, 0]; end
-awnd_strt = wnd(1); %<- 200ms after stimulus onset (default)
+% time offset for spikes (300ms after stimulus onset as default)
+if nargin<2; wnd = [0.35, 0]; end
+awnd_strt = wnd(1); %<- 350ms after stimulus onset (default)
 awnd_end = wnd(2); %<- 000ms before stimulus end (default)
 spk = cell(1, length(trials));
 for i = 1:length(trials)

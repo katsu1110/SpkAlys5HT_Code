@@ -36,12 +36,7 @@ bpord = 5;            % filter order
 t_off = -0.2;
 
 % parameters for chronux toolbox
-params.err = 0;
-params.Fs = 1000;
-params.fpass = [0 100];
-params.tapers = [2,3];
-params.pad = 0;
-params.trialave = 1;
+params = define_params;
 
 % TODO: how to handle files with missing LFP entries (such as ma0014,
 % 5.44pm)

@@ -1,4 +1,4 @@
-function [ex] = filterLFP(ex)
+function [ex] = filterLFP(ex, ic)
 % filter LFP traces into 'band'
 
 % sampling rate
@@ -7,8 +7,9 @@ fs = 1000;
 % filters
 filters = filterSet(fs);
 
-% initial cutoff (0 as no cutoff)
-ic = 200;
+% initial cutoff (0 as no cutoff. 350 is default)
+if nargin<2; ic = 350; end
+ex.time_cut = ex.time(ic+1:end);
 
 % assign each trial
 for i = 1:length(ex.Trials)

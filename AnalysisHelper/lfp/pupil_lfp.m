@@ -23,8 +23,31 @@ ex2 = loadCluster(exinfo.fname_drug, 'ocul', exinfo.ocul, 'loadlfp', true);
 [~, ~, ~, ~, ~, ~, ex2] = spktriglfp(ex2);
 
 % preprocess pupil data ----------------------------
-[~, ~, ex0] = pupilSplit(ex0);
-[~, ~, ex2] = pupilSplit(ex2);
+[ex0_sps, ex0_lps, ex0] = pupilSplit(ex0);
+[ex2_sps, ex2_lps, ex2] = pupilSplit(ex2);
+
+% reverse correlation analysis
+if exinfo.isRC
+    for i = 1:4
+        switch i
+            case 1
+                exd = ex0_sps;
+                labd = 'pupil small, baseline';
+            case 2
+                exd = ex0_lps;
+                labd = 'pupil large, baseline';
+            case 3
+                exd = ex2_sps;
+                labd = ['pupil small, ' pslfp.drugname];
+            case 4
+                exd = ex2_lps;
+                labd = ['pupil large, ' pslfp.drugname];
+        end               
+        [stmMat, actMat] = ex4RCsub(exd, 'or', 'LFP_prepro');
+        pslfp.rcsub(i).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
+        pslfp.rcsub(i).label = labd;
+    end
+end
 
 % trial number
 len_tr0 = length(ex0.Trials);
@@ -87,7 +110,7 @@ for i = 1:len_tr0
     mat0(i,11) = ex0.Trials(i).stlfp_gamma;
     
     % average lfp
-    mat0(i,12) = nanmean(ex0.Trials(i).LFP_prepro(ex0.Trials(i).LFP_prepro_time > 200));
+    mat0(i,12) = nanmean(ex0.Trials(i).LFP_prepro(ex0.Trials(i).LFP_prepro_time > 350));
     
     % stLFP amplitude (t=0)
     mat0(i, 13) = nanmin(ex0.Trials(i).mean_stLFP);
@@ -113,7 +136,7 @@ for i = 1:len_tr2
     mat2(i,11) = ex2.Trials(i).stlfp_gamma;
     
     % average lfp
-    mat2(i,12) = nanmean(ex2.Trials(i).LFP_prepro(ex2.Trials(i).LFP_prepro_time > 200));
+    mat2(i,12) = nanmean(ex2.Trials(i).LFP_prepro(ex2.Trials(i).LFP_prepro_time > 350));
     
     % stLFP amplitude (t=0)
     mat2(i, 13) = nanmin(ex2.Trials(i).mean_stLFP);

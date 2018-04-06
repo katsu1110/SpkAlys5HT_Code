@@ -16,10 +16,12 @@ function [avg_stlfp, sem_stlfp, accspk, stlfp_pow, stlfp_freq, band, ex] = spktr
 % warning(['I narrowed the analysis window to the window beginning 600ms after stimulus onset'...
 %     'to 500ms before stimulus end in spktriglfp\getSpks. \n'...
 %     'I do this to avoid dominant slow fluctuations in the beginning and the end for RC data. \n'])
-% KK uses now data after 200ms...isn't it enough? 
+
+% KK uses now data after 350ms...isn't it enough? (Chalk et al.,2010 used 256 - 512ms) 
+% KK implemented firing rate normalization, as done by Chalk et al.,2010
 
 p_flag = false;
-wnd = 0.30; % window before and after spike event to consider
+wnd = 0.064; % was 0.3;  window before and after spike event to consider
 
 %%% parse input
 k = 1; 
@@ -38,21 +40,17 @@ end
 % nfft = 1024;
 % Fs = 1000;
 % [stlfp_pow, stlfp_freq] = pmtm(avg_stlfp, nw, nfft, Fs);
-params.err = 0;
-params.Fs = 1000;
-params.fpass = [0 100];
-params.tapers = [2,3];
-params.pad = 0;
-params.trialave = 1;
+params = define_params;
 
 %%% find spikes and estimate the lfp +/- time t around it
 accstlfp = []; accspk = 0;
 for t = 1:length(ex.Trials)
     [stlfp, nspk] = getstlfp4trial(ex.Trials(t), wnd);
+    nspk = length(nspk);
     
     % trial-by-trial stLFP metrics
-    ex.Trials(t).mean_stLFP = nanmean(stlfp, 1);
-    ex.Trials(t).sem_stLFP = nanstd(stlfp, [], 1)/sqrt(size(stlfp, 1));
+    ex.Trials(t).mean_stLFP = nanmean(stlfp, 1)/nspk;
+    ex.Trials(t).sem_stLFP = nanstd(stlfp/nspk, [], 1)/sqrt(size(stlfp, 1));
     [ex.Trials(t).stlfp_pow, ex.Trials(t).stlfp_freq] = mtspectrumc(ex.Trials(t).mean_stLFP, params);
     [ex.Trials(t).stlfp_delta, ex.Trials(t).stlfp_theta, ...
         ex.Trials(t).stlfp_alpha, ex.Trials(t).stlfp_beta, ex.Trials(t).stlfp_gamma]...
@@ -60,7 +58,7 @@ for t = 1:length(ex.Trials)
     
     % for trial-average
     accstlfp = [accstlfp; stlfp];
-    accspk = accspk+length(nspk);
+    accspk = accspk + nspk;
 end
 
 %%% compute statistics
@@ -103,10 +101,11 @@ function [stlfp, spikes] = getstlfp4trial(trial, wnd)
 % lfp at spk +/- window wnd 
 
 spikes = getSpks(trial); % spikes within the stimulus presentation time
-stlfp = nan(length(spikes{1}), length(-wnd:1/1000:wnd));
+spikes = spikes{1};
+stlfp = nan(length(spikes), length(-wnd:1/1000:wnd));
 
-for i = 1:length(spikes{1})
-    tspk = find(trial.LFP_prepro_time <= spikes{1}(i), 1, 'last');
+for i = 1:length(spikes)
+    tspk = find(trial.LFP_prepro_time <= spikes(i), 1, 'last');
     tstrt = tspk-(wnd*1000);
     tend = tstrt+size(stlfp,2)-1;
     

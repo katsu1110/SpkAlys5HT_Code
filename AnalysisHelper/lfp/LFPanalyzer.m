@@ -63,23 +63,27 @@ function [para] = LFPanalyzerWrapper(ex0, ex2)
 [para.cond(1).lfpstm] = LFPbyStm(ex0);
 [para.cond(2).lfpstm] = LFPbyStm(ex2);
 
-% spike-triggered LFP
-[avg_stlfp, sem_stlfp, accspk, pow, freq] = spktriglfp(ex0, 'time', 0.064);
-para.cond(1).stlfp = struct('mean', avg_stlfp, 'sem', sem_stlfp, ...
-    'acc', accspk, 'pow', pow, 'freq', freq);
-[avg_stlfp, sem_stlfp, accspk, pow, freq] = spktriglfp(ex2, 'time', 0.064);
-para.cond(2).stlfp = struct('mean', avg_stlfp, 'sem', sem_stlfp, ...
-    'acc', accspk, 'pow', pow, 'freq', freq);
+% % spike-triggered LFP --- already done in each stimulus type
+% [avg_stlfp, sem_stlfp, accspk, pow, freq] = spktriglfp(ex0);
+% para.cond(1).stlfp = struct('mean', avg_stlfp, 'sem', sem_stlfp, ...
+%     'acc', accspk, 'pow', pow, 'freq', freq);
+% [avg_stlfp, sem_stlfp, accspk, pow, freq] = spktriglfp(ex2);
+% para.cond(2).stlfp = struct('mean', avg_stlfp, 'sem', sem_stlfp, ...
+%     'acc', accspk, 'pow', pow, 'freq', freq);
 
 
 % visualize
 function visualizer(para, name0, name2, prefix, save_flag)
 name = {name0, name2};
-savedir = 'Z:\Katsuhisa\serotonin_project\LFP_project\Figures_kk\';
+if mean(ismember('gpfs0', cd))==1
+    savedir = '/gpfs01/nienborg/group/Katsuhisa/serotonin_project/LFP_project/Figures_kk/';
+else
+    savedir = 'Z:\Katsuhisa\serotonin_project\LFP_project\Figures_kk\';
+end
 
 % spike-triggered LFP =========================
 h = figure;
-wnd = 0.064; 
+wnd = 0.064; % was 0.3
 for k = 1:2
     switch k
         case 1
@@ -89,21 +93,28 @@ for k = 1:2
     end
     
     % stlfp
-    subplot(1,2,1)
-    fill_between(-wnd:0.001:wnd, para.cond(k).stlfp.mean - para.cond(k).stlfp.sem, ...
-        para.cond(k).stlfp.mean + para.cond(k).stlfp.sem, col);
+    subplot(1,3,1)
+    fill_between(-wnd:0.001:wnd, para.cond(k).lfpstm.stlfp.avg_stlfp(end,:) - ...
+        para.cond(k).lfpstm.stlfp.sem_stlfp(end,:), ...
+        para.cond(k).lfpstm.stlfp.avg_stlfp(end,:) + para.cond(k).lfpstm.stlfp.sem_stlfp(end,:), col);
     hold on;
-    plot(-wnd:0.001:wnd, para.cond(k).stlfp.mean, '-','color',col);
+    plot(-wnd:0.001:wnd, para.cond(k).lfpstm.stlfp.avg_stlfp(end,:), '-','color',col);
     hold on;
     
-    % power and frequency
-    subplot(1,2,2)
-    plot(para.cond(k).stlfp.freq, para.cond(k).stlfp.pow, '-','color',col);
+    % power and frequency (< 30Hz)
+    freq = para.cond(k).lfpstm.stlfp.freq(end,:);
+    subplot(1,3,2)
+    plot(freq(freq<30), para.cond(k).lfpstm.stlfp.pow(end,freq<30), '-','color',col);
+    hold on;
+    
+    % power and frequency (>= 30Hz)
+    subplot(1,3,3)
+    plot(freq(freq>=30), para.cond(k).lfpstm.stlfp.pow(end,freq>=30), '-','color',col);
     hold on;
 end
 
 % cosmetics
-subplot(1,2,1)
+subplot(1,3,1)
 yy = get(gca, 'YLim');
 hold on;
 plot([0 0], yy, '-k')
@@ -112,11 +123,16 @@ ylabel('avg LFP +/- SEM (\muV)');
 xlim([-wnd wnd]);
 set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
 
-subplot(1,2,2)
+subplot(1,3,2)
 xlabel('frequency [Hz]');
 ylabel('power');
 set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
-xlim([0 100])
+xlim([0 30])
+
+subplot(1,3,3)
+xlabel('frequency [Hz]');
+set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
+xlim([30 100])
 
 % stlfp0 = para.cond(1).stlfp.mean([-wnd:0.001:wnd]==0);
 % stlfp2 = para.cond(2).stlfp.mean([-wnd:0.001:wnd]==0);
@@ -195,9 +211,9 @@ for k = 1:2
         for b = 1:5
             % LFP traces
             subplot(2,5,b)
-            plot(para.cond(k).lfpstm.ts, para.cond(k).lfpstm.lfp_stm_wave(b).mean(s,:), ...
+            plot(para.cond(k).lfpstm.ts_cut, para.cond(k).lfpstm.lfp_stm_wave(b).mean(s,:), ...
                 marker, 'color', col(s,:))
-            xlim([-0.2 max(para.cond(k).lfpstm.ts(~isnan(para.cond(k).lfpstm.ts)))])
+            xlim([-0.2 max(para.cond(k).lfpstm.ts_cut(~isnan(para.cond(k).lfpstm.ts_cut)))])
             hold on;
         end
     end
@@ -228,11 +244,11 @@ for b = 1:5
     % tuning curve
     subplot(2,5,b+5)
     plot(para.cond(1).lfpstm.stm.vals(para.cond(1).lfpstm.stm.vals < 1000), ...
-        para.cond(1).lfpstm.lfp_stm_wave(b).power(para.cond(1).lfpstm.stm.vals < 1000), ...
+        para.cond(1).lfpstm.lfp_stm_wave(b).pow(para.cond(1).lfpstm.stm.vals < 1000), ...
         '-or')
     hold on;
     plot(para.cond(2).lfpstm.stm.vals(para.cond(2).lfpstm.stm.vals < 1000), ...
-        para.cond(2).lfpstm.lfp_stm_wave(b).power(para.cond(2).lfpstm.stm.vals < 1000), ...
+        para.cond(2).lfpstm.lfp_stm_wave(b).pow(para.cond(2).lfpstm.stm.vals < 1000), ...
         '--^r')
     if b==1
         ylabel('power')
@@ -434,7 +450,9 @@ h = figure;
 for i = 1:lenv
     try
         subplot(2, lenv, i)
-        polarhistogram(para.cond(1).lfpstm.coherence.phi{i}, 'FaceColor','red','FaceAlpha',.3);
+        polarhistogram(para.cond(1).lfpstm.coherence.phi{i}, ...
+            length(para.cond(1).lfpstm.coherence.phi{i}), ...
+            'FaceColor','red','FaceAlpha',.3);
         title([para.cond(1).lfpstm.stm.param, ' = ' ...
                num2str(para.cond(1).lfpstm.stm.vals(i))])
     catch
@@ -442,7 +460,9 @@ for i = 1:lenv
     end
     try
         subplot(2, lenv, i+lenv)
-        polarhistogram(para.cond(2).lfpstm.coherence.phi{i}, 'FaceColor','red','FaceAlpha',.3);
+        polarhistogram(para.cond(2).lfpstm.coherence.phi{i}, ...
+            length(para.cond(2).lfpstm.coherence.phi{i}), ...
+            'FaceColor','red','FaceAlpha',.3);
     catch
         disp(['stimulus index ' num2str(i) ' error'])
     end

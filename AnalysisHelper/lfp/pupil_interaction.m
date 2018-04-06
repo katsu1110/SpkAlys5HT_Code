@@ -31,8 +31,31 @@ ex0 = loadCluster(fname, 'ocul', exinfo.ocul, 'loadlfp', false);
 ex2 = loadCluster(fname_drug, 'ocul', exinfo.ocul, 'loadlfp', false);
 
 % preprocess pupil data ----------------------------
-[~, ~, ex0] = pupilSplit(ex0);
-[~, ~, ex2] = pupilSplit(ex2);
+[ex0_sps, ex0_lps, ex0] = pupilSplit(ex0);
+[ex2_sps, ex2_lps, ex2] = pupilSplit(ex2);
+
+% reverse correlation analysis
+if exinfo.isRC
+    for i = 1:4
+        switch i
+            case 1
+                exd = ex0_sps;
+                labd = 'pupil small, baseline';
+            case 2
+                exd = ex0_lps;
+                labd = 'pupil large, baseline';
+            case 3
+                exd = ex2_sps;
+                labd = ['pupil small, ' psintr.drugname];
+            case 4
+                exd = ex2_lps;
+                labd = ['pupil large, ' psintr.drugname];
+        end               
+        [stmMat, actMat] = ex4RCsub(exd, 'or', 'Spikes');
+        psintr.rcsub(i).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
+        psintr.rcsub(i).label = labd;
+    end
+end
 
 % trial number
 len_tr0 = length(ex0.Trials);

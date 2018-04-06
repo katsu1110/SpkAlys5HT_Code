@@ -7,7 +7,11 @@ catch
     disp('error in interaction_lfp_dataset')
 end
 try
-    load('Z:\Katsuhisa\serotonin_project\dataset\Data\exinfo.mat')
+    if mean(ismember('gpfs0', cd))==1
+        load('/gpfs01/nienborg/group/Katsuhisa/serotonin_project/dataset/Data/exinfo.mat')
+    else
+        load('Z:/Katsuhisa/serotonin_project/dataset/Data/exinfo.mat')
+    end
     addLFP(exinfo);
 catch
     disp('error in addLFP')
@@ -17,4 +21,3 @@ end
 % catch
 %     disp('error in fitHMM_dataset')
 % end
-

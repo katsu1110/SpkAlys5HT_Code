@@ -9,9 +9,6 @@ function [para] = LFPbyStm(ex)
 % blank_i =  vals > 1;
 lenv = length(vals);
 
-% aligned time ==================
-ts = ex.time;
-
 % initialization ==================
 lfplen = length(ex.Trials(end).LFP_prepro);
 lfp_avg = zeros(lenv, lfplen);
@@ -24,12 +21,7 @@ pow_avg = zeros(lenv, lenp);
 S = cell(1, lenv);
 t = cell(1, lenv);
 f = cell(1, lenv);
-params.err = 0;
-params.Fs = 1000;
-params.fpass = [0 100];
-params.tapers = [2,3];
-params.pad = 0;
-params.trialave = 1;
+params = define_params;
 
 C = cell(1, lenv);
 phi = cell(1, lenv);
@@ -38,10 +30,10 @@ S1 = cell(1, lenv);
 S2 = cell(1, lenv);
 fg = cell(1, lenv);
 
-wnd = 0.3;
+wnd = 0.064; % was 0.3
 wndrange = -wnd:1/1000:wnd;
-ampwindow = wndrange >-0.015 &  wndrange  <0.015;
-
+% ampwindow = wndrange > -0.015 &  wndrange  < 0.015;
+ampwindow = wndrange > -wnd &  wndrange  < wnd;
 for i = 1:lenv    
     trials = ex.Trials([ex.Trials.(stimparam)] == vals(i));
 
@@ -88,9 +80,9 @@ for i = 1:lenv
     ex_temp.Trials = trials;
      [para.stlfp.avg_stlfp(i,:), para.stlfp.sem_stlfp(i,:), para.stlfp.accspk(i), ...
             para.stlfp.pow(i,:), para.stlfp.freq(i,:), para.stlfp.band(i,:)] = spktriglfp(ex_temp);
-     % CL's correction
-       para.stlfp.avg_stlfp(i,:) = para.stlfp.avg_stlfp(i,:) ...
-           - mean(para.stlfp.avg_stlfp(i, wndrange < -0.06));
+%      % CL's correction
+%        para.stlfp.avg_stlfp(i,:) = para.stlfp.avg_stlfp(i,:) ...
+%            - mean(para.stlfp.avg_stlfp(i, wndrange < -0.06));
        [para.stlfp.peak_stlfp(i), para.stlfp.t_peak_stlfp(i)] =  ...
            getPeakAmplitude(para.stlfp.avg_stlfp(i, ampwindow), wndrange(ampwindow));       
 end
@@ -98,7 +90,8 @@ end
 % structure
 para.stm.param = stimparam;
 para.stm.vals = vals;
-para.ts = ts;
+para.ts = ex.time;
+para.ts_cut = ex.time_cut;
 para.f = freq';
 para.params = params;
 para.spectrogram.S = S;

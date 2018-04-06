@@ -1,12 +1,18 @@
 function [LFPinfo] = addLFP(exinfo)
 %% run 'LFPanalyzer.m' in batch using exinfo
 %
-% load('Z:\Katsuhisa\serotonin_project\dataset\Data\exinfo.mat')
+% load('Z:/Katsuhisa/serotonin_project/dataset/Data/exinfo.mat')
 % written by Katsuhisa (29.09.17)
 % ++++++++++++++++++++++++++++++++
 
-load('Z:\Corinna\SharedCode\Katsu\list_RC.mat')
-load('Z:\Corinna\SharedCode\Katsu\incl_i_all_stim_cond_2007.mat')
+if mean(ismember('gpfs0', cd))==1
+        env = '/gpfs01/nienborg/group/';
+else
+        env = 'Z:/';
+end
+    
+load([env 'Corinna/SharedCode/Katsu/list_RC.mat'])
+load([env 'Corinna/SharedCode/Katsu/incl_i_all_stim_cond_2007.mat'])
 LFPinfo = struct('session', []);
 for i = 1:length(exinfo)
     % good unit or not
@@ -36,5 +42,5 @@ for i = 1:length(exinfo)
     end
 end
     
-save('Z:\Katsuhisa\serotonin_project\LFP_project\Data\LFPinfo.mat', 'LFPinfo', '-v7.3')
+save([env 'Katsuhisa/serotonin_project/LFP_project/Data/LFPinfo.mat'], 'LFPinfo', '-v7.3')
 disp('LFPinfo was saved!')

@@ -104,19 +104,22 @@ for w = 1:celltype
 
             % interaction plot
             subplot(2,3,2+(d-1)*3)
-            me = mean(para.inter_table(drugtype==d-1, :), 1);
-            sem = std(para.inter_table(drugtype==d-1, :), [], 1)/sqrt(sum(drugtype==d-1));
-            errorbar(1:2, me([3,4]), sem([3,4]), '-k', 'capsize', 0)
-            hold on;
-            errorbar(1:2, me([1,2]), sem([1,2]), '-r', 'capsize', 0)
-            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')        
-            xlim([0.7 2.3])
-            if d==2
-                set(gca, 'XTick', 1:2, 'XTickLabel', {'small', 'large'})
-                xlabel('pupil size')
-            else
-                set(gca, 'XTick', 1:2, 'XTickLabel', {'', ''})
-            end
+%             me = mean(para.inter_table(drugtype==d-1, :), 1);
+%             sem = std(para.inter_table(drugtype==d-1, :), [], 1)/sqrt(sum(drugtype==d-1));
+%             errorbar(1:2, me([3,4]), sem([3,4]), '-k', 'capsize', 0)
+%             hold on;
+%             errorbar(1:2, me([1,2]), sem([1,2]), '-r', 'capsize', 0)
+%             set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')        
+%             xlim([0.7 2.3])
+            interaction_plot(para.inter_table(drugtype==d-1, :))
+            xlabel({'pupil size', '(small)'})      
+            ylabel({'pupil size', '(large)'}) 
+%             if d==2
+%                 set(gca, 'XTick', 1:2, 'XTickLabel', {'small', 'large'})
+%                 xlabel('pupil size')
+%             else
+%                 set(gca, 'XTick', 1:2, 'XTickLabel', {'', ''})
+%             end
 
             % variance explained
             subplot(2,3,3+(d-1)*3)
@@ -195,17 +198,19 @@ for w = 1:celltype
             subplot(2,l,c + l)
             v = para.interaction(c).table(drugtype==d-1, :);
             ok = ~isnan(v(:,1)) | v(:,1)>0;
-            me = mean(v(ok, :), 1);
-            sem = std(v(ok, :), [], 1)/sqrt(sum(drugtype==d-1));
-            errorbar(1:2, me([3,4]), sem([3,4]), '-k', 'capsize', 0)
-            hold on;
-            errorbar(1:2, me([1,2]), sem([1,2]), '-r', 'capsize', 0)
-            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')        
-            xlim([0.7 2.3])
+%             me = mean(v(ok, :), 1);
+%             sem = std(v(ok, :), [], 1)/sqrt(sum(drugtype==d-1));
+%             errorbar(1:2, me([3,4]), sem([3,4]), '-k', 'capsize', 0)
+%             hold on;
+%             errorbar(1:2, me([1,2]), sem([1,2]), '-r', 'capsize', 0)
+%             set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')        
+%             xlim([0.7 2.3])
     %         yy = get(gca, 'YLim');
+            interaction_plot(v(ok,:))
             title(['n=' num2str(sum(ok==1))])
             set(gca, 'XTick', 1:2, 'XTickLabel', {'small', 'large'})
-            xlabel('pupil size')            
+            xlabel({'pupil size', '(small)'})      
+            ylabel({'pupil size', '(large)'})   
         end  
         set(gcf, 'Name', [prefix ': correlation & interaction between ps and lfp'], 'NumberTitle', 'off')
         f = f + 1;
