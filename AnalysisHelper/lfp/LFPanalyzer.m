@@ -83,7 +83,7 @@ end
 
 % spike-triggered LFP =========================
 h = figure;
-wnd = 0.064; % was 0.3
+wnd = 0.1; % was 0.3
 for k = 1:2
     switch k
         case 1

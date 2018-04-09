@@ -76,10 +76,18 @@ overallmean = overallmean/sum(noverall);
 overallsd = overallsd/sum(noverall);
 grandmean = 1000*mean(overallmean(:));
 grandsd = 1000*mean(overallsd(:));
+% % boxcar smoothing (not necessary?)
+% tbin = 4; % 4ms
+% framepertbin = floor(nframeperwnd*tbin/stmdur);
+% % area normalization
+% car = ones(1,framepertbin)./framepertbin;
 for n = 1:nstm
     rcsub.stm(n).occurrence = noverall(n);
     rcsub.stm(n).mean = 1000*overallmean(n, :);
     rcsub.stm(n).sd = 1000*overallsd(n,:);
+%     % smoothing
+%     rcsub.stm(n).mean = conv(rcsub.stm(n).mean, car, 'same');
+%     rcsub.stm(n).sd = conv(rcsub.stm(n).sd, car, 'same');
 end
 
 % visualization -----------------------------
@@ -115,5 +123,6 @@ if plot_flag==1
         leg{n} = ['stm:' num2str(unique_stm(n))];
     end
     legend(pl, leg, 'location', 'northeast'); legend('boxoff')
+    set(h, 'Name', ['ntr = ' num2str(ntr)], 'NumberTitle', 'off')
 end
     

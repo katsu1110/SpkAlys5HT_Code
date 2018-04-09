@@ -30,7 +30,7 @@ disp(['5HT sessions: ' num2str(sum(is5ht==1))])
 disp(['NaCl sessions: ' num2str(sum(is5ht==0))])
     
 
-wnd = 0.064;  % was 0.3
+wnd = 0.1;  % was 0.3
 for f = 1:3
     switch f
         case 1

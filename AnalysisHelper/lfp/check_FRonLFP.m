@@ -29,6 +29,7 @@ fileID = fopen([main_dir txt_fname], 'r'); % read the text file
 ex_fnames = textscan(fileID, '%s'); % scan the text and extract the file names
 fclose(fileID);
 ex_fnames = ex_fnames{1};
+ex_fnames(5) = [];
 
 %% compute the stLFP and its magnitude for each contrast for each unit 
 % wnd = 0.3;
@@ -37,6 +38,7 @@ ex_fnames = ex_fnames{1};
 
 for unit_i = 1:length(ex_fnames)
    % load file 
+%    fname = strrep(ex_fnames{unit_i}, 'c1', 'c0'); % cluster 0 <=> multiunit activity
    ex = loadCluster(ex_fnames{unit_i}, 'loadlfp',1);
    
    % filter LFP

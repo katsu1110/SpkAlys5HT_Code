@@ -21,7 +21,7 @@ function [avg_stlfp, sem_stlfp, accspk, stlfp_pow, stlfp_freq, band, ex] = spktr
 % KK implemented firing rate normalization, as done by Chalk et al.,2010
 
 p_flag = false;
-wnd = 0.064; % was 0.3;  window before and after spike event to consider
+wnd = 0.1; % was 0.3;  window before and after spike event to consider
 
 %%% parse input
 k = 1; 
@@ -43,27 +43,34 @@ end
 params = define_params;
 
 %%% find spikes and estimate the lfp +/- time t around it
-accstlfp = []; accspk = 0;
+accstlfp = []; 
 for t = 1:length(ex.Trials)
     [stlfp, nspk] = getstlfp4trial(ex.Trials(t), wnd);
-    nspk = length(nspk);
-    
+ 
     % trial-by-trial stLFP metrics
-    ex.Trials(t).mean_stLFP = nanmean(stlfp, 1)/nspk;
-    ex.Trials(t).sem_stLFP = nanstd(stlfp/nspk, [], 1)/sqrt(size(stlfp, 1));
+    ex.Trials(t).nspk = length(nspk);
+%     ex.Trials(t).mean_stLFP = nanmean(stlfp, 1);
+%     ex.Trials(t).sem_stLFP = nanstd(stlfp, [], 1)/sqrt(ex.Trials(t).nspk);
+    ex.Trials(t).mean_stLFP = nanmean(stlfp, 1)/ex.Trials(t).nspk;
+    ex.Trials(t).sem_stLFP = nanstd(stlfp/ex.Trials(t).nspk, [], 1)/sqrt(ex.Trials(t).nspk);
     [ex.Trials(t).stlfp_pow, ex.Trials(t).stlfp_freq] = mtspectrumc(ex.Trials(t).mean_stLFP, params);
     [ex.Trials(t).stlfp_delta, ex.Trials(t).stlfp_theta, ...
         ex.Trials(t).stlfp_alpha, ex.Trials(t).stlfp_beta, ex.Trials(t).stlfp_gamma]...
         = pow2band(ex.Trials(t).stlfp_freq, ex.Trials(t).stlfp_pow);
     
     % for trial-average
-    accstlfp = [accstlfp; stlfp];
-    accspk = accspk + nspk;
+    accstlfp = [accstlfp; ex.Trials(t).mean_stLFP];
+%     accstlfp = [accstlfp; stlfp];
 end
 
 %%% compute statistics
+accspk = sum([ex.Trials.nspk]);
+% avg_stlfp = nanmean(accstlfp, 1)/accspk; % average of the spike triggered lfp (stLFP)
 avg_stlfp = nanmean(accstlfp, 1); % average of the spike triggered lfp (stLFP)
-sem_stlfp = nanstd(accstlfp, 0, 1)./sqrt(accspk); % SEM of the stLFP
+sem_stlfp = nanstd(accstlfp, 0, 1)./sqrt(size(accstlfp,1)); % SEM of the stLFP
+
+% % baseline correction
+% avg_stlfp = avg_stlfp - mean(avg_stlfp);
 
 % the PSD returned by pmtm is normalized per frequency unit
 [stlfp_pow, stlfp_freq] = mtspectrumc(avg_stlfp, params);

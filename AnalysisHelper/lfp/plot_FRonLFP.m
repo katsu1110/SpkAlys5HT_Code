@@ -24,7 +24,7 @@ load([main_dir 'Data/fr_lfp.mat'])
 %% visualization
 % stLFP in each session
 lens = length(fr_lfp.session);
-wnd = 0.064; % was 0.3
+wnd = 0.1; % was 0.3
 rho = nan(lens, 2);
 for i = 1:lens
     % stLFP amplitude vs co in each unit

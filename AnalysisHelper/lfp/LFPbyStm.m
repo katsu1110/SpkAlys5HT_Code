@@ -30,7 +30,7 @@ S1 = cell(1, lenv);
 S2 = cell(1, lenv);
 fg = cell(1, lenv);
 
-wnd = 0.064; % was 0.3
+wnd = 0.1; % was 0.3
 wndrange = -wnd:1/1000:wnd;
 % ampwindow = wndrange > -0.015 &  wndrange  < 0.015;
 ampwindow = wndrange > -wnd &  wndrange  < wnd;
@@ -40,7 +40,7 @@ for i = 1:lenv
     % spectrogram
     lfp = vertcat(trials.LFP_prepro);
     lfp = lfp(mean(isnan(lfp), 2)==0, :);
-    lfp_cut = lfp(:, 401:end)'; % exclude putative stimulus driven component
+    lfp_cut = lfp(:, 351:end)'; % exclude putative stimulus driven component
     [S{i},t{i},f{i}] = mtspecgramc(lfp_cut, [0.5 0.05], params);
     t{i} = t{i} + ex.Trials(end).LFP_prepro_time(1);
     
