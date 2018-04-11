@@ -9,32 +9,32 @@ filters = filterSet(fs);
 
 % initial cutoff (0 as no cutoff. 350 is default)
 if nargin<2; ic = 350; end
-ex.time_cut = ex.time(ic+1:end);
+ex.time_cut = ex.time_stm(ic+1:end);
 
 % assign each trial
 for i = 1:length(ex.Trials)
     % delta
-    ex.Trials(i).lfp_delta_tc = filtfilt(filters.delta.b, filters.delta.a, ex.Trials(i).LFP_prepro(ic+1:end));
+    ex.Trials(i).lfp_delta_tc = filtfilt(filters.delta.b, filters.delta.a, ex.Trials(i).LFP_prepro_stm(ic+1:end));
     range = ex.Trials(i).FREQ > 0 & ex.Trials(i).FREQ <4;
     ex.Trials(i).lfp_delta_pow = mean(ex.Trials(i).POW(range));
     
     % theta
-    ex.Trials(i).lfp_theta_tc = filtfilt(filters.theta.b, filters.theta.a, ex.Trials(i).LFP_prepro(ic+1:end));
+    ex.Trials(i).lfp_theta_tc = filtfilt(filters.theta.b, filters.theta.a, ex.Trials(i).LFP_prepro_stm(ic+1:end));
     range = ex.Trials(i).FREQ >=4 & ex.Trials(i).FREQ <=7;
     ex.Trials(i).lfp_theta_pow = mean(ex.Trials(i).POW(range));
     
     % alpha
-    ex.Trials(i).lfp_alpha_tc = filtfilt(filters.alpha.b, filters.alpha.a, ex.Trials(i).LFP_prepro(ic+1:end));
+    ex.Trials(i).lfp_alpha_tc = filtfilt(filters.alpha.b, filters.alpha.a, ex.Trials(i).LFP_prepro_stm(ic+1:end));
     range = ex.Trials(i).FREQ >=8 & ex.Trials(i).FREQ <=13;
     ex.Trials(i).lfp_alpha_pow = mean(ex.Trials(i).POW(range));
     
     % beta
-    ex.Trials(i).lfp_beta_tc = filtfilt(filters.beta.b, filters.beta.a, ex.Trials(i).LFP_prepro(ic+1:end));
+    ex.Trials(i).lfp_beta_tc = filtfilt(filters.beta.b, filters.beta.a, ex.Trials(i).LFP_prepro_stm(ic+1:end));
     range = ex.Trials(i).FREQ >=14 & ex.Trials(i).FREQ <=29;
     ex.Trials(i).lfp_beta_pow = mean(ex.Trials(i).POW(range));
     
     % gamma
-    ex.Trials(i).lfp_gamma_tc = filtfilt(filters.gamma.b, filters.gamma.a, ex.Trials(i).LFP_prepro(ic+1:end));
+    ex.Trials(i).lfp_gamma_tc = filtfilt(filters.gamma.b, filters.gamma.a, ex.Trials(i).LFP_prepro_stm(ic+1:end));
     range = ex.Trials(i).FREQ >=30 & ex.Trials(i).FREQ <=80;
     ex.Trials(i).lfp_gamma_pow = mean(ex.Trials(i).POW(range));
 end

@@ -48,14 +48,18 @@ for f = 1:3
     end
     
     % stLFP ==========================
-    % LFP
     h = figure;
-    len_trace = size(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stlfp.avg_stlfp, 2);
-    len_pow = size(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stlfp.pow, 2);
+    len_trace_sta = size(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stlfp.avg_stlfp, 2);
+    len_pow_sta = size(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stlfp.pow, 2);
+    len_trace_lfp = size(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.lfp_stm.mean, 2);
+    xfreq = LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.f;
+    len_pow_lfp = length(xfreq);
     for k = 1:2
         para.cond(k).lfpstm.stlfp.amp = nan(1, lenr);
-        para.cond(k).lfpstm.stlfp.trace = nan(lenr, len_trace);
-        para.cond(k).lfpstm.stlfp.power = nan(lenr, len_pow);
+        para.cond(k).lfpstm.stlfp.trace = nan(lenr, len_trace_sta);
+        para.cond(k).lfpstm.stlfp.power = nan(lenr, len_pow_sta);
+        para.cond(k).lfpstm.lfp.trace = nan(lenr, len_trace_lfp);
+        para.cond(k).lfpstm.lfp.power = nan(lenr, len_pow_lfp);
     end
     for i = 1:lenr
         for k = 1:2            
@@ -65,137 +69,281 @@ for f = 1:3
                 LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.stlfp.pow(end,:)';
             para.cond(k).lfpstm.stlfp.amp(i) = ...
                 min(para.cond(k).lfpstm.stlfp.trace(i,:));
+            para.cond(k).lfpstm.lfp.trace(i, :) = ...
+                LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.lfp_stm.mean(end,:);
+            para.cond(k).lfpstm.lfp.power(i,:) = ...
+                LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.pow_stm.mean(end,:);
         end
     end
-    for k = 1:2
-        switch k
-            case 1
-                drugname = 'NaCl';
-            case 2
-                drugname = '5HT';
-        end
-
-        % stLFP traces --- 5HT
-        subplot(3,3,1+3*(k-1))
-        me = nanmean(para.cond(1).lfpstm.stlfp.trace(is5ht==k-1,:), 1);
-        sem = nanstd(para.cond(1).lfpstm.stlfp.trace(is5ht==k-1,:), [], 1)...
-            /sqrt(sum(is5ht==k-1));
-        fill_between(-wnd:0.001:wnd, me - sem, me + sem, zeros(1,3))
-        hold on;
-        plot(-wnd:0.001:wnd, me, '-k')
-        hold on;
-        me = nanmean(para.cond(2).lfpstm.stlfp.trace(is5ht==k-1,:), 1);
-        sem = nanstd(para.cond(2).lfpstm.stlfp.trace(is5ht==k-1,:), [], 1)...
-            /sqrt(sum(is5ht==k-1));
-        fill_between(-wnd:0.001:wnd, me - sem, me + sem, [1 0 0])
-        hold on;
-        plot(-wnd:0.001:wnd, me, '-r')
-        hold on;
-        yy = get(gca, 'YLim');
-        plot([0 0],yy, '-k')
-        xlim([-wnd wnd])
-        ylim(yy)
-        xlabel('time (s)')
-        ylabel('LFP')
-        title(drugname)
-        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
-
-        % stLFP power (<30Hz)
-        subplot(3,3,2+3*(k-1))
-        freq = LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stlfp.freq(end,:);
-        me = nanmean(para.cond(1).lfpstm.stlfp.pow(is5ht==k-1,freq<30), 1);
-        sem = nanstd(para.cond(1).lfpstm.stlfp.pow(is5ht==k-1,freq<30), [], 1)...
-            /sqrt(sum(is5ht==k-1));
-        fill_between(freq(freq<30), me - sem, me + sem, zeros(1,3))
-        hold on;
-        plot(freq(freq<30), me, '-k')
-        hold on;
-        me = nanmean(para.cond(2).lfpstm.stlfp.pow(is5ht==k-1,freq<30), 1);
-        sem = nanstd(para.cond(2).lfpstm.stlfp.pow(is5ht==k-1,freq<30), [], 1)...
-            /sqrt(sum(is5ht==k-1));
-        fill_between(freq(freq<30), me - sem, me + sem, [1 0 0])
-        hold on;
-        plot(freq(freq<30), me, '-r')
-        hold on;
-        xlim([min(freq(freq<30)) max(freq(freq<30))])
-        xlabel('frequency (Hz)')
-        ylabel('power')
-        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); 
-        
-        % stLFP power (>30Hz)
-        subplot(3,3,3+3*(k-1))
-         me = nanmean(para.cond(1).lfpstm.stlfp.pow(is5ht==k-1,freq>30), 1);
-        sem = nanstd(para.cond(1).lfpstm.stlfp.pow(is5ht==k-1,freq>30), [], 1)...
-            /sqrt(sum(is5ht==k-1));
-        fill_between(freq(freq>30), me - sem, me + sem, zeros(1,3))
-        hold on;
-        plot(freq(freq>30), me, '-k')
-        hold on;
-        me = nanmean(para.cond(2).lfpstm.stlfp.pow(is5ht==k-1,freq>30), 1);
-        sem = nanstd(para.cond(2).lfpstm.stlfp.pow(is5ht==k-1,freq>30), [], 1)...
-            /sqrt(sum(is5ht==k-1));
-        fill_between(freq(freq>30), me - sem, me + sem, [1 0 0])
-        hold on;
-        plot(freq(freq>30), me, '-r')
-        hold on;
-        xlim([min(freq(freq>30)) max(freq(freq>30))])
-        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); 
-        
-        % stLFP scatter
-        subplot(3,3,1)
-        if f==1
-            unity_plot(para.cond(1).lfpstm.stlfp.amp, para.cond(2).lfpstm.stlfp.amp, is5ht)
-        else
-            unity_plot(para.cond(1).lfpstm.stlfp.amp, para.cond(2).lfpstm.stlfp.amp)
-        end
-        title('stLFP')
-        xlabel(xname)
-        ylabel(yname)
-    end
-    set(h, 'Name', [fieldname ': stLFP'], 'NumberTitle','off')
-
-    % LFP power
-    h = figure;
-    for k = 1:2
-        para.cond(k).lfpstm.stlfp.power_delta = nan(1, lenr);
-        para.cond(k).lfpstm.stlfp.power_theta = nan(1, lenr);
-        para.cond(k).lfpstm.stlfp.power_alpha = nan(1, lenr);
-        para.cond(k).lfpstm.stlfp.power_beta = nan(1, lenr);
-        para.cond(k).lfpstm.stlfp.power_gamma = nan(1, lenr);
-    end
-    for i = 1:lenr
+    if f==1
         for k = 1:2
-            pow = LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.stlfp.pow;
-            freq = LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.stlfp.freq;
-            para.cond(k).lfpstm.stlfp.power_delta(i) = mean(pow(freq > 0 & freq < 4));
-            para.cond(k).lfpstm.stlfp.power_theta(i) = mean(pow(freq >= 4 & freq < 8));
-            para.cond(k).lfpstm.stlfp.power_alpha(i) = mean(pow(freq >= 8 & freq <= 13));
-            para.cond(k).lfpstm.stlfp.power_beta(i) = mean(pow(freq >= 14 & freq <= 29));
-            para.cond(k).lfpstm.stlfp.power_gamma(i) = mean(pow(freq >= 30 & freq <= 80));
+            switch k
+                case 1
+                    drugname = 'NaCl';
+                case 2
+                    drugname = '5HT';
+            end
+
+            % stLFP traces --- 5HT
+            subplot(3,3,1+3*(k-1))
+            me = nanmean(para.cond(1).lfpstm.stlfp.trace(is5ht==k-1,:), 1);
+            sem = nanstd(para.cond(1).lfpstm.stlfp.trace(is5ht==k-1,:), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(-wnd:0.001:wnd, me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot(-wnd:0.001:wnd, me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.stlfp.trace(is5ht==k-1,:), 1);
+            sem = nanstd(para.cond(2).lfpstm.stlfp.trace(is5ht==k-1,:), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(-wnd:0.001:wnd, me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(-wnd:0.001:wnd, me, '-r')
+            hold on;
+            yy = get(gca, 'YLim');
+            plot([0 0],yy, '-k')
+            xlim([-wnd wnd])
+            ylim(yy)
+            xlabel('time (s)')
+            ylabel('LFP')
+            title(drugname)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+
+            % stLFP power (<30Hz)
+            subplot(3,3,2+3*(k-1))
+            freq = LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stlfp.freq(end,:);
+            me = nanmean(para.cond(1).lfpstm.stlfp.pow(is5ht==k-1,freq<30), 1);
+            sem = nanstd(para.cond(1).lfpstm.stlfp.pow(is5ht==k-1,freq<30), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(freq(freq<30), me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot(freq(freq<30), me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.stlfp.pow(is5ht==k-1,freq<30), 1);
+            sem = nanstd(para.cond(2).lfpstm.stlfp.pow(is5ht==k-1,freq<30), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(freq(freq<30), me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(freq(freq<30), me, '-r')
+            hold on;
+            xlim([min(freq(freq<30)) max(freq(freq<30))])
+            xlabel('frequency (Hz)')
+            ylabel('power')
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); 
+
+            % stLFP power (>30Hz)
+            subplot(3,3,3+3*(k-1))
+             me = nanmean(para.cond(1).lfpstm.stlfp.pow(is5ht==k-1,freq>30), 1);
+            sem = nanstd(para.cond(1).lfpstm.stlfp.pow(is5ht==k-1,freq>30), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(freq(freq>30), me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot(freq(freq>30), me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.stlfp.pow(is5ht==k-1,freq>30), 1);
+            sem = nanstd(para.cond(2).lfpstm.stlfp.pow(is5ht==k-1,freq>30), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(freq(freq>30), me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(freq(freq>30), me, '-r')
+            hold on;
+            xlim([min(freq(freq>30)) max(freq(freq>30))])
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); 
+
+            % stLFP scatter
+            subplot(3,3,7)
+            unity_plot(para.cond(1).lfpstm.stlfp.amp, para.cond(2).lfpstm.stlfp.amp, is5ht)
+            title('stLFP')
+            xlabel(xname)
+            ylabel(yname)
         end
-    end
-    for b = 1:5
-        switch b
-            case 1
-                band = 'delta';
-            case 2
-                band = 'theta';
-            case 3
-                band = 'alpha';
-            case 4
-                band = 'beta';
-            case 5
-                band = 'gamma';
+        set(h, 'Name', [fieldname ': stLFP'], 'NumberTitle','off')
+        
+    else % pupil size modulation
+            % stLFP traces --- 5HT
+            subplot(1,4,1)
+            me = nanmean(para.cond(1).lfpstm.stlfp.trace, 1);
+            sem = nanstd(para.cond(1).lfpstm.stlfp.trace, [], 1)...
+                /sqrt(lenr);
+            fill_between(-wnd:0.001:wnd, me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot(-wnd:0.001:wnd, me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.stlfp.trace, 1);
+            sem = nanstd(para.cond(2).lfpstm.stlfp.trace, [], 1)...
+                /sqrt(lenr);
+            fill_between(-wnd:0.001:wnd, me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(-wnd:0.001:wnd, me, '-r')
+            hold on;
+            yy = get(gca, 'YLim');
+            plot([0 0],yy, '-k')
+            xlim([-wnd wnd])
+            ylim(yy)
+            xlabel('time (s)')
+            ylabel('LFP')
+            title(drugname)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+
+            % stLFP power (<30Hz)
+            subplot(1,4,2)
+            freq = LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stlfp.freq(end,:);
+            me = nanmean(para.cond(1).lfpstm.stlfp.pow(:,freq<30), 1);
+            sem = nanstd(para.cond(1).lfpstm.stlfp.pow(:,freq<30), [], 1)...
+                /sqrt(lenr);
+            fill_between(freq(freq<30), me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot(freq(freq<30), me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.stlfp.pow(:,freq<30), 1);
+            sem = nanstd(para.cond(2).lfpstm.stlfp.pow(:,freq<30), [], 1)...
+                /sqrt(lenr);
+            fill_between(freq(freq<30), me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(freq(freq<30), me, '-r')
+            hold on;
+            xlim([min(freq(freq<30)) max(freq(freq<30))])
+            xlabel('frequency (Hz)')
+            ylabel('power')
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); 
+
+            % stLFP power (>30Hz)
+            subplot(1,4,3)
+             me = nanmean(para.cond(1).lfpstm.stlfp.pow(:,freq>30), 1);
+            sem = nanstd(para.cond(1).lfpstm.stlfp.pow(:,freq>30), [], 1)...
+                /sqrt(lenr);
+            fill_between(freq(freq>30), me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot(freq(freq>30), me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.stlfp.pow(:,freq>30), 1);
+            sem = nanstd(para.cond(2).lfpstm.stlfp.pow(:,freq>30), [], 1)...
+                /sqrt(lenr);
+            fill_between(freq(freq>30), me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(freq(freq>30), me, '-r')
+            hold on;
+            xlim([min(freq(freq>30)) max(freq(freq>30))])
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); 
+
+            % stLFP scatter
+            subplot(1,4,4)
+            unity_plot(para.cond(1).lfpstm.stlfp.amp, para.cond(2).lfpstm.stlfp.amp)
+            title('stLFP')
+            xlabel(xname)
+            ylabel(yname)
+            set(h, 'Name', [fieldname ': stLFP'], 'NumberTitle','off')
+     end
+
+    % LFP trace and power
+    h = figure;
+    if f==1
+        for k = 1:2
+            switch k
+                case 1
+                    drugname = 'NaCl';
+                case 2
+                    drugname = '5HT';
+            end
+            
+            subplot(2,2,1+(k-1)*2)
+            me = nanmean(para.cond(1).lfpstm.lfp.trace(is5ht==k-1,:), 1);
+            sem = nanstd(para.cond(1).lfpstm.lfp.trace(is5ht==k-1,:), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between([1:length(me)]/1000, me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot([1:length(me)]/1000, me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.stlfp.trace(is5ht==k-1,:), 1);
+            sem = nanstd(para.cond(2).lfpstm.stlfp.trace(is5ht==k-1,:), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between([1:length(me)]/1000, me - sem, me + sem, [1 0 0])
+            hold on;
+            plot([1:length(me)]/1000, me, '-r')
+            hold on;
+            yy = get(gca, 'YLim');
+            plot([0 0],yy, '-k')
+            xlim([0 length(me)+1])
+            ylim(yy)
+            xlabel('time (s)')
+            ylabel('LFP')
+            title(drugname)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+            
+            subplot(2,2,2+(k-1)*2)
+            me = nanmean(para.cond(1).lfpstm.lfp.power(is5ht==k-1,:), 1);
+            sem = nanstd(para.cond(1).lfpstm.lfp.power(is5ht==k-1,:), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(xfreq, me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot(xfreq, me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.lfp.power(is5ht==k-1,:), 1);
+            sem = nanstd(para.cond(2).lfpstm.lfp.power(is5ht==k-1,:), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(xfreq, me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(xfreq, me, '-r')
+            hold on;
+            yy = get(gca, 'YLim');
+            plot([0 0],yy, '-k')
+            xlim([xfreq(1) xfreq(end)])
+            ylim(yy)
+            xlabel('time (s)')
+            ylabel('LFP')
+            title(drugname)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
         end
-        subplot(2,3,b)
-        if f==1
-            unity_plot(para.cond(1).lfpstm.stlfp.(['power_' band]),...
-                para.cond(2).lfpstm.stlfp.(['power_' band]), is5ht)
-        else
-            unity_plot(para.cond(1).lfpstm.stlfp.(['power_' band]),...
-                para.cond(2).lfpstm.stlfp.(['power_' band]))
-        end
-        title(band)
+        
+    else
+            subplot(1,2,1)
+            me = nanmean(para.cond(1).lfpstm.lfp.trace, 1);
+            sem = nanstd(para.cond(1).lfpstm.lfp.trace, [], 1)...
+                /sqrt(lenr);
+            fill_between([1:length(me)]/1000, me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot([1:length(me)]/1000, me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.stlfp.trace, 1);
+            sem = nanstd(para.cond(2).lfpstm.stlfp.trace, [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between([1:length(me)]/1000, me - sem, me + sem, [1 0 0])
+            hold on;
+            plot([1:length(me)]/1000, me, '-r')
+            hold on;
+            yy = get(gca, 'YLim');
+            plot([0 0],yy, '-k')
+            xlim([0 length(me)+1])
+            ylim(yy)
+            xlabel('time (s)')
+            ylabel('LFP')
+            title(drugname)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+            
+            subplot(1,2,2)
+            me = nanmean(para.cond(1).lfpstm.lfp.power, 1);
+            sem = nanstd(para.cond(1).lfpstm.lfp.power, [], 1)...
+                /sqrt(lenr);
+            fill_between(xfreq, me - sem, me + sem, zeros(1,3))
+            hold on;
+            plot(xfreq, me, '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.lfp.power, 1);
+            sem = nanstd(para.cond(2).lfpstm.lfp.power, [], 1)...
+                /sqrt(lenr);
+            fill_between(xfreq, me - sem, me + sem, [1 0 0])
+            hold on;
+            plot(xfreq, me, '-r')
+            hold on;
+            yy = get(gca, 'YLim');
+            plot([0 0],yy, '-k')
+            xlim([xfreq(1) xfreq(end)])
+            ylim(yy)
+            xlabel('time (s)')
+            ylabel('LFP')
+            title(drugname)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+            
     end
     set(h, 'Name', [fieldname ': stLFP power bands'], 'NumberTitle','off')
 
@@ -227,7 +375,7 @@ for f = 1:3
                         band = 'gamma';
                 end
                 para.cond(k).lfpstm.power.(band)(i) = ...
-                    mean(LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.lfp_stm_wave(b).power(stmidx));
+                    mean(LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.lfp_stm_wave(b).pow(stmidx));
             end
         end
     end
@@ -258,9 +406,9 @@ for f = 1:3
                     band = 'gamma';
             end
 
-            pow = LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.lfp_stm_wave(b).power(stmidx);
+            pow = LFPinfo.session(row(i)).results.(fieldname).cond(1).lfpstm.lfp_stm_wave(b).pow(stmidx);
             para.cond(1).lfpstm.power_tuning.(band)(i,:) = pow(idx);
-            pow = LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.lfp_stm_wave(b).power(stmidx);
+            pow = LFPinfo.session(row(i)).results.(fieldname).cond(2).lfpstm.lfp_stm_wave(b).pow(stmidx);
             para.cond(2).lfpstm.power_tuning.(band)(i,:) = pow(idx);
 
             % normalization

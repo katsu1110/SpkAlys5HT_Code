@@ -1,6 +1,6 @@
 function runAlllfp
  
-check_FRonLFP
+% check_FRonLFP
 try
     interaction_lfp_dataset;
 catch

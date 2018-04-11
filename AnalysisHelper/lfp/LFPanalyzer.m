@@ -156,7 +156,7 @@ for k = 1:2
 %             para.cond(k).lfpstm.lfp_stm.mean(s,:) + para.cond(k).lfpstm.lfp_stm.sem(s,:),...
 %             col(s,:))
 %         hold on;
-        plot(para.cond(k).lfpstm.ts, para.cond(k).lfpstm.lfp_stm.mean(s,:), '-', 'color', col(s,:))
+        plot(para.cond(k).lfpstm.ts_stm, para.cond(k).lfpstm.lfp_stm.mean(s,:), '-', 'color', col(s,:))
         hold on;
 
         % power

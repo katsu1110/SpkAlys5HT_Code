@@ -111,7 +111,7 @@ for ind = 1:length(ex.Trials)
     
     %%% mutli taper function
     [ex.Trials(ind).POW, ex.Trials(ind).FREQ] = ...
-        mtspectrumc(LFP_proc(time>=0), params);
+        mtspectrumc(LFP_proc(time>0.35), params);
     
     % the PSD returned by pmtm is normalized per frequency unit
 %     [ex.Trials(ind).POW, ex.Trials(ind).FREQ] = ...
@@ -123,11 +123,16 @@ for ind = 1:length(ex.Trials)
     % the preprocessed lfp and the corresponding time vector
     ex.Trials(ind).LFP_prepro = LFP_proc; 
     ex.Trials(ind).LFP_prepro_time = time;
+    
+    % the preprocessed lfp and the corresponding time vector during
+    % stimulus presentation
+    ex.Trials(ind).LFP_prepro_stm = LFP_proc(time >= 0); 
+    ex.Trials(ind).LFP_prepro_stmtime = time(time >= 0);
 
 end
 
 ex.time = time; % time corresponding to saved lfp signal
-
+ex.time_stm = time(time >= 0);
 end
 
 

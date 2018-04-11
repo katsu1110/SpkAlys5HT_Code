@@ -39,22 +39,26 @@ if exinfo.isRC
     for i = 1:4
         switch i
             case 1
-                exd = ex0_sps;
-                labd = 'pupil small, baseline';
-            case 2
-                exd = ex0_lps;
-                labd = 'pupil large, baseline';
-            case 3
                 exd = ex2_sps;
                 labd = ['pupil small, ' psintr.drugname];
-            case 4
+            case 2
                 exd = ex2_lps;
                 labd = ['pupil large, ' psintr.drugname];
+            case 3
+                exd = ex0_sps;
+                labd = 'pupil small, baseline';
+            case 4
+                exd = ex0_lps;
+                labd = 'pupil large, baseline';            
         end               
         [stmMat, actMat] = ex4RCsub(exd, 'or', 'Spikes');
         psintr.rcsub(i).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
         psintr.rcsub(i).label = labd;
+        psintr.inter_table_lat(i) = psintr.rcsub(i).results.latency;
     end
+    % gain or additive change
+    psintr.type2reg.base = gmregress([psintr.rcsub(3).results.stm.peak], [psintr.rcsub(4).results.stm.peak]);
+    psintr.type2reg.drug = gmregress([psintr.rcsub(1).results.stm.peak], [psintr.rcsub(2).results.stm.peak]);
 end
 
 % trial number

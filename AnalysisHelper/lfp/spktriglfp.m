@@ -49,18 +49,18 @@ for t = 1:length(ex.Trials)
  
     % trial-by-trial stLFP metrics
     ex.Trials(t).nspk = length(nspk);
-%     ex.Trials(t).mean_stLFP = nanmean(stlfp, 1);
-%     ex.Trials(t).sem_stLFP = nanstd(stlfp, [], 1)/sqrt(ex.Trials(t).nspk);
-    ex.Trials(t).mean_stLFP = nanmean(stlfp, 1)/ex.Trials(t).nspk;
-    ex.Trials(t).sem_stLFP = nanstd(stlfp/ex.Trials(t).nspk, [], 1)/sqrt(ex.Trials(t).nspk);
+    ex.Trials(t).mean_stLFP = nanmean(stlfp, 1);
+    ex.Trials(t).sem_stLFP = nanstd(stlfp, [], 1)/sqrt(ex.Trials(t).nspk);
+%     ex.Trials(t).mean_stLFP = nanmean(stlfp, 1)/ex.Trials(t).nspk;
+%     ex.Trials(t).sem_stLFP = nanstd(stlfp/ex.Trials(t).nspk, [], 1)/sqrt(ex.Trials(t).nspk);
     [ex.Trials(t).stlfp_pow, ex.Trials(t).stlfp_freq] = mtspectrumc(ex.Trials(t).mean_stLFP, params);
     [ex.Trials(t).stlfp_delta, ex.Trials(t).stlfp_theta, ...
         ex.Trials(t).stlfp_alpha, ex.Trials(t).stlfp_beta, ex.Trials(t).stlfp_gamma]...
         = pow2band(ex.Trials(t).stlfp_freq, ex.Trials(t).stlfp_pow);
     
     % for trial-average
-    accstlfp = [accstlfp; ex.Trials(t).mean_stLFP];
-%     accstlfp = [accstlfp; stlfp];
+%     accstlfp = [accstlfp; ex.Trials(t).mean_stLFP];
+    accstlfp = [accstlfp; stlfp];
 end
 
 %%% compute statistics

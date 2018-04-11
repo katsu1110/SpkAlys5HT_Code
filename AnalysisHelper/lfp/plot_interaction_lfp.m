@@ -155,47 +155,49 @@ for w = 1:celltype
         end
     end
     % correlation -----------------------------
-    for d = 1:2
-        figure(f);
+    for d = 1:2        
         for c = 1:l
-            subplot(2,l,c)
+            figure(f);
+            subplot(3,4,c)
             unity_scatter(para.ps_lfp_corr(drugtype==d-1, c+l), ...
                 para.ps_lfp_corr(drugtype==d-1, c))
             switch c
                 case 1
-                    title('delta')
+                    titlelabel = 'delta';
                     if d==1
                          ylabel('NaCl')
                     elseif d==2
                         ylabel('5HT')
                     end
                 case 2
-                    title('theta')
+                    titlelabel = 'theta';
                 case 3
-                    title('alpha')
+                    titlelabel = 'alpha';
                 case 4
-                    title('beta')
+                    titlelabel = 'beta';
                 case 5
-                    title('gamma')
+                    titlelabel = 'gamma';
                 case 6
-                    title('st-delta')
+                    titlelabel = 'st-delta';
                 case 7
-                    title('st-theta')
+                    titlelabel = 'st-theta';
                 case 8
-                    title('st-alpha')
+                    titlelabel= 'st-alpha';
                 case 9
-                    title('st-beta')
+                    titlelabel = 'st-beta';
                 case 10
-                    title('st-gamma')
+                    titlelabel = 'st-gamma';
                 case 11
-                    title('LFP')
+                    titlelabel = 'LFP';
                 case 12
-                    title('stLFP amp.')
+                    titlelabel = 'stLFP amp.';
             end
             xlabel('baseline')              
-                
+            title(titlelabel)
+            
             % interaction ----------------------------------
-            subplot(2,l,c + l)
+            figure(f+1);
+            subplot(3,4,c)
             v = para.interaction(c).table(drugtype==d-1, :);
             ok = ~isnan(v(:,1)) | v(:,1)>0;
 %             me = mean(v(ok, :), 1);
@@ -207,12 +209,11 @@ for w = 1:celltype
 %             xlim([0.7 2.3])
     %         yy = get(gca, 'YLim');
             interaction_plot(v(ok,:))
-            title(['n=' num2str(sum(ok==1))])
-            set(gca, 'XTick', 1:2, 'XTickLabel', {'small', 'large'})
+            title(titlelabel)
             xlabel({'pupil size', '(small)'})      
             ylabel({'pupil size', '(large)'})   
         end  
         set(gcf, 'Name', [prefix ': correlation & interaction between ps and lfp'], 'NumberTitle', 'off')
-        f = f + 1;
+        f = f + 2;
     end
 end

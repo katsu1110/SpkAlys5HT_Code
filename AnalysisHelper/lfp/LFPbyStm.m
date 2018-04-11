@@ -10,9 +10,6 @@ function [para] = LFPbyStm(ex)
 lenv = length(vals);
 
 % initialization ==================
-lfplen = length(ex.Trials(end).LFP_prepro);
-lfp_avg = zeros(lenv, lfplen);
-
 fidx = ex.Trials(end).FREQ>= 0 & ex.Trials(end).FREQ<=100;
 freq = ex.Trials(end).FREQ(fidx);
 lenp = length(ex.Trials(end).POW);
@@ -38,7 +35,7 @@ for i = 1:lenv
     trials = ex.Trials([ex.Trials.(stimparam)] == vals(i));
 
     % spectrogram
-    lfp = vertcat(trials.LFP_prepro);
+    lfp = vertcat(trials.LFP_prepro_stm);
     lfp = lfp(mean(isnan(lfp), 2)==0, :);
     lfp_cut = lfp(:, 351:end)'; % exclude putative stimulus driven component
     [S{i},t{i},f{i}] = mtspecgramc(lfp_cut, [0.5 0.05], params);
@@ -50,7 +47,7 @@ for i = 1:lenv
     [C{i},phi{i},S12{i},S1{i},S2{i},fg{i}]= coherencycpt(lfp_cut, cell2struct(spk, 'spk', 1), params);
     
     % LFP averaged trials across the same stimulus
-    lfp_avg(i,:) = mean(lfp, 1);
+    para.lfp_stm.mean(i,:) = mean(lfp, 1);
 
     % delta band
     para.lfp_stm_wave(1).mean(i,:) = nanmean(vertcat(trials.lfp_delta_tc), 1);
@@ -92,6 +89,7 @@ para.stm.param = stimparam;
 para.stm.vals = vals;
 para.ts = ex.time;
 para.ts_cut = ex.time_cut;
+para.ts_stm = ex.time_stm;
 para.f = freq';
 para.params = params;
 para.spectrogram.S = S;
@@ -103,6 +101,5 @@ para.coherence.S12 = S12;
 para.coherence.S1 = S1;
 para.coherence.S2 = S2;
 para.coherence.f = fg;
-para.lfp_stm.mean = lfp_avg;
 para.pow_stm.mean = pow_avg(:,fidx);
 
