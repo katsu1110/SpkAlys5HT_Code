@@ -31,23 +31,28 @@ if exinfo.isRC
     for i = 1:4
         switch i
             case 1
-                exd = ex0_sps;
-                labd = 'pupil small, baseline';
-            case 2
-                exd = ex0_lps;
-                labd = 'pupil large, baseline';
-            case 3
                 exd = ex2_sps;
                 labd = ['pupil small, ' pslfp.drugname];
-            case 4
+            case 2
                 exd = ex2_lps;
                 labd = ['pupil large, ' pslfp.drugname];
+            case 3
+                exd = ex0_sps;
+                labd = 'pupil small, baseline';
+            case 4
+                exd = ex0_lps;
+                labd = 'pupil large, baseline';            
         end               
         [stmMat, actMat] = ex4RCsub(exd, 'or', 'LFP_prepro');
         pslfp.rcsub(i).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
         pslfp.rcsub(i).label = labd;
+        pslfp.inter_table_lat(i) = pslfp.rcsub(i).results.latency;
     end
+    % gain or additive change
+    pslfp.type2reg.base = gmregress([pslfp.rcsub(3).results.stm.peak], [pslfp.rcsub(4).results.stm.peak]);
+    pslfp.type2reg.drug = gmregress([pslfp.rcsub(1).results.stm.peak], [pslfp.rcsub(2).results.stm.peak]);
 end
+
 
 % trial number
 len_tr0 = length(ex0.Trials);
