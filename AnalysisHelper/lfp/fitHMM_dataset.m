@@ -14,10 +14,10 @@ if nargin < 1 || strcmp(session_idx, 'all')
 end
 dat = dat(session_idx);
 
-binsize = 10:10:50;
+binsize = 10;
 % binsize = 15;
 hmms = struct('session', []);
-n_comp = [1,2];
+n_comp = [1,2,3];
 
 % loop for pairs of sessions
 for b = 1:length(binsize)
@@ -42,6 +42,20 @@ for b = 1:length(binsize)
         hmms.session(i).spikecount = spikecount;
         hmms.session(i).spikecount_drug = spikecount_drug;
         
+        % fit GPFA
+        try
+            hmms.session(i).gpfa = fitGPFA(spikecount);
+            disp(['GPFA fitted on session : ' num2str(i)])
+        catch
+            disp(['error in GPFA fit on session : ' num2str(i)])
+        end
+        try
+            hmms.session(i).gpfa_drug = fitGPFA(spikecount_drug);
+            disp(['GPFA fitted on session : ' num2str(i)])
+        catch
+            disp(['error in GPFA fit on session : ' num2str(i)])
+        end
+        
         % fit HMM
         for j = 1:n_comp(end)
             try
@@ -50,7 +64,7 @@ for b = 1:length(binsize)
                 disp(['HMM fitted on session : ' num2str(i)  ' control data: N =  ' num2str(j)])
             catch
                 hmms.session(i).estimate(j).exist = 0;
-                disp(['error on session : ' num2str(i)  ' control data: N =  ' num2str(j)])
+                disp(['HMM fit; error on session : ' num2str(i)  ' control data: N =  ' num2str(j)])
             end
             try
                 [hmms.session(i).estimate_drug(j).fit] = fitHMM(spikecount_drug, n_comp(j));
@@ -58,9 +72,10 @@ for b = 1:length(binsize)
                 disp(['HMM fitted on session : ' num2str(i)  ' drug data: N =  ' num2str(j)])
             catch                
                 hmms.session(i).estimate_drug(j).exist = 0;
-                disp(['error on session : ' num2str(i)  ' drug data: N =  ' num2str(j)])
+                disp(['HMM fit; error on session : ' num2str(i)  ' drug data: N =  ' num2str(j)])
             end
-        end        
+        end       
+                
     end
 
     % save data structure
@@ -74,12 +89,14 @@ end
 function sc = ex2sc(ex, b)
 % spike counts
 len_tr = length(ex.Trials);
-ncol = round((1000/b)*ex.fix.duration);
+% 350ms after the stimulus onset
+start = 0.35;
+ncol = round((1000/b)*(ex.fix.duration - start));
 sc = zeros(len_tr, ncol);
-for i = 1:len_tr
-    begin = 0;
+for i = 1:len_tr    
+    begin = start;
     for c = 1:ncol
-        sc(i,c) = sum(ex.Trials(i).oSpikes > begin & ex.Trials(i).oSpikes <= begin + 0.001*b);
+        sc(i,c) = sum(ex.Trials(i).Spikes > begin & ex.Trials(i).Spikes <= begin + 0.001*b);
         begin = begin + 0.001*b;
     end
 end
