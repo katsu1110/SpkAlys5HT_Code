@@ -22,59 +22,72 @@ n_comp = [1,2,3];
 % loop for pairs of sessions
 for b = 1:length(binsize)
     disp(['bin size: ' num2str(binsize(b))])
-    for i = 1:length(dat)  
-        % files
-        fname_mu = strrep(dat(i).fname, dat(i).cluster, 'c0'); % cluster 0 <=> multiunit activity
-        fname_mu_drug = strrep(dat(i).fname_drug, dat(i).cluster, 'c0'); % cluster 0 <=> multiunit activity
-        
-        % control            
-        ex_mu = loadCluster(fname_mu, 'ocul', dat(i).ocul, 'loadlfp', false);
-        spikecount = ex2sc(ex_mu, binsize(b));        
-
-        % drug           
-        ex_mu = loadCluster(fname_mu_drug, 'ocul', dat(i).ocul, 'loadlfp', false);
-        spikecount_drug = ex2sc(ex_mu, binsize(b));
-
-        % into structure
-        hmms.session(i).fname = fname_mu;
-        hmms.session(i).fname_drug = fname_mu_drug;
-        hmms.session(i).binsize = binsize(b);
-        hmms.session(i).spikecount = spikecount;
-        hmms.session(i).spikecount_drug = spikecount_drug;
-        
-        % fit GPFA
-        try
-            hmms.session(i).gpfa = fitGPFA(spikecount);
-            disp(['GPFA fitted on session : ' num2str(i)])
-        catch
-            disp(['error in GPFA fit on session : ' num2str(i)])
+    for s = 1:2 % SU or MU
+        if s==1
+            disp(['-------- single unit ----------'])
+        else
+            disp(['-------- multi unit ----------'])
         end
-        try
-            hmms.session(i).gpfa_drug = fitGPFA(spikecount_drug);
-            disp(['GPFA fitted on session : ' num2str(i)])
-        catch
-            disp(['error in GPFA fit on session : ' num2str(i)])
-        end
-        
-        % fit HMM
-        for j = 1:n_comp(end)
+        for i = 1:length(dat)
+            % files
+            if s==1 % single-unit
+                fname = dat(i).fname;
+                fname_drug = dat(i).fname_drug;
+            else % multi-unit
+                fname = strrep(dat(i).fname, dat(i).cluster, 'c0'); % cluster 0 <=> multiunit activity
+                fname_drug = strrep(dat(i).fname_drug, dat(i).cluster, 'c0'); % cluster 0 <=> multiunit activity
+            end
+            
+            % control            
+            ex = loadCluster(fname, 'ocul', dat(i).ocul, 'loadlfp', false);
+            spikecount = ex2sc(ex, binsize(b));        
+
+            % drug           
+            ex = loadCluster(fname_drug, 'ocul', dat(i).ocul, 'loadlfp', false);
+            spikecount_drug = ex2sc(ex, binsize(b));
+
+            % into structure
+            hmms.session(i).unit(s).fname = fname;
+            hmms.session(i).unit(s).fname_drug = fname_drug;
+            hmms.session(i).unit(s).binsize = binsize(b);
+            hmms.session(i).unit(s).spikecount = spikecount;
+            hmms.session(i).unit(s).spikecount_drug = spikecount_drug;
+
+            % fit GPFA
             try
-                [hmms.session(i).estimate(j).fit] = fitHMM(spikecount, n_comp(j));
-                hmms.session(i).estimate(j).exist = 1;
-                disp(['HMM fitted on session : ' num2str(i)  ' control data: N =  ' num2str(j)])
+                hmms.session(i).unit(s).gpfa = fitGPFA(spikecount);
+                disp(['GPFA fitted on session : ' num2str(i)])
             catch
-                hmms.session(i).estimate(j).exist = 0;
-                disp(['HMM fit; error on session : ' num2str(i)  ' control data: N =  ' num2str(j)])
+                disp(['error in GPFA fit on session : ' num2str(i)])
             end
             try
-                [hmms.session(i).estimate_drug(j).fit] = fitHMM(spikecount_drug, n_comp(j));
-                hmms.session(i).estimate_drug(j).exist = 1;
-                disp(['HMM fitted on session : ' num2str(i)  ' drug data: N =  ' num2str(j)])
-            catch                
-                hmms.session(i).estimate_drug(j).exist = 0;
-                disp(['HMM fit; error on session : ' num2str(i)  ' drug data: N =  ' num2str(j)])
+                hmms.session(i).unit(s).gpfa_drug = fitGPFA(spikecount_drug);
+                disp(['GPFA fitted on session : ' num2str(i)])
+            catch
+                disp(['error in GPFA fit on session : ' num2str(i)])
             end
-        end       
+
+            % fit HMM
+            for j = 1:n_comp(end)
+                try
+                    [hmms.session(i).unit(s).estimate(j).fit] = fitHMM(spikecount, n_comp(j));
+                    hmms.session(i).unit(s).estimate(j).exist = 1;
+                    disp(['HMM fitted on session : ' num2str(i)  ' control data: N =  ' num2str(j)])
+                catch
+                    hmms.session(i).unit(s).estimate(j).exist = 0;
+                    disp(['HMM fit; error on session : ' num2str(i)  ' control data: N =  ' num2str(j)])
+                end
+                try
+                    [hmms.session(i).unit(s).estimate_drug(j).fit] = fitHMM(spikecount_drug, n_comp(j));
+                    hmms.session(i).unit(s).estimate_drug(j).exist = 1;
+                    disp(['HMM fitted on session : ' num2str(i)  ' drug data: N =  ' num2str(j)])
+                catch                
+                    hmms.session(i).unit(s).estimate_drug(j).exist = 0;
+                    disp(['HMM fit; error on session : ' num2str(i)  ' drug data: N =  ' num2str(j)])
+                end
+            end
+            
+        end
                 
     end
 
