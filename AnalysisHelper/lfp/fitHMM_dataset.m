@@ -55,13 +55,13 @@ for b = 1:length(binsize)
 
             % fit GPFA
             try
-                hmms.session(i).unit(s).gpfa = fitGPFA(spikecount);
+                hmms.session(i).unit(s).gpfa = fitGPFA(spikecount(:)');
                 disp(['GPFA fitted on session : ' num2str(i)])
             catch
                 disp(['error in GPFA fit on session : ' num2str(i)])
             end
             try
-                hmms.session(i).unit(s).gpfa_drug = fitGPFA(spikecount_drug);
+                hmms.session(i).unit(s).gpfa_drug = fitGPFA(spikecount_drug(:)');
                 disp(['GPFA fitted on session : ' num2str(i)])
             catch
                 disp(['error in GPFA fit on session : ' num2str(i)])
@@ -70,7 +70,7 @@ for b = 1:length(binsize)
             % fit HMM
             for j = 1:n_comp(end)
                 try
-                    [hmms.session(i).unit(s).estimate(j).fit] = fitHMM(spikecount, n_comp(j));
+                    [hmms.session(i).unit(s).estimate(j).fit] = fitHMM(spikecount(:)', n_comp(j));
                     hmms.session(i).unit(s).estimate(j).exist = 1;
                     disp(['HMM fitted on session : ' num2str(i)  ' control data: N =  ' num2str(j)])
                 catch
@@ -78,7 +78,7 @@ for b = 1:length(binsize)
                     disp(['HMM fit; error on session : ' num2str(i)  ' control data: N =  ' num2str(j)])
                 end
                 try
-                    [hmms.session(i).unit(s).estimate_drug(j).fit] = fitHMM(spikecount_drug, n_comp(j));
+                    [hmms.session(i).unit(s).estimate_drug(j).fit] = fitHMM(spikecount_drug(:)', n_comp(j));
                     hmms.session(i).unit(s).estimate_drug(j).exist = 1;
                     disp(['HMM fitted on session : ' num2str(i)  ' drug data: N =  ' num2str(j)])
                 catch                

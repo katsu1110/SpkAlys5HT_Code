@@ -48,9 +48,11 @@ if exinfo.isRC
         pslfp.rcsub(i).label = labd;
         pslfp.inter_table_lat(i) = pslfp.rcsub(i).results.latency;
     end
-    % gain or additive change
-    pslfp.type2reg.base = gmregress([pslfp.rcsub(3).results.stm.peak], [pslfp.rcsub(4).results.stm.peak]);
-    pslfp.type2reg.drug = gmregress([pslfp.rcsub(1).results.stm.peak], [pslfp.rcsub(2).results.stm.peak]);
+    % gain or additive change (normalized by large ps max)
+    m = max([pslfp.rcsub(4).results.stm.peak]);
+    pslfp.type2reg.base = gmregress([pslfp.rcsub(3).results.stm.peak]/m, [pslfp.rcsub(4).results.stm.peak]/m);
+    m = max([pslfp.rcsub(2).results.stm.peak]);
+    pslfp.type2reg.drug = gmregress([pslfp.rcsub(1).results.stm.peak]/m, [pslfp.rcsub(2).results.stm.peak]/m);
 end
 
 

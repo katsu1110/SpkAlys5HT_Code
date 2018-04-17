@@ -48,6 +48,8 @@ for w = 1:celltype
         para.drug(2).drug.pupiltc = [];
         para.inter_table = nan(lenses, 4);
         para.perf = nan(lenses, 4);
+        para.inter_table_lat = nan(lenses, 4);
+        para.type2reg = nan(lenses, 4);
         drugtype = nan(lenses, 1);
         nmin = 10000;
         for s = 1:lenses
@@ -73,13 +75,18 @@ for w = 1:celltype
                 end
                 para.inter_table(s, :) = reshape(pss.session(s).(['psintr_' unittype]).inter_table, 1, 4);
                 para.perf(s, :) = pss.session(s).(['psintr_' unittype]).perf;
+                para.inter_table_lat(s,:) = pss.session(s).(['psintr_' unittype]).inter_table_lat;
+                para.type2reg(s,[1,3]) = ...
+                    [pss.session(s).(['psintr_' unittype]).type2reg.drug(2), pss.session(s).(['psintr_' unittype]).type2reg.base(2)];
+                para.type2reg(s,[2,4]) = ...
+                    [pss.session(s).(['psintr_' unittype]).type2reg.drug(1), pss.session(s).(['psintr_' unittype]).type2reg.base(1)];
             end
         end
         % visualization
         figure(f);
         for d = 1:2
             % pupil time-course
-            subplot(2,3,1+(d-1)*3)
+            subplot(2,5,1+(d-1)*5)
             me0 = mean(para.drug(d).cntr.pupiltc, 1);
             sem0 = std(para.drug(d).cntr.pupiltc, [], 1)/sqrt(sum(drugtype==d-1));
             me2 = mean(para.drug(d).drug.pupiltc, 1);
@@ -103,7 +110,7 @@ for w = 1:celltype
             xlabel('time (ms)')
 
             % interaction plot
-            subplot(2,3,2+(d-1)*3)
+            subplot(2,5,2+(d-1)*5)
 %             me = mean(para.inter_table(drugtype==d-1, :), 1);
 %             sem = std(para.inter_table(drugtype==d-1, :), [], 1)/sqrt(sum(drugtype==d-1));
 %             errorbar(1:2, me([3,4]), sem([3,4]), '-k', 'capsize', 0)
@@ -122,7 +129,7 @@ for w = 1:celltype
 %             end
 
             % variance explained
-            subplot(2,3,3+(d-1)*3)
+            subplot(2,5,3+(d-1)*5)
             me = mean(para.perf(drugtype==d-1, :), 1);
             sem = std(para.perf(drugtype==d-1, :), [], 1)/sqrt(sum(drugtype==d-1));
             errorbar(1:4, me, sem, '-k', 'capsize', 0)
@@ -136,8 +143,26 @@ for w = 1:celltype
                 set(gca, 'XTick', 1:4, 'XTickLabel', {'', '', '', ''})
             end
 
+            % interaction plot (latency)
+            subplot(2,5,4+(d-1)*5)
+            interaction_plot(para.inter_table_lat(drugtype==d-1, :))
+            xlabel({'pupil size', '(small)'})      
+            ylabel({'pupil size', '(large)'})
+            if d==1
+                title('latency')
+            end
+        
+            % interaction plot (type2reg)
+            subplot(2,5,5+(d-1)*5)
+            interaction_plot(para.type2reg(drugtype==d-1, :), 0)
+            xlabel({'gain change'})      
+            ylabel({'additive change'})
+            if d==1
+                title('FR')
+            end
+            
             set(gcf, 'Name', unittype, 'NumberTitle', 'off')
-        end
+        end         
         f = f + 1;
     end
 
@@ -152,6 +177,11 @@ for w = 1:celltype
             for c = 1:l
                 para.interaction(c).table(s, :) = reshape(pss.session(s).pslfp.interaction(c).table, 1, 4);
             end
+            para.inter_table_lat(s,:) = pss.session(s).pslfp.inter_table_lat;
+            para.type2reg(s, [1,3]) = [pss.session(s).pslfp.type2reg.drug(2), ...
+                pss.session(s).pslfp.type2reg.base(2)];
+            para.type2reg(s, 3:4) = [pss.session(s).pslfp.type2reg.drug(1), ...
+                pss.session(s).pslfp.type2reg.base(1)];
         end
     end
     % correlation -----------------------------
@@ -214,6 +244,28 @@ for w = 1:celltype
             ylabel({'pupil size', '(large)'})   
         end  
         set(gcf, 'Name', [prefix ': correlation & interaction between ps and lfp'], 'NumberTitle', 'off')
-        f = f + 2;
+        
+        if d==1
+            ff = f;
+        end
+        figure(ff);
+        % interaction plot (latency)
+        subplot(2,2,1+(d-1)*2)
+        interaction_plot(para.inter_table_lat(drugtype==d-1, :))
+        xlabel({'pupil size', '(small)'})      
+        ylabel({'pupil size', '(large)'})
+        if d==1
+            title('latency')
+        end
+        % interaction plot (type2reg)
+        subplot(2,2,2+(d-1)*2)
+        interaction_plot(para.type2reg(drugtype==d-1, :), 0)
+        xlabel({'gain change'})      
+        ylabel({'additive change'})
+        if d==1
+            title('stimulus driven LFP')
+        end
+            
+        f = f + 3;
     end
 end

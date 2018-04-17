@@ -56,9 +56,11 @@ if exinfo.isRC
         psintr.rcsub(i).label = labd;
         psintr.inter_table_lat(i) = psintr.rcsub(i).results.latency;
     end
-    % gain or additive change
-    psintr.type2reg.base = gmregress([psintr.rcsub(3).results.stm.peak], [psintr.rcsub(4).results.stm.peak]);
-    psintr.type2reg.drug = gmregress([psintr.rcsub(1).results.stm.peak], [psintr.rcsub(2).results.stm.peak]);
+    % gain or additive change (normalized by large pupil max)
+    m = max([psintr.rcsub(4).results.stm.peak]);
+    psintr.type2reg.base = gmregress([psintr.rcsub(3).results.stm.peak]/m, [psintr.rcsub(4).results.stm.peak]/m);
+    m = max([psintr.rcsub(2).results.stm.peak]);
+    psintr.type2reg.drug = gmregress([psintr.rcsub(1).results.stm.peak]/m, [psintr.rcsub(2).results.stm.peak]/m);
 end
 
 % trial number
