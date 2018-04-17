@@ -51,7 +51,8 @@ for f = 1:3
     h = figure;
     len_trace_sta = size(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stlfp.avg_stlfp, 2);
     len_pow_sta = size(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.stlfp.pow, 2);
-    len_trace_lfp = size(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.lfp_stm.mean, 2);
+%     len_trace_lfp = size(LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.lfp_stm.mean, 2);
+    len_trace_lfp = 2000;
     xfreq = LFPinfo.session(row(1)).results.(fieldname).cond(1).lfpstm.f;
     len_pow_lfp = length(xfreq);
     for k = 1:2
@@ -70,7 +71,7 @@ for f = 1:3
             para.cond(k).lfpstm.stlfp.amp(i) = ...
                 min(para.cond(k).lfpstm.stlfp.trace(i,:));
             para.cond(k).lfpstm.lfp.trace(i, :) = ...
-                LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.lfp_stm.mean(end,:);
+                LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.lfp_stm.mean(end,1:2000);
             para.cond(k).lfpstm.lfp.power(i,:) = ...
                 LFPinfo.session(row(i)).results.(fieldname).cond(k).lfpstm.pow_stm.mean(end,:);
         end
@@ -246,7 +247,7 @@ for f = 1:3
                     drugname = '5HT';
             end
             
-            subplot(2,2,1+(k-1)*2)
+            subplot(2,3,1+(k-1)*3)
             me = nanmean(para.cond(1).lfpstm.lfp.trace(is5ht==k-1,:), 1);
             sem = nanstd(para.cond(1).lfpstm.lfp.trace(is5ht==k-1,:), [], 1)...
                 /sqrt(sum(is5ht==k-1));
@@ -254,8 +255,8 @@ for f = 1:3
             hold on;
             plot([1:length(me)]/1000, me, '-k')
             hold on;
-            me = nanmean(para.cond(2).lfpstm.stlfp.trace(is5ht==k-1,:), 1);
-            sem = nanstd(para.cond(2).lfpstm.stlfp.trace(is5ht==k-1,:), [], 1)...
+            me = nanmean(para.cond(2).lfpstm.lfp.trace(is5ht==k-1,:), 1);
+            sem = nanstd(para.cond(2).lfpstm.lfp.trace(is5ht==k-1,:), [], 1)...
                 /sqrt(sum(is5ht==k-1));
             fill_between([1:length(me)]/1000, me - sem, me + sem, [1 0 0])
             hold on;
@@ -263,31 +264,55 @@ for f = 1:3
             hold on;
             yy = get(gca, 'YLim');
             plot([0 0],yy, '-k')
-            xlim([0 length(me)+1])
+            xlim([0 (length(me)+1)/1000])
             ylim(yy)
             xlabel('time (s)')
             ylabel('LFP')
             title(drugname)
             set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
             
-            subplot(2,2,2+(k-1)*2)
+            subplot(2,3,2+(k-1)*3)
             me = nanmean(para.cond(1).lfpstm.lfp.power(is5ht==k-1,:), 1);
             sem = nanstd(para.cond(1).lfpstm.lfp.power(is5ht==k-1,:), [], 1)...
                 /sqrt(sum(is5ht==k-1));
-            fill_between(xfreq, me - sem, me + sem, zeros(1,3))
+            fill_between(xfreq(xfreq<30)', me(xfreq<30) - sem(xfreq<30), me(xfreq<30) + sem(xfreq<30), zeros(1,3))
             hold on;
-            plot(xfreq, me, '-k')
+            plot(xfreq(xfreq<30), me(xfreq<30), '-k')
             hold on;
             me = nanmean(para.cond(2).lfpstm.lfp.power(is5ht==k-1,:), 1);
             sem = nanstd(para.cond(2).lfpstm.lfp.power(is5ht==k-1,:), [], 1)...
                 /sqrt(sum(is5ht==k-1));
-            fill_between(xfreq, me - sem, me + sem, [1 0 0])
+            fill_between(xfreq(xfreq<30)', me(xfreq<30) - sem(xfreq<30), me(xfreq<30) + sem(xfreq<30), [1 0 0])
             hold on;
-            plot(xfreq, me, '-r')
+            plot(xfreq(xfreq<30), me(xfreq<30), '-r')
             hold on;
             yy = get(gca, 'YLim');
             plot([0 0],yy, '-k')
-            xlim([xfreq(1) xfreq(end)])
+            xlim([xfreq(1) 30])
+            ylim(yy)
+            xlabel('time (s)')
+            ylabel('LFP')
+            title(drugname)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+            
+            subplot(2,3,3+(k-1)*3)
+            me = nanmean(para.cond(1).lfpstm.lfp.power(is5ht==k-1,:), 1);
+            sem = nanstd(para.cond(1).lfpstm.lfp.power(is5ht==k-1,:), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(xfreq(xfreq>30)', me(xfreq>30) - sem(xfreq>30), me(xfreq>30) + sem(xfreq>30), zeros(1,3))
+            hold on;
+            plot(xfreq(xfreq>30), me(xfreq>30), '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.lfp.power(is5ht==k-1,:), 1);
+            sem = nanstd(para.cond(2).lfpstm.lfp.power(is5ht==k-1,:), [], 1)...
+                /sqrt(sum(is5ht==k-1));
+            fill_between(xfreq(xfreq>30)', me(xfreq>30) - sem(xfreq>30), me(xfreq>30) + sem(xfreq>30), [1 0 0])
+            hold on;
+            plot(xfreq(xfreq>30), me(xfreq>30), '-r')
+            hold on;
+            yy = get(gca, 'YLim');
+            plot([0 0],yy, '-k')
+            xlim([30 xfreq(end)])
             ylim(yy)
             xlabel('time (s)')
             ylabel('LFP')
@@ -296,7 +321,7 @@ for f = 1:3
         end
         
     else
-            subplot(1,2,1)
+            subplot(1,3,1)
             me = nanmean(para.cond(1).lfpstm.lfp.trace, 1);
             sem = nanstd(para.cond(1).lfpstm.lfp.trace, [], 1)...
                 /sqrt(lenr);
@@ -320,24 +345,48 @@ for f = 1:3
             title(drugname)
             set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
             
-            subplot(1,2,2)
+            subplot(1,3,2)
             me = nanmean(para.cond(1).lfpstm.lfp.power, 1);
             sem = nanstd(para.cond(1).lfpstm.lfp.power, [], 1)...
                 /sqrt(lenr);
-            fill_between(xfreq, me - sem, me + sem, zeros(1,3))
+            fill_between(xfreq(xfreq<30)', me(xfreq<30) - sem(xfreq<30), me(xfreq<30) + sem(xfreq<30), zeros(1,3))
             hold on;
-            plot(xfreq, me, '-k')
+            plot(xfreq(xfreq<30), me(xfreq<30), '-k')
             hold on;
             me = nanmean(para.cond(2).lfpstm.lfp.power, 1);
             sem = nanstd(para.cond(2).lfpstm.lfp.power, [], 1)...
                 /sqrt(lenr);
-            fill_between(xfreq, me - sem, me + sem, [1 0 0])
+            fill_between(xfreq(xfreq<30)', me(xfreq<30) - sem(xfreq<30), me(xfreq<30) + sem(xfreq<30), [1 0 0])
             hold on;
-            plot(xfreq, me, '-r')
+            plot(xfreq(xfreq<30), me(xfreq<30), '-r')
             hold on;
             yy = get(gca, 'YLim');
             plot([0 0],yy, '-k')
-            xlim([xfreq(1) xfreq(end)])
+            xlim([xfreq(1) 30])
+            ylim(yy)
+            xlabel('time (s)')
+            ylabel('LFP')
+            title(drugname)
+            set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
+            
+            subplot(1,3,3)
+            me = nanmean(para.cond(1).lfpstm.lfp.power, 1);
+            sem = nanstd(para.cond(1).lfpstm.lfp.power, [], 1)...
+                /sqrt(lenr);
+            fill_between(xfreq(xfreq>30)', me(xfreq>30) - sem(xfreq>30), me(xfreq>30) + sem(xfreq>30), zeros(1,3))
+            hold on;
+            plot(xfreq(xfreq>30), me(xfreq>30), '-k')
+            hold on;
+            me = nanmean(para.cond(2).lfpstm.lfp.power, 1);
+            sem = nanstd(para.cond(2).lfpstm.lfp.power, [], 1)...
+                /sqrt(lenr);
+            fill_between(xfreq(xfreq>30)', me(xfreq>30) - sem(xfreq>30), me(xfreq>30) + sem(xfreq>30), [1 0 0])
+            hold on;
+            plot(xfreq(xfreq>30), me(xfreq>30), '-r')
+            hold on;
+            yy = get(gca, 'YLim');
+            plot([0 0],yy, '-k')
+            xlim([30 xfreq(end)])
             ylim(yy)
             xlabel('time (s)')
             ylabel('LFP')
@@ -345,7 +394,7 @@ for f = 1:3
             set(gca, 'box', 'off'); set(gca, 'TickDir', 'out'); axis square
             
     end
-    set(h, 'Name', [fieldname ': stLFP power bands'], 'NumberTitle','off')
+    set(h, 'Name', [fieldname ': LFP driven by stimulus'], 'NumberTitle','off')
 
     % LFP tuning to stimuli =================
     h = figure;

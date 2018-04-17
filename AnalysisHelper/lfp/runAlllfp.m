@@ -1,6 +1,5 @@
 function runAlllfp
  
-% check_FRonLFP
 try
     interaction_lfp_dataset;
 catch
@@ -16,6 +15,7 @@ try
 catch
     disp('error in addLFP')
 end
+check_FRonLFP
 % try
 %     fitHMM_dataset;
 % catch

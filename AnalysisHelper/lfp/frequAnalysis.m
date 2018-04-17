@@ -22,10 +22,12 @@ Fs = 1000;              % sampling frequency
 notchf = [49 51];     % notch filter frequency1
 notchf2 = [99 101];
 notchf3 = [149 151];
+notchf4 = [33 35];
+notchf5 = [66 68];
 notchord = 2;           % filter order
 
 bpf = [1 100];     % bandpass filter cutoff frequency
-bpord = 5;            % filter order
+bpord = 3;            % filter order
 
 % % power spectrum in Chalk et al. time halfbandwidth was 3 and k was 5
 % nw = 2;         % time half bandwidth product
@@ -72,13 +74,17 @@ clearvars k;
 
 [b_notch2,a_notch2] = butter(bpord, notchf2/(Fs/2), 'stop');
 [b_notch3,a_notch3] = butter(bpord, notchf3/(Fs/2), 'stop');
+[b_notch4,a_notch4] = butter(bpord, notchf4/(Fs/2), 'stop');
+[b_notch5,a_notch5] = butter(bpord, notchf5/(Fs/2), 'stop');
 
 % define bandpass filter
 [b_bpass,a_bpass] = butter(bpord, bpf/(Fs/2), 'bandpass');
 % [b_bpass_notch,a_bpass_notch] = butter(bpord/2, notchf/(Fs/2), 'bandpass');
 
 %% perform functions on each trial lfp
-for ind = 1:length(ex.Trials)
+N = length(ex.Trials);
+out = [];
+for ind = 1:N
    
     t_frame = ex.Trials(ind).Start - ex.Trials(ind).TrialStart; % time of frame onsets
     t_lfp = ex.Trials(ind).LFP_ts - t_frame(1) ; % time rel:stimulus onset
@@ -89,13 +95,19 @@ for ind = 1:length(ex.Trials)
     % detrending
     ex.Trials(ind).LFP = locdetrend(ex.Trials(ind).LFP, Fs);
     
-    %% notch filter - filters line noise
-    % remove 50Hz line noise with regression
-    filt1 = rmlinesc(filt1,params,0.01,0,50);
-    
+    %% notch filter - filters line noise    
+    % apply notch filter
     filt2 = filtfilt(b_notch, a_notch, filt1);
     filt2 = filtfilt(b_notch2, a_notch2, filt2);
     filt2 = filtfilt(b_notch3, a_notch3, filt2);
+    filt2 = filtfilt(b_notch4, a_notch4, filt2);
+    filt2 = filtfilt(b_notch5, a_notch5, filt2);
+    
+    % remove 50Hz line noise with regression
+    filt2 = rmlinesc(filt2,params,0.05/N,0,50);
+    filt2 = rmlinesc(filt2,params,0.05/N, 0,34);
+    filt2 = rmlinesc(filt2,params,0.05/N,0,67);
+    
 %     filt2 = filtfilt(b_bpass_notch, a_bpass_notch, filt2);
 
 %     filt2 = ex.Trials(ind).LFP; % for debugging only
@@ -112,6 +124,10 @@ for ind = 1:length(ex.Trials)
     %%% mutli taper function
     [ex.Trials(ind).POW, ex.Trials(ind).FREQ] = ...
         mtspectrumc(LFP_proc(time>0.35), params);
+    if max(ex.Trials(ind).POW(ex.Trials(ind).FREQ > 45 & ex.Trials(ind).FREQ < 55)) > 3.5
+        out = [out, ind];
+    end
+    
     
     % the PSD returned by pmtm is normalized per frequency unit
 %     [ex.Trials(ind).POW, ex.Trials(ind).FREQ] = ...
@@ -133,6 +149,9 @@ end
 
 ex.time = time; % time corresponding to saved lfp signal
 ex.time_stm = time(time >= 0);
+
+% remove trials with too much noise
+ex.Trials(out) = [];
 end
 
 
