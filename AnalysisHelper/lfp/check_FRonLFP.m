@@ -45,10 +45,14 @@ for unit_i = 1:length(ex_fnames)
    ex = filterLFP(ex);
    
    % LFP analysis
-   [fr_lfp.session(unit_i).results] = LFPbyStm(ex);
    fr_lfp.session(unit_i).fname = ex_fnames{unit_i};
-   
-   disp(['Unit ' num2str(unit_i) ' was processed.'])
+   try
+       [fr_lfp.session(unit_i).results] = LFPbyStm(ex);      
+
+       disp(['Unit ' num2str(unit_i) ' was processed.'])
+   catch
+       disp(['Unit ' num2str(unit_i) ' had an error.'])
+   end
 %    [stimdim, stimvals] = getStimParam(ex); %<- stimulus dimension and values
 %    blank_i =  stimvals > 1;
 %    ex_temp = ex;

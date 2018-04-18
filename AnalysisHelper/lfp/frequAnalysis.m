@@ -22,8 +22,8 @@ Fs = 1000;              % sampling frequency
 notchf = [49 51];     % notch filter frequency1
 notchf2 = [99 101];
 notchf3 = [149 151];
-notchf4 = [33 35];
-notchf5 = [66 68];
+% notchf4 = [33 35];
+% notchf5 = [66 68];
 notchord = 2;           % filter order
 
 bpf = [1 100];     % bandpass filter cutoff frequency
@@ -74,8 +74,8 @@ clearvars k;
 
 [b_notch2,a_notch2] = butter(bpord, notchf2/(Fs/2), 'stop');
 [b_notch3,a_notch3] = butter(bpord, notchf3/(Fs/2), 'stop');
-[b_notch4,a_notch4] = butter(bpord, notchf4/(Fs/2), 'stop');
-[b_notch5,a_notch5] = butter(bpord, notchf5/(Fs/2), 'stop');
+% [b_notch4,a_notch4] = butter(bpord, notchf4/(Fs/2), 'stop');
+% [b_notch5,a_notch5] = butter(bpord, notchf5/(Fs/2), 'stop');
 
 % define bandpass filter
 [b_bpass,a_bpass] = butter(bpord, bpf/(Fs/2), 'bandpass');
@@ -83,7 +83,7 @@ clearvars k;
 
 %% perform functions on each trial lfp
 N = length(ex.Trials);
-out = [];
+ln = zeros(1, N);
 for ind = 1:N
    
     t_frame = ex.Trials(ind).Start - ex.Trials(ind).TrialStart; % time of frame onsets
@@ -100,13 +100,13 @@ for ind = 1:N
     filt2 = filtfilt(b_notch, a_notch, filt1);
     filt2 = filtfilt(b_notch2, a_notch2, filt2);
     filt2 = filtfilt(b_notch3, a_notch3, filt2);
-    filt2 = filtfilt(b_notch4, a_notch4, filt2);
-    filt2 = filtfilt(b_notch5, a_notch5, filt2);
+%     filt2 = filtfilt(b_notch4, a_notch4, filt2);
+%     filt2 = filtfilt(b_notch5, a_notch5, filt2);
     
     % remove 50Hz line noise with regression
     filt2 = rmlinesc(filt2,params,0.05/N,0,50);
-    filt2 = rmlinesc(filt2,params,0.05/N, 0,34);
-    filt2 = rmlinesc(filt2,params,0.05/N,0,67);
+%     filt2 = rmlinesc(filt2,params,0.05/N, 0,34);
+%     filt2 = rmlinesc(filt2,params,0.05/N,0,67);
     
 %     filt2 = filtfilt(b_bpass_notch, a_bpass_notch, filt2);
 
@@ -124,11 +124,8 @@ for ind = 1:N
     %%% mutli taper function
     [ex.Trials(ind).POW, ex.Trials(ind).FREQ] = ...
         mtspectrumc(LFP_proc(time>0.35), params);
-    if max(ex.Trials(ind).POW(ex.Trials(ind).FREQ > 45 & ex.Trials(ind).FREQ < 55)) > 3.5
-        out = [out, ind];
-    end
-    
-    
+    ln(ind) = max(ex.Trials(ind).POW(ex.Trials(ind).FREQ > 49 & ex.Trials(ind).FREQ < 51));
+        
     % the PSD returned by pmtm is normalized per frequency unit
 %     [ex.Trials(ind).POW, ex.Trials(ind).FREQ] = ...
 %         pmtm( LFP_proc(time>=0), nw, nfft, Fs);
@@ -151,7 +148,7 @@ ex.time = time; % time corresponding to saved lfp signal
 ex.time_stm = time(time >= 0);
 
 % remove trials with too much noise
-ex.Trials(out) = [];
+ex.Trials(ln >= 3*std(ln)) = [];
 end
 
 
