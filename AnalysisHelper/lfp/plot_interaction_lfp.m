@@ -189,8 +189,13 @@ for w = 1:celltype
         for c = 1:l
             figure(f);
             subplot(3,4,c)
+%             if c==12
+%                 a = para.ps_lfp_corr(drugtype==d-1, c+l)
+%                 b = para.ps_lfp_corr(drugtype==d-1, c)
+%             end
             unity_scatter(para.ps_lfp_corr(drugtype==d-1, c+l), ...
                 para.ps_lfp_corr(drugtype==d-1, c))
+            set(gcf, 'Name', [prefix ': correlation between ps and lfp'], 'NumberTitle', 'off')
             switch c
                 case 1
                     titlelabel = 'delta';
@@ -243,7 +248,7 @@ for w = 1:celltype
             xlabel({'pupil size', '(small)'})      
             ylabel({'pupil size', '(large)'})   
         end  
-        set(gcf, 'Name', [prefix ': correlation & interaction between ps and lfp'], 'NumberTitle', 'off')
+        set(gcf, 'Name', [prefix ': interaction between ps and lfp'], 'NumberTitle', 'off')
         
         if d==1
             ff = f;
@@ -265,7 +270,7 @@ for w = 1:celltype
         if d==1
             title('stimulus driven LFP')
         end
-            
+        set(gcf, 'Name', [prefix ': stimulus driven LFP'], 'NumberTitle', 'off')
         f = f + 3;
     end
 end

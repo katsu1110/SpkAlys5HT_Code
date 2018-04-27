@@ -105,11 +105,13 @@ for k = 1:2
     freq = para.cond(k).lfpstm.stlfp.freq(end,:);
     subplot(1,3,2)
     plot(freq(freq<30), para.cond(k).lfpstm.stlfp.pow(end,freq<30), '-','color',col);
+    set(gca, 'YScale', 'log')
     hold on;
     
     % power and frequency (>= 30Hz)
     subplot(1,3,3)
     plot(freq(freq>=30), para.cond(k).lfpstm.stlfp.pow(end,freq>=30), '-','color',col);
+    set(gca, 'YScale', 'log')
     hold on;
 end
 
@@ -148,43 +150,75 @@ h = figure;
 for k = 1:2       
     lenv = length(para.cond(k).lfpstm.stm.vals);
     col = lines(lenv);
-    for s = 1:lenv
+    if lenv==1
+        if k==1
+            lc = 'k';
+        else
+            lc = 'r';
+        end
+          
         % LFP traces
-        subplot(2,2,1+2*(k-1))
-%         fill_between(para.cond(k).lfpstm.ts, ...
-%             para.cond(k).lfpstm.lfp_stm.mean(s,:) - para.cond(k).lfpstm.lfp_stm.sem(s,:),...
-%             para.cond(k).lfpstm.lfp_stm.mean(s,:) + para.cond(k).lfpstm.lfp_stm.sem(s,:),...
-%             col(s,:))
-%         hold on;
-        plot(para.cond(k).lfpstm.ts_stm, para.cond(k).lfpstm.lfp_stm.mean(s,:), '-', 'color', col(s,:))
+        subplot(2,1,1)
+        plot(para.cond(k).lfpstm.ts, para.cond(k).lfpstm.lfp_stm.mean, '-', 'color', lc)
         hold on;
+        yy = get(gca, 'YLim');
+        plot([0 0], yy, '-k')
+        if k==2
+            xlabel('time (s)')
+        end
+        message = sprintf([name{k} '\n LFP']);
+        xlim([-0.2 max(para.cond(k).lfpstm.ts(~isnan(para.cond(k).lfpstm.ts)))])
+        ylabel(message)
+        legend('baseline', 'drug', 'location', 'southeast')
+        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
 
         % power
-        subplot(2,2,2+2*(k-1))
-        plot(para.cond(k).lfpstm.f, para.cond(k).lfpstm.pow_stm.mean(s,:), '-', 'color', col(s,:))
+        subplot(2,1,2)
+        plot(para.cond(k).lfpstm.f, para.cond(k).lfpstm.pow_stm.mean, '-', 'color', lc)
+        set(gca, 'YScale', 'log')
         hold on;
+        yy = get(gca, 'YLim');
+        plot([0 0], yy, '-k')
+        if k==2
+            xlabel('frequency (Hz)')
+        end
+        ylabel('power')
+        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
+    else
+        for s = 1:lenv
+            % LFP traces
+            subplot(2,2,1+2*(k-1))
+            plot(para.cond(k).lfpstm.ts, para.cond(k).lfpstm.lfp_stm.mean(s,:), '-', 'color', col(s,:))
+            hold on;
+
+            % power
+            subplot(2,2,2+2*(k-1))
+            plot(para.cond(k).lfpstm.f, para.cond(k).lfpstm.pow_stm.mean(s,:), '-', 'color', col(s,:))
+            set(gca, 'YScale', 'log')
+            hold on;
+        end
+        % cosmetics
+        subplot(2,2,1+2*(k-1))
+        yy = get(gca, 'YLim');
+        plot([0 0], yy, '-k')
+        if k==2
+            xlabel('time (s)')
+        end
+        message = sprintf([name{k} '\n LFP']);
+        xlim([-0.2 max(para.cond(k).lfpstm.ts(~isnan(para.cond(k).lfpstm.ts)))])
+        ylabel(message)
+        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
+
+        subplot(2,2,2+2*(k-1))
+        yy = get(gca, 'YLim');
+        plot([0 0], yy, '-k')
+        if k==2
+            xlabel('frequency (Hz)')
+        end
+        ylabel('power')
+        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
     end
 
-    % cosmetics
-    subplot(2,2,1+2*(k-1))
-    yy = get(gca, 'YLim');
-    plot([0 0], yy, '-k')
-    if k==2
-        xlabel('time (s)')
-    end
-    message = sprintf([name{k} '\n LFP']);
-    xlim([-0.2 max(para.cond(k).lfpstm.ts(~isnan(para.cond(k).lfpstm.ts)))])
-    ylabel(message)
-    set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
-
-    subplot(2,2,2+2*(k-1))
-    yy = get(gca, 'YLim');
-    plot([0 0], yy, '-k')
-    if k==2
-        xlabel('frequency (Hz)')
-    end
-    ylabel('power')
-    set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
 end
 
 figname = [name{1}, 'VS', name{2}, '_' 'LFPandPOW_' prefix];
@@ -245,7 +279,7 @@ for b = 1:5
     subplot(2,5,b+5)
     plot(para.cond(1).lfpstm.stm.vals(para.cond(1).lfpstm.stm.vals < 1000), ...
         para.cond(1).lfpstm.lfp_stm_wave(b).pow(para.cond(1).lfpstm.stm.vals < 1000), ...
-        '-or')
+        '-ok')
     hold on;
     plot(para.cond(2).lfpstm.stm.vals(para.cond(2).lfpstm.stm.vals < 1000), ...
         para.cond(2).lfpstm.lfp_stm_wave(b).pow(para.cond(2).lfpstm.stm.vals < 1000), ...
@@ -288,7 +322,7 @@ for b = 1:5
     subplot(1,5,b)
     plot(para.cond(1).lfpstm.stm.vals(para.cond(1).lfpstm.stm.vals < 1000), ...
         para.cond(1).lfpstm.stlfp.band(para.cond(1).lfpstm.stm.vals < 1000, b), ...
-        '-or')
+        '-ok')
     hold on;
     plot(para.cond(2).lfpstm.stm.vals(para.cond(2).lfpstm.stm.vals < 1000), ...
         para.cond(2).lfpstm.stlfp.band(para.cond(2).lfpstm.stm.vals < 1000, b), ...

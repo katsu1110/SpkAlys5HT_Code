@@ -41,13 +41,19 @@ for i = 1:lenv
     [S{i},t{i},f{i}] = mtspecgramc(lfp_cut, [0.5 0.05], params);
     t{i} = t{i} + ex.Trials(end).LFP_prepro_time(1);
     
+    % firing rate (including transient response by stimulus onset)
+    [~, spkc]  = getSpks(trials, [0 0]);
+    para.stm.fr(i) = sum(spkc)/(length(trials)/ex.fix.duration);
+    
     % spike-LFP coherency
-    spk = getSpks(trials);
+    spk = getSpks(trials); % fr without transient response
     spk = spk(mean(isnan(lfp),2)==0);
     [C{i},phi{i},S12{i},S1{i},S2{i},fg{i}]= coherencycpt(lfp_cut, cell2struct(spk, 'spk', 1), params);
     
     % LFP averaged trials across the same stimulus
-    para.lfp_stm.mean(i,:) = mean(lfp, 1);
+    lfpfull = vertcat(trials.LFP_prepro);
+    lfpfull = lfpfull(mean(isnan(lfpfull), 2)==0, :);
+    para.lfp_stm.mean(i,:) = mean(lfpfull, 1);
 
     % delta band
     para.lfp_stm_wave(1).mean(i,:) = nanmean(vertcat(trials.lfp_delta_tc), 1);
@@ -85,6 +91,7 @@ for i = 1:lenv
 end
 
 % structure
+para.ntr = length(ex.Trials);
 para.stm.param = stimparam;
 para.stm.vals = vals;
 para.ts = ex.time;

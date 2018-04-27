@@ -50,9 +50,9 @@ if exinfo.isRC
     end
     % gain or additive change (normalized by large ps max)
     m = max([pslfp.rcsub(4).results.stm.peak]);
-    pslfp.type2reg.base = gmregress([pslfp.rcsub(3).results.stm.peak]/m, [pslfp.rcsub(4).results.stm.peak]/m);
+    pslfp.type2reg.base = gmregress([pslfp.rcsub(3).results.stm.peak]/m, [pslfp.rcsub(1).results.stm.peak]/m);
     m = max([pslfp.rcsub(2).results.stm.peak]);
-    pslfp.type2reg.drug = gmregress([pslfp.rcsub(1).results.stm.peak]/m, [pslfp.rcsub(2).results.stm.peak]/m);
+    pslfp.type2reg.drug = gmregress([pslfp.rcsub(4).results.stm.peak]/m, [pslfp.rcsub(2).results.stm.peak]/m);
 end
 
 

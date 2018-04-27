@@ -46,7 +46,6 @@ params = define_params;
 accstlfp = []; 
 for t = 1:length(ex.Trials)
     [stlfp, nspk] = getstlfp4trial(ex.Trials(t), wnd);
- 
     % trial-by-trial stLFP metrics
     ex.Trials(t).nspk = length(nspk);
     ex.Trials(t).mean_stLFP = nanmean(stlfp, 1);
@@ -60,13 +59,14 @@ for t = 1:length(ex.Trials)
     
     % for trial-average
 %     accstlfp = [accstlfp; ex.Trials(t).mean_stLFP];
-    accstlfp = [accstlfp; stlfp];
+        accstlfp = [accstlfp; stlfp];
 end
 
 %%% compute statistics
 accspk = sum([ex.Trials.nspk]);
 % avg_stlfp = nanmean(accstlfp, 1)/accspk; % average of the spike triggered lfp (stLFP)
-avg_stlfp = nanmean(accstlfp, 1); % average of the spike triggered lfp (stLFP)
+avg_stlfp = nansum(accstlfp, 1)/accspk; % average of the spike triggered lfp (stLFP)
+% avg_stlfp = avg_stlfp - mean(avg_stlfp);
 sem_stlfp = nanstd(accstlfp, 0, 1)./sqrt(size(accstlfp,1)); % SEM of the stLFP
 
 % % baseline correction

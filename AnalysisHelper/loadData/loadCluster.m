@@ -91,7 +91,10 @@ if ~isnan(ocul); ex.Trials = ex.Trials([ex.Trials.me] == ocul); end
 
 %% if the combining of LFP and spike ex was successfull, preprocess the LFP
 % signal immediately
-if isfield(ex.Trials, 'LFP'); ex = frequAnalysis(ex, varargin{:}); end
+if isfield(ex.Trials, 'LFP')
+    ex = frequAnalysis(ex, varargin{:}); 
+%     ex = preprocessing_explore(ex);
+end
 
 
 
