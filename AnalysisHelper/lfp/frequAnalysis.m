@@ -74,21 +74,26 @@ clearvars k;
 % [b_notch2,a_notch2] = butter(bpord, notchf2/(Fs/2), 'stop');
 % [b_notch3,a_notch3] = butter(bpord, notchf3/(Fs/2), 'stop');
 d = designfilt('bandstopiir','FilterOrder',2, ...
-               'HalfPowerFrequency1',49,'HalfPowerFrequency2',51, ...
+               'HalfPowerFrequency1',49.5,'HalfPowerFrequency2',50.5, ...
                'DesignMethod','butter','SampleRate',Fs);
            
 % % define bandpass filter
 % [b_bpass,a_bpass] = butter(bpord, bpf/(Fs/2), 'bandpass');
 % [b_bpass_notch,a_bpass_notch] = butter(bpord/2, notchf/(Fs/2), 'bandpass');
 
+% timing information
+comp = find(abs([ex.Trials.Reward]) > 0, 1, 'first');
+t_frame = ex.Trials(comp).Start - ex.Trials(comp).TrialStart; % time of frame onsets
+t_lfp = ex.Trials(comp).LFP_ts - t_frame(1) ; % time rel:stimulus onset
+time = t_frame(1)+t_off : 1/Fs : t_frame(1)+stimdur;
+time = time - t_frame(1);
+
 %% perform functions on each trial lfp
 N = length(ex.Trials);
 on = zeros(1, N); % overall noise
+v = [];
+period = {[-0.2, 0], [0.05, 0.3], [0.35, time(end)]};
 for ind = 1:N
-   
-    t_frame = ex.Trials(ind).Start - ex.Trials(ind).TrialStart; % time of frame onsets
-    t_lfp = ex.Trials(ind).LFP_ts - t_frame(1) ; % time rel:stimulus onset
-
 %     % bandpass filter
 %     filt1 = filtfilt(b_bpass, a_bpass, ex.Trials(ind).LFP);        
         filt1 = ex.Trials(ind).LFP;
@@ -107,38 +112,48 @@ for ind = 1:N
     % detrending
 %     filt2 = locdetrend(filt2, Fs);
 
-    %%% reduce the lfp signal to the period of stimulus presentation
-    time = t_frame(1)+t_off : 1/Fs : t_frame(1)+stimdur;
-    time = time - t_frame(1);
+    % reduce the lfp signal to the period of stimulus presentation
     LFP_proc = interp1( t_lfp, filt2, time );
     
     % we are only interested in the stimulus induced fluctuations
-    LFP_proc = LFP_proc - nanmean(LFP_proc(time <= 0));
+%     LFP_proc = LFP_proc - nanmean(LFP_proc(time <= 0));
+    v = [v; LFP_proc];
     
-    %%% mutli taper function
+    % mutli taper function
     [ex.Trials(ind).POW, ex.Trials(ind).FREQ] = ...
-        mtspectrumc(LFP_proc(time>0.35), params);
+        mtspectrumc(LFP_proc, params);
     on(ind) = mean(ex.Trials(ind).POW);
      
     % the preprocessed lfp and the corresponding time vector
     ex.Trials(ind).LFP_prepro = LFP_proc; 
     ex.Trials(ind).LFP_prepro_time = time;
-    
-    % the preprocessed lfp and the corresponding time vector during
-    % stimulus presentation
-    ex.Trials(ind).LFP_prepro_stm = LFP_proc(time >= 0); 
-    ex.Trials(ind).LFP_prepro_stmtime = time(time >= 0);
-
 end
 
 ex.time = time; % time corresponding to saved lfp signal
-ex.time_stm = time(time >= 0);
+ex.period = period;
 
 % remove trials with too much noise
-ex.Trials(on > 3*std(on)) = [];
+ex.Trials(on > 4*std(on)) = [];
+v(on > 4*std(on), :) = [];
+ 
+% z-scoring
+me = mean(v(:));
+sd = std(v(:));
+for i = 1:length(ex.Trials)
+    % z-scoring
+    ex.Trials(i).LFP_z = (ex.Trials(i).LFP_prepro - me)/sd;
+    
+    % baseline, stimulus evoked, sustained
+    for u = 1:3
+        % LFP trace
+        ex.Trials(u).period(u).LFP_z_time = time(time>=period{u}(1) & time <= period{u}(2));
+        ex.Trials(i).period(u).LFP_z = ex.Trials(i).LFP_z(time>=period{u}(1) & time <= period{u}(2));
+         
+        % multi taper function
+        [ex.Trials(ind).period(u).POW, ex.Trials(ind).period(u).FREQ] = ...
+            mtspectrumc(ex.Trials(i).period(u).LFP_z, params);
+    end
 end
-
-
 
 
 function avgstimdur = getStimDur(ex)
@@ -153,6 +168,3 @@ stimdur = cellfun(@(x) x(end)+mean(diff(x)) - x(1), t_frame);
 
 % also round the average stimulus duration to 2 digits precision
 avgstimdur = round(mean(stimdur), 2);
-
-end
-

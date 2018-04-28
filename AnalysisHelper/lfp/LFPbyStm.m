@@ -10,103 +10,97 @@ function [para] = LFPbyStm(ex)
 lenv = length(vals);
 
 % initialization ==================
-fidx = ex.Trials(end).FREQ>= 0 & ex.Trials(end).FREQ<=100;
-freq = ex.Trials(end).FREQ(fidx);
-lenp = length(ex.Trials(end).POW);
-pow_avg = zeros(lenv, lenp);
-
-S = cell(1, lenv);
-t = cell(1, lenv);
-f = cell(1, lenv);
-params = define_params;
-
-C = cell(1, lenv);
-phi = cell(1, lenv);
-S12 = cell(1, lenv);
-S1 = cell(1, lenv);
-S2 = cell(1, lenv);
-fg = cell(1, lenv);
-
-wnd = 0.1; % was 0.3
-wndrange = -wnd:1/1000:wnd;
-% ampwindow = wndrange > -0.015 &  wndrange  < 0.015;
-ampwindow = wndrange > -wnd &  wndrange  < wnd;
-for i = 1:lenv    
-    trials = ex.Trials([ex.Trials.(stimparam)] == vals(i));
-
-    % spectrogram
-    lfp = vertcat(trials.LFP_prepro_stm);
-    lfp = lfp(mean(isnan(lfp), 2)==0, :);
-    lfp_cut = lfp(:, 351:end)'; % exclude putative stimulus driven component
-    [S{i},t{i},f{i}] = mtspecgramc(lfp_cut, [0.5 0.05], params);
-    t{i} = t{i} + ex.Trials(end).LFP_prepro_time(1);
-    
-    % firing rate (including transient response by stimulus onset)
-    [~, spkc]  = getSpks(trials, [0 0]);
-    para.stm.fr(i) = sum(spkc)/(length(trials)/ex.fix.duration);
-    
-    % spike-LFP coherency
-    spk = getSpks(trials); % fr without transient response
-    spk = spk(mean(isnan(lfp),2)==0);
-    [C{i},phi{i},S12{i},S1{i},S2{i},fg{i}]= coherencycpt(lfp_cut, cell2struct(spk, 'spk', 1), params);
-    
-    % LFP averaged trials across the same stimulus
-    lfpfull = vertcat(trials.LFP_prepro);
-    lfpfull = lfpfull(mean(isnan(lfpfull), 2)==0, :);
-    para.lfp_stm.mean(i,:) = mean(lfpfull, 1);
-
-    % delta band
-    para.lfp_stm_wave(1).mean(i,:) = nanmean(vertcat(trials.lfp_delta_tc), 1);
-    para.lfp_stm_wave(1).pow(i) = nanmean([trials.lfp_delta_pow]);
-    
-    % theta band
-    para.lfp_stm_wave(2).mean(i,:) = nanmean(vertcat(trials.lfp_theta_tc), 1);
-    para.lfp_stm_wave(2).pow(i) = nanmean([trials.lfp_theta_pow]);
-
-    % alpha band
-    para.lfp_stm_wave(3).mean(i,:) = nanmean(vertcat(trials.lfp_alpha_tc), 1);
-    para.lfp_stm_wave(3).pow(i) = nanmean([trials.lfp_alpha_pow]);
-
-    % beta band
-    para.lfp_stm_wave(4).mean(i,:) = nanmean(vertcat(trials.lfp_beta_tc), 1);
-    para.lfp_stm_wave(4).pow(i) = nanmean([trials.lfp_beta_pow]);
-
-    % gamma band
-    para.lfp_stm_wave(5).mean(i,:) = nanmean(vertcat(trials.lfp_gamma_tc), 1);
-    para.lfp_stm_wave(5).pow(i) = nanmean([trials.lfp_gamma_pow]);
-    
-    % averaged power across the same stimulus
-    pow_avg(i,:) = nanmean(horzcat(trials.POW),2)';
-    
-    % spike-triggered LFP
-    ex_temp = ex;
-    ex_temp.Trials = trials;
-     [para.stlfp.avg_stlfp(i,:), para.stlfp.sem_stlfp(i,:), para.stlfp.accspk(i), ...
-            para.stlfp.pow(i,:), para.stlfp.freq(i,:), para.stlfp.band(i,:)] = spktriglfp(ex_temp);
-%      % CL's correction
-%        para.stlfp.avg_stlfp(i,:) = para.stlfp.avg_stlfp(i,:) ...
-%            - mean(para.stlfp.avg_stlfp(i, wndrange < -0.06));
-       [para.stlfp.peak_stlfp(i), para.stlfp.t_peak_stlfp(i)] =  ...
-           getPeakAmplitude(para.stlfp.avg_stlfp(i, ampwindow), wndrange(ampwindow));       
-end
-
+comp = find(abs([ex.Trials.Reward])>0, 1, 'first');
+fidx = ex.Trials(comp).FREQ>= 0 & ex.Trials(comp).FREQ<=100;
+freq = ex.Trials(comp).FREQ(fidx);
+                    
 % structure
-para.ntr = length(ex.Trials);
 para.stm.param = stimparam;
 para.stm.vals = vals;
 para.ts = ex.time;
-para.ts_cut = ex.time_cut;
-para.ts_stm = ex.time_stm;
 para.f = freq';
-para.params = params;
-para.spectrogram.S = S;
-para.spectrogram.t = t;
-para.spectrogram.f = f;
-para.coherence.C = C;
-para.coherence.phi = phi;
-para.coherence.S12 = S12;
-para.coherence.S1 = S1;
-para.coherence.S2 = S2;
-para.coherence.f = fg;
-para.pow_stm.mean = pow_avg(:,fidx);
+para.period = ex.period;
+para.ts = ex.time;
+para.ntr = length(ex.Trials);
+para.bands = {'delta', 'theta', 'alpha', 'beta', 'gamma'};
+para.range = {[0,4], [4, 7], [8, 13], [14, 29], [30, 80]};
+lenb = length(para.bands);
+para.params = define_params;
 
+wnd = 0.1; % was 0.3
+[~, zerot] = min(abs(-wnd:1/1000:wnd));
+% ampwindow = wndrange > -wnd &  wndrange  < wnd;
+for i = 1:lenv    
+    % trials with the unique stimulus
+    trials = ex.Trials([ex.Trials.(stimparam)] == vals(i));
+    lentr = length(trials);
+    
+    % firing rate per trial
+    [~, spkc]  = getSpks(trials, [0 0]);
+    para.stm.fr(i) = sum(spkc)/(lentr/ex.fix.duration);
+
+    % LFP trace averaged trials across the same stimulus
+    lfpfull = vertcat(trials.LFP_z);
+    lfpfull = lfpfull(mean(isnan(lfpfull), 2)==0, :);
+    para.lfp_stm.mean(i,:) = mean(lfpfull, 1);
+    para.lfp_stm.se(i,:) = std(lfpfull, [], 1)/sqrt(lentr);
+
+     % baseline, stimulus evoked, sustained
+    for u = 1:3
+        peri = trials.period(u);
+        
+        % spectrogram
+        lfp = vertcat(peri.LFP_z);
+        lfp = lfp(mean(isnan(lfp), 2)==0, :);
+        [para.period(u).spectrogram.S{i}, para.period(u).spectrogram.t{i}, para.period(u).spectrogram.f{i}] = ...
+            mtspecgramc(lfp, [0.5 0.05], para.params);
+%         t{i} = t{i} + ex.Trials(end).LFP_prepro_time(1);
+        
+        % spike-LFP coherency
+        spk = getSpks(trials, [ex.period(1), 2 - ex.period(2)]); 
+        spk = spk(mean(isnan(lfp),2)==0);
+        [para.period(u).coherence.C{i}, para.period(u).coherence.phi{i}, ...
+            para.period(u).coherence.S12{i}, para.period(u).coherence.S1{i}, ...
+            para.period(u).coherence.S2{i}, para.period(u).coherence.fg{i}]= ...
+            coherencycpt(lfp, cell2struct(spk, 'spk', 1), para.params);
+
+        % frequency band
+        for b = 1:lenb
+            para.period(u).lfp_stm_wave(b).mean(i,:) = nanmean(vertcat(peri.(['lfp_' para.bands{b} '_tc'])), 1);
+            para.period(u).lfp_stm_wave(b).pow(i) = nanmean([peri.(['lfp_' para.bands{b} '_pow'])]);
+        end
+        
+        % averaged power across the same stimulus
+        para.period(u).pow_avg(i,:) = nanmean(horzcat(peri.POW),2)';
+
+        % spike-triggered LFP
+        para.period(u).stlfp.mat = [];
+        %      % CL's correction
+    %        para.stlfp.avg_stlfp(i,:) = para.stlfp.avg_stlfp(i,:) ...
+    %            - mean(para.stlfp.avg_stlfp(i, wndrange < -0.06));
+        
+    end
+    
+    % spike-triggered LFP
+    for n = 1:lentr
+        for u = 1:3
+            stlfp = getSTA(trials(n).period(u).LFP_z, trials(n).period(u).LFP_z_time, ...
+                    trials(n).Spikes(time>=para.period{u}(1) & time <= para.period{u}(2)), wnd);                
+            para.period(u).stlfp.mat = [para.period(u).stlfp.mat; stlfp];
+        end
+    end
+    for u = 1:3
+        para.period(u).stlfp.nspk = size(para.period(u).stlfp.mat, 1);
+        para.period(u).avg_stlfp = sum(para.period(u).stlfp.mat, 1)/para.period(u).stlfp.nspk;
+        para.period(u).sem_stlfp = nanstd(para.period(u).stlfp.mat, 1)...
+            /sqrt(para.period(u).stlfp.nspk);
+        para.period(u).stlfp.zeroamp = para.period(u).stlfp.avg_stlfp(zerot);
+        [para.period(u).stlfp.POW, para.period(u).stlfp.FREQ] =...
+            mtspectrumc(para.period(u).avg_stlfp, para.params);
+        f = para.period(u).stlfp.FREQ;
+        for b = 1:lenb
+            para.period(u).stlfp.(['pow_' para.bands{b}]) = ...
+                nanmean(para.period(u).stlfp.POW(f >= para.range{b}(1) & f <= para.range{b}(2)));
+        end
+    end
+end

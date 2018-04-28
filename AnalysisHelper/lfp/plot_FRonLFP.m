@@ -87,13 +87,12 @@ for i = 1:lens
         % LFP & stLFP traces
         lenstm = length(fr_lfp.session(i).results.stm.vals(2:end)); 
         col = jet(lenstm);
-        l = zeros(1, lenstm);
         pl = cell(1,2);
         leg = cell(1, lenstm);
         for k = 1:lenstm
             figure(4);
             subplot(2,5,c)
-            pl{1}(k) = plot(fr_lfp.session(i).results.ts_stm, ...
+            pl{1}(k) = plot(fr_lfp.session(i).results.ts, ...
             fr_lfp.session(i).results.lfp_stm.mean(k+1,:), 'color', col(k,:));
             hold on;
             figure(5);
@@ -114,10 +113,14 @@ for i = 1:lens
             legend('boxoff')            
             title(fr_lfp.session(i).results.ntr)
             set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
+            yy = get(gca, 'YLim');
+            plot([0 0], yy, ':k')
+            if ff==4
+                xlim([fr_lfp.session(i).results.ts(1) fr_lfp.session(i).results.ts(end)])
+            elseif ff==5
+                xlim([-wnd wnd])
+            end
         end
-        yy = get(gca, 'YLim');
-        plot([0 0], yy, ':k')
-        xlim([-wnd wnd])
         
         if ismember(i, 5)
             ylabel('stLFP (uV)')

@@ -30,7 +30,7 @@ while k<=length(varargin)
         case 'time'
             wnd = varargin{k+1};
         case 'plot'
-            p_flag = true;
+            p_flag = true;  
     end
     k=k+1;
 end
@@ -65,7 +65,7 @@ end
 %%% compute statistics
 accspk = sum([ex.Trials.nspk]);
 % avg_stlfp = nanmean(accstlfp, 1)/accspk; % average of the spike triggered lfp (stLFP)
-avg_stlfp = nansum(accstlfp, 1)/accspk; % average of the spike triggered lfp (stLFP)
+avg_stlfp = nanmean(accstlfp, 1); % average of the spike triggered lfp (stLFP)
 % avg_stlfp = avg_stlfp - mean(avg_stlfp);
 sem_stlfp = nanstd(accstlfp, 0, 1)./sqrt(size(accstlfp,1)); % SEM of the stLFP
 
@@ -100,14 +100,12 @@ if p_flag
     
 end
 
-end
-
 
 %% Helper
 function [stlfp, spikes] = getstlfp4trial(trial, wnd)
 % lfp at spk +/- window wnd 
 
-spikes = getSpks(trial); % spikes within the stimulus presentation time
+spikes = getSpks(trial, [-0.2, 2]); % spikes within the stimulus presentation time
 spikes = spikes{1};
 stlfp = nan(length(spikes), length(-wnd:1/1000:wnd));
 
@@ -124,16 +122,12 @@ for i = 1:length(spikes)
     end
 end
 
-end
-
-
 function [delta, theta, alpha, beta, gamma] = pow2band(freq, pow)
 delta = nanmean(pow(freq > 0 & freq < 4));
 theta = nanmean(pow(freq >= 4 & freq < 8));
 alpha = nanmean(pow(freq >= 8 & freq <=13));
 beta = nanmean(pow(freq > 13 & freq < 30));
 gamma = nanmean(pow(freq >= 30 & freq <= 80));
-end
 
 %% Callback Function
 function PlotAllSTA(source, ~,time, sta)
@@ -153,4 +147,3 @@ ylabel('\muV');
 
 title(sprintf('single spike triggered LFP signals, #spikes %1d', nspikes));
 crossl
-end
