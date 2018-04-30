@@ -42,7 +42,7 @@ for unit_i = 1:length(ex_fnames)
    ex = loadCluster(ex_fnames{unit_i}, 'loadlfp',1);
    
    % filter LFP
-   ex = filterLFP(ex, 1000);
+   ex = filterLFP(ex);
    
    % LFP analysis
    fr_lfp.session(unit_i).fname = ex_fnames{unit_i};

@@ -24,47 +24,47 @@ load([main_dir 'Data/fr_lfp.mat'])
 %% visualization
 % stLFP in each session
 lens = length([fr_lfp.session]);
-wnd = 0.1; % was 0.3
+wnd = fr_lfp.session(1).results.wnd; % was 0.3
 rho = nan(lens, 2);
 c = 0;
 for i = 1:lens
     if ~isempty(fr_lfp.session(i).results)
         c = c + 1;
-        % stLFP amplitude vs co in each unit
-        figure(1);
-        subplot(2,5,c)
-        plot(fr_lfp.session(i).results.stm.vals(2:end), ...
-            fr_lfp.session(i).results.stlfp.peak_stlfp(2:end), ...
-            ':ok')
-        rho(i,1) = corr(log(fr_lfp.session(i).results.stm.vals(2:end))',...
-            fr_lfp.session(i).results.stlfp.peak_stlfp(2:end)', 'type', 'Spearman');
-        if ismember(i, 5)
-            ylabel('peak stLFP amplitude (uV)')
-        end
-        if ismember(i, 10)
-            xlabel('contrast')
-        end
-        title(fr_lfp.session(i).results.ntr)
-        set(gca, 'XScale', 'log')
-        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
-
-        % stLFP peak time vs co in each unit
-        figure(2);
-        subplot(2,5,c)
-        plot(fr_lfp.session(i).results.stm.vals(2:end), ...
-            fr_lfp.session(i).results.stlfp.t_peak_stlfp(2:end), ...
-            ':ok')
-        rho(i,2) = corr(log(fr_lfp.session(i).results.stm.vals(2:end))',...
-            fr_lfp.session(i).results.stlfp.t_peak_stlfp(2:end)', 'type', 'Spearman');
-        if ismember(i, 5)
-            ylabel('time of peak stLFP (s)')
-        end
-        if ismember(i, 10)
-            xlabel('contrast')
-        end
-        title(fr_lfp.session(i).results.ntr)
-        set(gca, 'XScale', 'log')
-        set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
+%         % stLFP amplitude vs co in each unit
+%         figure(1);
+%         subplot(2,5,c)
+%         plot(fr_lfp.session(i).results.stm.vals(2:end), ...
+%             fr_lfp.session(i).results.stlfp.peak_stlfp(2:end), ...
+%             ':ok')
+%         rho(i,1) = corr(log(fr_lfp.session(i).results.stm.vals(2:end))',...
+%             fr_lfp.session(i).results.stlfp.peak_stlfp(2:end)', 'type', 'Spearman');
+%         if ismember(i, 5)
+%             ylabel('peak stLFP amplitude (uV)')
+%         end
+%         if ismember(i, 10)
+%             xlabel('contrast')
+%         end
+%         title(fr_lfp.session(i).results.ntr)
+%         set(gca, 'XScale', 'log')
+%         set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
+% 
+%         % stLFP peak time vs co in each unit
+%         figure(2);
+%         subplot(2,5,c)
+%         plot(fr_lfp.session(i).results.stm.vals(2:end), ...
+%             fr_lfp.session(i).results.stlfp.t_peak_stlfp(2:end), ...
+%             ':ok')
+%         rho(i,2) = corr(log(fr_lfp.session(i).results.stm.vals(2:end))',...
+%             fr_lfp.session(i).results.stlfp.t_peak_stlfp(2:end)', 'type', 'Spearman');
+%         if ismember(i, 5)
+%             ylabel('time of peak stLFP (s)')
+%         end
+%         if ismember(i, 10)
+%             xlabel('contrast')
+%         end
+%         title(fr_lfp.session(i).results.ntr)
+%         set(gca, 'XScale', 'log')
+%         set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
 
         % fr vs co in each unit
         figure(3);
@@ -87,37 +87,39 @@ for i = 1:lens
         % LFP & stLFP traces
         lenstm = length(fr_lfp.session(i).results.stm.vals(2:end)); 
         col = jet(lenstm);
-        pl = cell(1,2);
+        pl = nan(1,lenstm);
         leg = cell(1, lenstm);
         for k = 1:lenstm
             figure(4);
             subplot(2,5,c)
-            pl{1}(k) = plot(fr_lfp.session(i).results.ts, ...
+            pl(k) = plot(fr_lfp.session(i).results.ts, ...
             fr_lfp.session(i).results.lfp_stm.mean(k+1,:), 'color', col(k,:));
             hold on;
-            figure(5);
-            subplot(2,5,c)
-            fill_between(-wnd:0.001:wnd, ...
-                fr_lfp.session(i).results.stlfp.avg_stlfp(k+1, :) - fr_lfp.session(i).results.stlfp.sem_stlfp(k+1, :), ...
-                fr_lfp.session(i).results.stlfp.avg_stlfp(k+1, :) + fr_lfp.session(i).results.stlfp.sem_stlfp(k+1, :), ...
-                col(k,:), 0.4)
-            hold on;
-            pl{2}(k) = plot(-wnd:0.001:wnd, fr_lfp.session(i).results.stlfp.avg_stlfp(k+1, :), '-', 'color', col(k,:));
-            leg{k} = ['co: ' num2str(fr_lfp.session(i).results.stm.vals(k+1))];
-            hold on;
+            for u = 1:3
+                figure(4+u);
+                subplot(2,5,c)
+                fill_between(-wnd:0.001:wnd, ...
+                    fr_lfp.session(i).results.period(u).stlfp.avg_stlfp(k+1, :) - fr_lfp.session(i).results.period(u).stlfp.sem_stlfp(k+1, :), ...
+                    fr_lfp.session(i).results.period(u).stlfp.avg_stlfp(k+1, :) + fr_lfp.session(i).results.period(u).stlfp.sem_stlfp(k+1, :), ...
+                    col(k,:), 0.4)
+                hold on;
+                plot(-wnd:0.001:wnd, fr_lfp.session(i).results.period(u).stlfp.avg_stlfp(k+1, :), '-', 'color', col(k,:));
+                leg{k} = ['co: ' num2str(fr_lfp.session(i).results.stm.vals(k+1))];
+                hold on;
+            end
         end
-        for ff = 4:5
+        for ff = 4:7
             figure(ff);
             subplot(2,5,c)
-            legend(pl{ff-3}, leg, 'location', 'southeast')
-            legend('boxoff')            
             title(fr_lfp.session(i).results.ntr)
             set(gca, 'box', 'off'); set(gca, 'TickDir', 'out')
             yy = get(gca, 'YLim');
             plot([0 0], yy, ':k')
             if ff==4
+                legend(pl, leg, 'location', 'southeast')
+                legend('boxoff')            
                 xlim([fr_lfp.session(i).results.ts(1) fr_lfp.session(i).results.ts(end)])
-            elseif ff==5
+            else
                 xlim([-wnd wnd])
             end
         end

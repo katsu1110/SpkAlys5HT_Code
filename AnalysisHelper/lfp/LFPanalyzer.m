@@ -28,6 +28,8 @@ if exinfo.isRC
     para.stimulus = 'rc';
 end
 para.drugname = exinfo.drugname;
+para.id = exinfo.id;
+para.monkey = exinfo.monkey;
 
 % load lfp data and preprocessing 
 % (POW, FREQ, LFP_prepro, LFP_prepro_time)

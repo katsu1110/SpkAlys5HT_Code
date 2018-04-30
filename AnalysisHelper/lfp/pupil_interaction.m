@@ -30,12 +30,25 @@ ex0 = loadCluster(fname, 'ocul', exinfo.ocul, 'loadlfp', false);
 % drug
 ex2 = loadCluster(fname_drug, 'ocul', exinfo.ocul, 'loadlfp', false);
 
+% remove fields in ex2 which ex0 does not possess
+nofields = {'framecnt','pa'};
+for i = 1:length(nofields)
+    ex2.Trials = rmfield(ex2.Trials, nofields{i});
+end
+
 % preprocess pupil data ----------------------------
 [ex0_sps, ex0_lps, ex0] = pupilSplit(ex0);
 [ex2_sps, ex2_lps, ex2] = pupilSplit(ex2);
 
 % reverse correlation analysis
 if exinfo.isRC
+    % replicate Corinna's findings (the effect of 5HT)
+    [stmMat, actMat] = ex4RCsub(ex0, 'or', 'Spikes');
+    psintr.rcsub_base.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
+    [stmMat, actMat] = ex4RCsub(ex2, 'or', 'Spikes');
+    psintr.rcsub_drug.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
+    m = max([psintr.rcsub_base.results.stm.peak]);
+    psintr.type2reg.drug = gmregress([psintr.rcsub_base.results.stm.peak]/m, [psintr.rcsub_drug.results.stm.peak]/m);
     for i = 1:4
         switch i
             case 1
@@ -56,11 +69,20 @@ if exinfo.isRC
         psintr.rcsub(i).label = labd;
         psintr.inter_table_lat(i) = psintr.rcsub(i).results.latency;
     end
-    % gain or additive change (normalized by large pupil max)
+    % the effect of PS
+    ex_sps = concatenate_ex(ex0_sps, ex2_sps);
+    [stmMat, actMat] = ex4RCsub(ex_sps, 'or', 'Spikes');
+    psintr.rcsub_sps.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
+    ex_lps = concatenate_ex(ex0_lps, ex2_lps);
+    [stmMat, actMat] = ex4RCsub(ex_lps, 'or', 'Spikes');
+    psintr.rcsub_lps.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
+    m = max([psintr.rcsub_lps.results.stm.peak]);
+    psintr.type2reg.ps = gmregress([psintr.rcsub_lps.results.stm.peak]/m, [psintr.rcsub_sps.results.stm.peak]/m);
+    % gain or additive change 
+    m = max([psintr.rcsub(3).results.stm.peak]);
+    psintr.type2reg.sps_drug = gmregress([psintr.rcsub(3).results.stm.peak]/m, [psintr.rcsub(1).results.stm.peak]/m);
     m = max([psintr.rcsub(4).results.stm.peak]);
-    psintr.type2reg.base = gmregress([psintr.rcsub(3).results.stm.peak]/m, [psintr.rcsub(1).results.stm.peak]/m);
-    m = max([psintr.rcsub(2).results.stm.peak]);
-    psintr.type2reg.drug = gmregress([psintr.rcsub(4).results.stm.peak]/m, [psintr.rcsub(2).results.stm.peak]/m);
+    psintr.type2reg.lps_drug = gmregress([psintr.rcsub(4).results.stm.peak]/m, [psintr.rcsub(2).results.stm.peak]/m);    
 end
 
 % trial number
@@ -269,3 +291,9 @@ for i = 1:size(mat,1)
         f = f - (mat(i,1)*log(mout(i)) - mout(i));
     end
 end
+
+function ex = concatenate_ex(ex0, ex1)
+ex = ex0;
+len0 = length(ex0.Trials);
+len1 = length(ex1.Trials);
+ex.Trials(len0+1:len0+len1) = ex1.Trials;

@@ -1,10 +1,9 @@
 function [spk, spkc] = getSpks(trials, wnd)
 % spikes within the stimulus presentation time
-% (automatically exclude the first 350ms)
 % INPUT: trials ... ex.Trials
 %              wnd ... [start, end] of analysis window
 
-% time offset for spikes (300ms after stimulus onset as default)
+% time offset for spikes (350ms after stimulus onset as default)
 if nargin<2; wnd = [0.35, 0]; end
 awnd_strt = wnd(1); %<- 350ms after stimulus onset (default)
 awnd_end = wnd(2); %<- 000ms before stimulus end (default)

@@ -105,7 +105,7 @@ end
 function [stlfp, spikes] = getstlfp4trial(trial, wnd)
 % lfp at spk +/- window wnd 
 
-spikes = getSpks(trial, [-0.2, 2]); % spikes within the stimulus presentation time
+spikes = getSpks(trial, [0.35, 0]); % spikes within the stimulus presentation time
 spikes = spikes{1};
 stlfp = nan(length(spikes), length(-wnd:1/1000:wnd));
 
