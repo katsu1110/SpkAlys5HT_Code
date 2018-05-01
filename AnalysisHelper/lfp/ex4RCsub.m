@@ -28,8 +28,8 @@ switch fieldname
         for n = 1:ntr
             trls(n).binvec = spk2vec(trls(n).Spikes, stmtime);
         end
-    case 'LFP_prepro'
-        stmtime = trls(1).([fieldname '_time']) > 0 & trls(1).([fieldname '_time']) <= ex.fix.duration;
+    case 'LFP_z'
+        stmtime = trls(1).(['LFP_prepro' '_time']) > 0 & trls(1).(['LFP_prepro' '_time']) <= ex.fix.duration;
         for n = 1:ntr
             trls(n).binvec = tcbin(trls(n).(fieldname)(stmtime), nframe);
         end
