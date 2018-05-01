@@ -31,9 +31,17 @@ ex0 = loadCluster(fname, 'ocul', exinfo.ocul, 'loadlfp', false);
 ex2 = loadCluster(fname_drug, 'ocul', exinfo.ocul, 'loadlfp', false);
 
 % remove fields in ex2 which ex0 does not possess
-nofields = {'framecnt','pa'};
-for i = 1:length(nofields)
-    ex2.Trials = rmfield(ex2.Trials, nofields{i});
+fields = fieldnames(ex2.Trials);
+for i = 1:length(fields)
+    if ~isfield(ex0.Trials, fields{i})
+        ex2.Trials = rmfield(ex2.Trials, fields{i});
+    end
+end
+fields = fieldnames(ex0.Trials);
+for i = 1:length(fields)
+    if ~isfield(ex2.Trials, fields{i})
+        ex0.Trials = rmfield(ex0.Trials, fields{i});
+    end
 end
 
 % preprocess pupil data ----------------------------
@@ -47,8 +55,10 @@ if exinfo.isRC
     psintr.rcsub_base.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
     [stmMat, actMat] = ex4RCsub(ex2, 'or', 'Spikes');
     psintr.rcsub_drug.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-    m = max([psintr.rcsub_base.results.stm.peak]);
-    psintr.type2reg.drug = gmregress([psintr.rcsub_base.results.stm.peak]/m, [psintr.rcsub_drug.results.stm.peak]/m);
+    xv = sqrt([psintr.rcsub_base.results.stm.peak]);
+    yv = sqrt([psintr.rcsub_drug.results.stm.peak]);
+    m = max(xv);
+    psintr.type2reg.drug = gmregress(xv/m, yv/m);
     for i = 1:4
         switch i
             case 1
@@ -76,13 +86,19 @@ if exinfo.isRC
     ex_lps = concatenate_ex(ex0_lps, ex2_lps);
     [stmMat, actMat] = ex4RCsub(ex_lps, 'or', 'Spikes');
     psintr.rcsub_lps.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-    m = max([psintr.rcsub_lps.results.stm.peak]);
-    psintr.type2reg.ps = gmregress([psintr.rcsub_lps.results.stm.peak]/m, [psintr.rcsub_sps.results.stm.peak]/m);
+    xv = sqrt([psintr.rcsub_lps.results.stm.peak]);
+    yv = sqrt([psintr.rcsub_sps.results.stm.peak]);
+    m = max(xv);
+    psintr.type2reg.ps = gmregress(xv/m, yv/m);
     % gain or additive change 
-    m = max([psintr.rcsub(3).results.stm.peak]);
-    psintr.type2reg.sps_drug = gmregress([psintr.rcsub(3).results.stm.peak]/m, [psintr.rcsub(1).results.stm.peak]/m);
-    m = max([psintr.rcsub(4).results.stm.peak]);
-    psintr.type2reg.lps_drug = gmregress([psintr.rcsub(4).results.stm.peak]/m, [psintr.rcsub(2).results.stm.peak]/m);    
+    xv = sqrt([psintr.rcsub(3).results.stm.peak]);
+    yv = sqrt([psintr.rcsub(1).results.stm.peak]);
+    m = max(xv);
+    psintr.type2reg.sps_drug = gmregress(xv/m, yv/m);
+    xv = sqrt([psintr.rcsub(4).results.stm.peak]);
+    yv = sqrt([psintr.rcsub(2).results.stm.peak]);
+    m = max(xv);
+    psintr.type2reg.lps_drug = gmregress(xv/m, yv/m);    
 end
 
 % trial number

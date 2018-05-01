@@ -11,20 +11,20 @@ switch psintr.drugname
     otherwise
         dcol = 'k';
 end
-name = {{'base', 'drug','drug'}, {'sps','lps','ps'}, {3,1,'sps_drug'},{4,2,'lps_drug'}};
+name = {{'base', 'drug','drug'}, {'lps','sps','ps'}, {3,1,'sps_drug'},{4,2,'lps_drug'}};
 yall = [];
 for i = 1:4    
     % tuning curve
     if i < 3
         xv1 = [psintr.(['rcsub_' name{i}{1}]).results.stm.val];
-        yv1 = [psintr.(['rcsub_' name{i}{1}]).results.stm.peak];
+        yv1 = sqrt([psintr.(['rcsub_' name{i}{1}]).results.stm.peak]);
         xv2 = [psintr.(['rcsub_' name{i}{2}]).results.stm.val];
-        yv2 = [psintr.(['rcsub_' name{i}{2}]).results.stm.peak];
+        yv2 = sqrt([psintr.(['rcsub_' name{i}{2}]).results.stm.peak]);
     else
         xv1 = [psintr.rcsub(name{i}{1}).results.stm.val];
-        yv1 = [psintr.rcsub(name{i}{1}).results.stm.peak];
+        yv1 = sqrt([psintr.rcsub(name{i}{1}).results.stm.peak]);
         xv2 = [psintr.rcsub(name{i}{2}).results.stm.val];
-        yv2 = [psintr.rcsub(name{i}{2}).results.stm.peak];
+        yv2 = sqrt([psintr.rcsub(name{i}{2}).results.stm.peak]);
     end
     yall = [yall, yv1, yv2];
     subplot(2,4,i)
