@@ -21,6 +21,10 @@ while j<=length(varargin)
 end
 
 %% load ex file
+if mean(ismember('gpfs0', cd))==1
+    fname = strrep(fname, '\', '/');
+    fname = strrep(fname, 'Z:/', '/gpfs01/nienborg/group/');
+end
 load(fname, 'ex');
 
 %% try to load the corresponding lfp file and add the signal to each Trial
