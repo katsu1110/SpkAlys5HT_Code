@@ -50,55 +50,8 @@ end
 
 % reverse correlation analysis
 if exinfo.isRC
-    % replicate Corinna's findings (the effect of 5HT)
-    [stmMat, actMat] = ex4RCsub(ex0, 'or', 'Spikes');
-    psintr.rcsub_base.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-    [stmMat, actMat] = ex4RCsub(ex2, 'or', 'Spikes');
-    psintr.rcsub_drug.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-    xv = sqrt([psintr.rcsub_base.results.stm.totalcounts]);
-    yv = sqrt([psintr.rcsub_drug.results.stm.totalcounts]);
-    m = max(xv);
-    psintr.type2reg.drug = gmregress(xv/m, yv/m);
-    for i = 1:4
-        switch i
-            case 1
-                exd = ex2_sps;
-                labd = ['pupil small, ' psintr.drugname];
-            case 2
-                exd = ex2_lps;
-                labd = ['pupil large, ' psintr.drugname];
-            case 3
-                exd = ex0_sps;
-                labd = 'pupil small, baseline';
-            case 4
-                exd = ex0_lps;
-                labd = 'pupil large, baseline';            
-        end               
-        [stmMat, actMat] = ex4RCsub(exd, 'or', 'Spikes');
-        psintr.rcsub(i).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-        psintr.rcsub(i).label = labd;
-        psintr.inter_table_lat(i) = psintr.rcsub(i).results.latency;
-    end
-    % the effect of PS
-    ex_sps = concatenate_ex(ex0_sps, ex2_sps);
-    [stmMat, actMat] = ex4RCsub(ex_sps, 'or', 'Spikes');
-    psintr.rcsub_sps.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-    ex_lps = concatenate_ex(ex0_lps, ex2_lps);
-    [stmMat, actMat] = ex4RCsub(ex_lps, 'or', 'Spikes');
-    psintr.rcsub_lps.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-    xv = sqrt([psintr.rcsub_lps.results.stm.totalcounts]);
-    yv = sqrt([psintr.rcsub_sps.results.stm.totalcounts]);
-    m = max(xv);
-    psintr.type2reg.ps = gmregress(xv/m, yv/m);
-    % gain or additive change 
-    xv = sqrt([psintr.rcsub(3).results.stm.totalcounts]);
-    yv = sqrt([psintr.rcsub(1).results.stm.totalcounts]);
-    m = max(xv);
-    psintr.type2reg.sps_drug = gmregress(xv/m, yv/m);
-    xv = sqrt([psintr.rcsub(4).results.stm.totalcounts]);
-    yv = sqrt([psintr.rcsub(2).results.stm.totalcounts]);
-    m = max(xv);
-    psintr.type2reg.lps_drug = gmregress(xv/m, yv/m);    
+    psintr.rc = RC_PS(ex0, ex2, ex0_sps, ex0_lps, ...
+        ex2_sps, ex2_lps, {'Spikes'}, psintr.drugname);
 end
 
 % trial number
@@ -307,9 +260,3 @@ for i = 1:size(mat,1)
         f = f - (mat(i,1)*log(mout(i)) - mout(i));
     end
 end
-
-function ex = concatenate_ex(ex0, ex1)
-ex = ex0;
-len0 = length(ex0.Trials);
-len1 = length(ex1.Trials);
-ex.Trials(len0+1:len0+len1) = ex1.Trials;

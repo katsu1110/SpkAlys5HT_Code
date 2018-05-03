@@ -5,7 +5,6 @@ function [pslfp] = pupil_lfp(exinfo)
 
 %%
 % structure initialization
-pslfp.pupil_timecourse = [];
 pslfp.drugname = exinfo.drugname;
 
 % load data ---------------------------------
@@ -41,59 +40,10 @@ end
 [ex2_sps, ex2_lps, ex2] = pupilSplit(ex2);
 
 % reverse correlation analysis
-fields = {'LFP_z','lfp_delta_tc','lfp_theta_tc','lfp_alpha_tc','lfp_beta_tc','lfp_gamma_tc'};
 if exinfo.isRC
-    for f = 1:length(fields)
-        for i = 1:4
-            % replicate Corinna's findings (the effect of 5HT)
-            [stmMat, actMat] = ex4RCsub(ex0, 'or', fields{f});
-            pslfp.rcsub_base(f).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-            [stmMat, actMat] = ex4RCsub(ex2, 'or', fields{f});
-            pslfp.rcsub_drug(f).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-            xv = sqrt([pslfp.rcsub_base(f).results.stm.totalcounts]);
-            yv = sqrt([pslfp.rcsub_drug(f).results.stm.totalcounts]);
-            m = max(xv);
-            pslfp.type2reg(f).drug = gmregress(xv/m, yv/m);
-            switch i
-                case 1
-                    exd = ex2_sps;
-                    labd = ['pupil small, ' pslfp.drugname];
-                case 2
-                    exd = ex2_lps;
-                    labd = ['pupil large, ' pslfp.drugname];
-                case 3
-                    exd = ex0_sps;
-                    labd = 'pupil small, baseline';
-                case 4
-                    exd = ex0_lps;
-                    labd = 'pupil large, baseline';            
-            end               
-            [stmMat, actMat] = ex4RCsub(exd, 'or', fields{f});
-            pslfp.rcsub(f).each(i).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-            pslfp.rcsub(f).each(i).label = labd;
-            pslfp.latency(f).inter_table(i) = pslfp.rcsub(f).each(i).results.latency;
-        end
-        % the effect of PS
-        ex_sps = concatenate_ex(ex0_sps, ex2_sps);
-        [stmMat, actMat] = ex4RCsub(ex_sps, 'or', fields{f});
-        pslfp.rcsub_sps(f).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-        ex_lps = concatenate_ex(ex0_lps, ex2_lps);
-        [stmMat, actMat] = ex4RCsub(ex_lps, 'or', fields{f});
-        pslfp.rcsub_lps(f).results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-        xv = sqrt([pslfp.rcsub_lps(f).results.stm.totalcounts]);
-        yv = sqrt([pslfp.rcsub_sps(f).results.stm.totalcounts]);
-        m = max(xv);
-        pslfp.type2reg(f).ps = gmregress(xv/m, yv/m);
-        % gain or additive change 
-        xv = sqrt([pslfp.rcsub(f).each(3).results.stm.totalcounts]);
-        yv = sqrt([pslfp.rcsub(f).each(1).results.stm.totalcounts]);
-        m = max(xv);
-        pslfp.type2reg(f).sps_drug = gmregress(xv/m, yv/m);
-        xv = sqrt([pslfp.rcsub(f).each(4).results.stm.totalcounts]);
-        yv = sqrt([pslfp.rcsub(f).each(2).results.stm.totalcounts]);
-        m = max(xv);
-        pslfp.type2reg(f).lps_drug = gmregress(xv/m, yv/m);    
-    end
+    fields = {'LFP_z','lfp_delta_tc','lfp_theta_tc','lfp_alpha_tc','lfp_beta_tc','lfp_gamma_tc'};
+    pslfp.rc = RC_PS(ex0, ex2, ex0_sps, ex0_lps, ...
+        ex2_sps, ex2_lps, fields, pslfp.drugname);
 end
 
 % I think just correlating ps and a bunch of LFP metrices is too naive to
@@ -229,9 +179,3 @@ end
 %     pslfp.interaction(i).table = pslfp.interaction(i).table/...
 %         mean(mean(pslfp.interaction(i).table));
 % end
-
-function ex = concatenate_ex(ex0, ex1)
-ex = ex0;
-len0 = length(ex0.Trials);
-len1 = length(ex1.Trials);
-ex.Trials(len0+1:len0+len1) = ex1.Trials;

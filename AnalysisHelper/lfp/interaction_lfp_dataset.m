@@ -5,7 +5,7 @@ function interaction_lfp_dataset
 if mean(ismember('gpfs0', cd))==1
     load('/gpfs01/nienborg/group/Katsuhisa/serotonin_project/LFP_project/Data/rcdat.mat') 
     addpath(genpath('/gpfs01/nienborg/group/Katsuhisa/code/integrated/katsuhisa_analysis'))
-    addpath(genpath('/gpfs01/nienborg/group/Katsuhisa/serotonin_project/spkAlys5HT_Code'))
+    addpath(genpath('/gpfs01/nienborg/group/Katsuhisa/serotonin_project'))
     addpath(genpath('/gpfs01/nienborg/group/Katsuhisa/code/integrated/matlab_usefulfunc'))
 else
    load('Z:\Katsuhisa\serotonin_project\LFP_project\Data\rcdat.mat') 
