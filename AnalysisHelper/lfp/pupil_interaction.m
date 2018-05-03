@@ -55,8 +55,8 @@ if exinfo.isRC
     psintr.rcsub_base.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
     [stmMat, actMat] = ex4RCsub(ex2, 'or', 'Spikes');
     psintr.rcsub_drug.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-    xv = sqrt([psintr.rcsub_base.results.stm.peak]);
-    yv = sqrt([psintr.rcsub_drug.results.stm.peak]);
+    xv = sqrt([psintr.rcsub_base.results.stm.totalcounts]);
+    yv = sqrt([psintr.rcsub_drug.results.stm.totalcounts]);
     m = max(xv);
     psintr.type2reg.drug = gmregress(xv/m, yv/m);
     for i = 1:4
@@ -86,17 +86,17 @@ if exinfo.isRC
     ex_lps = concatenate_ex(ex0_lps, ex2_lps);
     [stmMat, actMat] = ex4RCsub(ex_lps, 'or', 'Spikes');
     psintr.rcsub_lps.results = reverse_corr_subspace(stmMat, actMat, 300, 100, 0);
-    xv = sqrt([psintr.rcsub_lps.results.stm.peak]);
-    yv = sqrt([psintr.rcsub_sps.results.stm.peak]);
+    xv = sqrt([psintr.rcsub_lps.results.stm.totalcounts]);
+    yv = sqrt([psintr.rcsub_sps.results.stm.totalcounts]);
     m = max(xv);
     psintr.type2reg.ps = gmregress(xv/m, yv/m);
     % gain or additive change 
-    xv = sqrt([psintr.rcsub(3).results.stm.peak]);
-    yv = sqrt([psintr.rcsub(1).results.stm.peak]);
+    xv = sqrt([psintr.rcsub(3).results.stm.totalcounts]);
+    yv = sqrt([psintr.rcsub(1).results.stm.totalcounts]);
     m = max(xv);
     psintr.type2reg.sps_drug = gmregress(xv/m, yv/m);
-    xv = sqrt([psintr.rcsub(4).results.stm.peak]);
-    yv = sqrt([psintr.rcsub(2).results.stm.peak]);
+    xv = sqrt([psintr.rcsub(4).results.stm.totalcounts]);
+    yv = sqrt([psintr.rcsub(2).results.stm.totalcounts]);
     m = max(xv);
     psintr.type2reg.lps_drug = gmregress(xv/m, yv/m);    
 end

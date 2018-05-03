@@ -4,9 +4,9 @@ function plotHMM_dataset
 %%
 % load data
 if mean(ismember('gpfs0', cd))==1
-    load('/gpfs01/nienborg/group/Katsuhisa/serotonin_project/LFP_project/Data/hmms.mat') 
+    load('/gpfs01/nienborg/group/Katsuhisa/serotonin_project/LFP_project/Data/hmms10.mat') 
 else
-   load('Z:\Katsuhisa\serotonin_project\LFP_project\Data\hmms20.mat')
+   load('Z:\Katsuhisa\serotonin_project\LFP_project\Data\hmms10.mat')
 end
 
 disp(['the number of original sessions: ' num2str(length(hmms.session))])

@@ -14,9 +14,16 @@ for i = 1:lenb
 end
 
 % assign each trial
-for i = 1:length(ex.Trials)
-    for u = 1:3
-        for b = 1:lenb
+for i = 1:length(ex.Trials)    
+    for b = 1:lenb
+        % all
+        ex.Trials(i).(['lfp_' bands{b} '_tc']) = ...
+                filtfilt(filters.(bands{b}).b, filters.(bands{b}).a, ex.Trials(i).LFP_z);
+        freq = ex.Trials(i).FREQ;
+        ex.Trials(i).(['lfp_' bands{b} '_pow']) = ...
+            mean(ex.Trials(i).POW(freq >= range{b}(1) & freq <= range{b}(2)));
+        % baseline, stimulus evoked, sustained
+        for u = 1:3
             ex.Trials(i).period(u).(['lfp_' bands{b} '_tc']) = ...
                 filtfilt(filters.(bands{b}).b, filters.(bands{b}).a, ex.Trials(i).period(u).LFP_z);
             freq = ex.Trials(i).period(u).FREQ;
